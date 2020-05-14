@@ -1,12 +1,15 @@
 "use strict"
 
+const system = require('system');
+
 const { create: createWebpage } = require('webpage');
 const { getWrappedWindow, wait } = require('analyzer/utils');
 const WindowEvents = require('analyzer/window-events');
 
 class HeadlessBot {
-    constructor() {
+    constructor(printPageErrors=false) {
         this.webpage = createWebpage();
+        this.printPageErrors = printPageErrors;
 
         this.webpage.onConsoleMessage = msg => console.log('webpage> ' + msg);
 
@@ -33,6 +36,16 @@ class HeadlessBot {
                 this.notifyAllRequestsAreDone();
             }
         }
+
+        this.webpage.onError = (message, stack) => {
+            if (this.printPageErrors) {
+                system.stderr.write(
+                    "JavaScript error: " + message + '\nStack:\n' +
+                    formatStack(stack) + '\n'
+                );
+            }
+        };
+
     }
 
     async navigate(url) {
