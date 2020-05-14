@@ -1,3 +1,5 @@
+"use strict"
+
 const system = require('system');
 
 const { parse } = require('analyzer/parser');
