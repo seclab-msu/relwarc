@@ -6,12 +6,16 @@ const { create: createWebpage } = require('webpage');
 const { getWrappedWindow, wait } = require('analyzer/utils');
 const WindowEvents = require('analyzer/window-events');
 
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
+
 class HeadlessBot {
     constructor(printPageErrors=false) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
 
         this.webpage.onConsoleMessage = msg => console.log('webpage> ' + msg);
+
+        this.webpage.settings.userAgent = USER_AGENT;
 
         this.onWindowCreated = null;
         this.pendingRequestCount = 0;
