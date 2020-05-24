@@ -4,18 +4,7 @@ declare const slimer: any;
 
 import { WebsocketClient } from 'analyzer/websocket-client';
 import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
-
-function makeCallbackPromise(): [Promise<unknown>, () => void] {
-    let doneCallback: undefined | (() => void);
-
-    const p = new Promise(resolve => {doneCallback = resolve});
-
-    if (typeof doneCallback === 'undefined') {
-        throw new Error('Callback should have been set by Promise init');
-    }
-
-    return [p, doneCallback];
-}
+import { makeCallbackPromise } from 'analyzer/utils';
 
 async function main(argc: number, argv: string[]): Promise<number> {
     if (argc < 2) {
