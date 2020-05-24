@@ -1,5 +1,5 @@
 import { Analyzer } from 'analyzer/analyzer';
-import * as HeadlessBot from 'analyzer/headless-bot';
+import { HeadlessBot } from 'analyzer/headless-bot';
 
 export class DynamicPageAnalyzer {
     readonly analyzer: Analyzer;
