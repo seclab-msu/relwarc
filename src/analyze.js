@@ -3,37 +3,19 @@
 
 const system = require('system');
 
-const { parse } = require('analyzer/parser');
-const WebsocketClient = require('analyzer/websocket-client');
-
 const { DynamicPageAnalyzer } = require('analyzer/dynamic-page-analyzer');
-
 
 async function main(argc, argv) {
     if (argc < 2) {
-        system.stderr.write('Usage: ' + argv[0] + ' <websocket controller url>\n');
+        system.stderr.write('Usage: ' + argv[0] + ' <target url>\n');
         return 1;
     }
 
-    const ws = new WebsocketClient();
+    const targetURL = argv[1];
+
     const analyzer = new DynamicPageAnalyzer();
 
-    let doneCallback;
-
-    const done = new Promise(resolve => {doneCallback = resolve});
-
-    ws.on('navigate', async url => {
-        await analyzer.run(url);
-        for (const ast of analyzer.analyzer.scripts) {
-            ws.emit('ast', ast);
-        }
-        ws.emit('done')
-    });
-
-    ws.on('exit', doneCallback);
-
-    await ws.connect(argv[1]);
-    await done;
+    await analyzer.run(targetURL);
 }
 
 (async () => {
