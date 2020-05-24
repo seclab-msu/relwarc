@@ -1,13 +1,23 @@
-"use strict"
-
-
 const system = require('system');
 
-const WebsocketClient = require('analyzer/websocket-client');
-const { DynamicPageAnalyzer } = require('analyzer/dynamic-page-analyzer');
+declare const slimer: any;
 
+import { WebsocketClient } from 'analyzer/websocket-client';
+import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
 
-async function main(argc, argv) {
+function makeCallbackPromise(): [Promise<unknown>, () => void] {
+    let doneCallback: undefined | (() => void);
+
+    const p = new Promise(resolve => {doneCallback = resolve});
+
+    if (typeof doneCallback === 'undefined') {
+        throw new Error('Callback should have been set by Promise init');
+    }
+
+    return [p, doneCallback];
+}
+
+async function main(argc: number, argv: string[]): Promise<number> {
     if (argc < 2) {
         system.stderr.write('Usage: ' + argv[0] + ' <websocket controller url>\n');
         return 1;
@@ -16,9 +26,11 @@ async function main(argc, argv) {
     const ws = new WebsocketClient();
     const analyzer = new DynamicPageAnalyzer();
 
-    let doneCallback;
+    const [done, doneCallback] = makeCallbackPromise();
 
-    const done = new Promise(resolve => {doneCallback = resolve});
+    if (typeof doneCallback === 'undefined') {
+        throw new Error()
+    }
 
     ws.on('navigate', async url => {
         await analyzer.run(url);
@@ -32,6 +44,8 @@ async function main(argc, argv) {
 
     await ws.connect(argv[1]);
     await done;
+
+    return 0;
 }
 
 (async () => {

@@ -1,11 +1,11 @@
-"use strict"
-
-
 const system = require('system');
 
-const { DynamicPageAnalyzer } = require('analyzer/dynamic-page-analyzer');
+declare const slimer: any;
 
-async function main(argc, argv) {
+import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
+
+
+async function main(argc: number, argv: string[]): Promise<number> {
     if (argc < 2) {
         system.stderr.write('Usage: ' + argv[0] + ' <target url>\n');
         return 1;
@@ -16,10 +16,12 @@ async function main(argc, argv) {
     const analyzer = new DynamicPageAnalyzer();
 
     await analyzer.run(targetURL);
+
+    return 0;
 }
 
 (async () => {
-    let exitStatus;
+    let exitStatus: number;
 
     try {
         exitStatus = await main(system.args.length, system.args);
