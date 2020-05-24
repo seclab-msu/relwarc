@@ -1,28 +1,13 @@
 "use strict"
 
+
 const system = require('system');
 
 const { parse } = require('analyzer/parser');
 const WebsocketClient = require('analyzer/websocket-client');
-const HeadlessBot = require('analyzer/headless-bot');
 
-require('analyzer/debugger').addDebuggerToGlobal(this);
+const { DynamicPageAnalyzer } = require('analyzer/dynamic-page-analyzer');
 
-class Analyzer {
-    constructor(ws) {
-        this.ws = ws;
-    }
-    attachDebugger(win, doc) {
-        const dbg = new Debugger(win);
-
-        dbg.onNewScript = (script, global) => {
-            this.ws.emit(
-                "ast",
-                parse(script.source.text, {loc: false})
-            );
-        }
-    }
-}
 
 async function main(argc, argv) {
     if (argc < 2) {
@@ -31,17 +16,17 @@ async function main(argc, argv) {
     }
 
     const ws = new WebsocketClient();
-    const analyzer = new Analyzer(ws);
-    const bot = new HeadlessBot();
-
-    bot.onWindowCreated = analyzer.attachDebugger.bind(analyzer);
+    const analyzer = new DynamicPageAnalyzer();
 
     let doneCallback;
 
     const done = new Promise(resolve => {doneCallback = resolve});
 
     ws.on('navigate', async url => {
-        await bot.navigate(url);
+        await analyzer.run(url);
+        for (const ast of analyzer.analyzer.scripts) {
+            ws.emit('ast', ast);
+        }
         ws.emit('done')
     });
 
