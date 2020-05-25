@@ -33,9 +33,5 @@ export function makeCallbackPromise(): [Promise<unknown>, () => void] {
 
     const p = new Promise(resolve => {doneCallback = resolve});
 
-    if (typeof doneCallback === 'undefined') {
-        throw new Error('Callback should have been set by Promise init');
-    }
-
-    return [p, doneCallback];
+    return [p, doneCallback as (() => void)];
 }

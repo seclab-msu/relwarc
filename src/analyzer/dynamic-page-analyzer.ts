@@ -6,12 +6,13 @@ export class DynamicPageAnalyzer {
     readonly bot: HeadlessBot;
 
     constructor() {
-        this.analyzer = new Analyzer();
-        this.bot = new HeadlessBot();
+        const analyzer = new Analyzer();
+        const bot = new HeadlessBot();
 
-        this.bot.onWindowCreated = (win: object) => {
-            this.analyzer.attachDebugger(win);
-        }
+        bot.onWindowCreated = analyzer.attachDebugger.bind(analyzer);
+
+        this.analyzer = analyzer;
+        this.bot = bot;
     }
 
     async run(url: string) {

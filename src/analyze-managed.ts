@@ -17,10 +17,6 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const [done, doneCallback] = makeCallbackPromise();
 
-    if (typeof doneCallback === 'undefined') {
-        throw new Error()
-    }
-
     ws.on('navigate', async url => {
         await analyzer.run(url);
         for (const ast of analyzer.analyzer.scripts) {
