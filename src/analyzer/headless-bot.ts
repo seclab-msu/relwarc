@@ -78,5 +78,3 @@ export class HeadlessBot {
         await allRequestsAreDone;
     }
 }
-
-module.exports = HeadlessBot;
