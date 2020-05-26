@@ -17,11 +17,13 @@ export class HeadlessBot {
     private pendingRequestCount: number;
     private notifyAllRequestsAreDone: null | (() => void);
 
-    constructor(printPageErrors:boolean=false) {
+    constructor(printPageErrors:boolean=false, printPageConsoleLog:boolean=true) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
 
-        this.webpage.onConsoleMessage = msg => console.log('webpage> ' + msg);
+        if (printPageConsoleLog) {
+            this.webpage.onConsoleMessage = msg => console.log('webpage> ' + msg);
+        }
 
         this.webpage.settings.userAgent = USER_AGENT;
 

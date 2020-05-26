@@ -7,7 +7,7 @@ export class DynamicPageAnalyzer {
 
     constructor() {
         const analyzer = new Analyzer();
-        const bot = new HeadlessBot();
+        const bot = new HeadlessBot(false, false);
 
         bot.onWindowCreated = analyzer.attachDebugger.bind(analyzer);
 
