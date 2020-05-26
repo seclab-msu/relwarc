@@ -17,5 +17,6 @@ export class DynamicPageAnalyzer {
 
     async run(url: string) {
         await this.bot.navigate(url);
+        this.analyzer.analyze(url);
     }
 }

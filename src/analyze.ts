@@ -17,6 +17,15 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     await analyzer.run(targetURL);
 
+    if (argv.includes('--args')) {
+        for (const result of analyzer.analyzer.results) {
+            console.log(JSON.stringify(result, null, 4));
+        }
+    } else {
+        // hars
+        console.log(JSON.stringify(analyzer.analyzer.hars, null, 4));
+    }
+
     return 0;
 }
 
