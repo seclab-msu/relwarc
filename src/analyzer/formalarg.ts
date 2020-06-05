@@ -1,6 +1,10 @@
-import {UNKNOWN, isUnknown} from 'analyzer/unknownvalues';
+import {Unknown, isUnknown, UNKNOWN} from 'analyzer/unknownvalues';
 
-export const FROM_ARG = Object.create(UNKNOWN, {tag: {value: 'FROM_ARG'}});
+class FromArg extends Unknown {
+    readonly tag: string = 'FROM_ARG';
+}
+
+export const FROM_ARG = new FromArg();
 
 export function extractFormalArgs(val): [any, boolean] {
     if (val === FROM_ARG) {
@@ -8,6 +12,9 @@ export function extractFormalArgs(val): [any, boolean] {
     }
     if (typeof val === 'string' && val.indexOf('FROM_ARG') !== -1) {
         return [val.replace(/FROM_ARG/g, 'UNKNOWN'), true];
+    }
+    if (val === null) {
+        return [val, false];
     }
     if (typeof val !== 'object' || isUnknown(val)) {
         return [val, false];
