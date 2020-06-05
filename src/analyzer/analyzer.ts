@@ -99,7 +99,6 @@ export class Analyzer {
     private callChain: FunctionCallDescription[];
     private callChainPosition: number;
     private selectedFunction: FunctionDescription | null;
-    private localsStack: VarScope[];
     private formalArgs: string[];
     private currentBody: ASTNode | null;
 
@@ -122,7 +121,6 @@ export class Analyzer {
         this.scripts = new Set();
 
         this.globalDefinitions = { undefined };
-        this.localsStack = [];
         this.argsStack = [];
         this.formalArgs = [];
         this.formalArgValues = {};
@@ -344,15 +342,7 @@ export class Analyzer {
                 return UNKNOWN_FUNCTION;
             }
         }
-        /*
-        if (this.localsStack.length > 0) {
-            for (let i = this.localsStack.length - 1; i >= 0; i--) {
-                let scope = this.localsStack[i];
-                if (scope.hasOwnProperty(name)) {
-                    return scope[name];
-                }
-            }
-        }*/
+
         let formalArgs: string[] = this.formalArgs;
 
         if (this.argsStackOffset !== null) {
@@ -611,11 +601,9 @@ export class Analyzer {
         this.functionsStack.length = 0;
         this.stage = AnalysisPhase.DEPExtracting;
         if (funcInfo !== null) {
-            this.localsStack = [{}];
             this.formalArgs = funcInfo.args;
             this.currentBody = ast;
         } else {
-            this.localsStack = [];
             this.formalArgs = [];
             this.currentBody = null;
         }
@@ -625,18 +613,13 @@ export class Analyzer {
                 const node = path.node;
                 this.currentPath = path;
                 if (~FUNCTION_DECLARATIONS.indexOf(node.type)) {
-                    //this.localsStack.push({});
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
                 }
-                //
-                //if (node.type === 'VariableDeclarator' && node.init) {
-                //    if (this.localsStack.length > 0) {
-                //        //console.log('add var ' + node.id.name + ' ' + JSON.stringify(node.init));
-                //        this.localsStack[this.localsStack.length - 1][node.id.name] = this.valueFromASTNode(node.init);
-                //    }
-                //}
+                if (node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
+                    this.setVariable(path);
+                }
 
                 if (node.type !== 'CallExpression') {
                     return;
@@ -690,7 +673,6 @@ export class Analyzer {
             },
             exit: (path) => {
                 if (~FUNCTION_DECLARATIONS.indexOf(path.node.type)) {
-                    //this.localsStack.pop();
                     this.argsStack.pop();
                     this.functionsStack.pop();
                 }
