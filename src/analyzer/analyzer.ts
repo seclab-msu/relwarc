@@ -218,31 +218,6 @@ export class Analyzer {
         });
     }
 
-    extractGlobalDefinitions(ast: ASTNode) {
-        babel.traverse(ast, {
-            enter: (path) => {
-                const node = path.node;
-                if (~FUNCTION_DECLARATIONS.indexOf(node.type)) {
-                    path.skip();
-                    return;
-                }
-                if (node.type === 'ForStatement') {
-                    path.skip();
-                    return;
-                }
-            },
-            exit: (path) => {
-                const node = path.node;
-                if (node.type === 'VariableDeclarator' && node.init) {
-                    this.globalDefinitions[node.id.name] = this.valueFromASTNode(node.init);
-                }
-                if (node.type === 'AssignmentExpression' && node.left.type === 'Identifier') {
-                    this.globalDefinitions[node.left.name] = this.valueFromASTNode(node.right);
-                }
-            }
-        });
-    }
-
     processFunctionCall(node: ASTNode) {
         const callee = node.callee;
         const encoders = {escape, encodeURIComponent, encodeURI};
