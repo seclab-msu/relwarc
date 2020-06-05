@@ -47,6 +47,8 @@ const signatures = {
     }
 };
 
+const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
+
 type VarScope = {[varName: string]: any; };
 
 enum CallConfigType {
@@ -188,7 +190,65 @@ export class Analyzer {
         } else {
             this.globalDefinitions[name] = value;
         }
+    }
 
+    private shouldSetObjectProperty(name: string, value: any): boolean {
+        // try to avoid problems with some special properties
+        // TODO: reconsider
+        if (SPECIAL_PROP_NAMES.includes(name)) {
+            return false;
+        }
+        if (name === 'length' && isUnknown(value)) {
+            return false;
+        }
+        return true;
+    }
+
+    private setObjectProperty(node, value) {
+        const prop = node.property;
+        let propName;
+
+        if (node.computed) {
+            propName = this.valueFromASTNode(prop);
+        } else {
+            propName = prop.name;
+        }
+
+        if (typeof propName === 'undefined' || propName === null || isUnknown(propName)) {
+            return;
+        }
+
+        if (!this.shouldSetObjectProperty(propName, value)) {
+            return;
+        }
+
+        const ob = this.valueFromASTNode(node.object);
+
+        if (ob && typeof ob === 'object' && !isUnknown(ob)) {
+            ob[propName] = value;
+        }
+
+    }
+
+    private setVariable(path) {
+        const node = path.node;
+        const type = node.type;
+        if (type === 'VariableDeclarator' && node.init) {
+            const binding = path.scope.getBinding(node.id.name);
+            const value = this.valueFromASTNode(node.init);
+            this.memory.set(binding, value);
+            if (value instanceof FunctionValue) {
+                this.addFunctionBinding(value.ast, binding);
+            }
+        } else if (type === 'AssignmentExpression') {
+            const value = this.valueFromASTNode(node.right);
+            if (node.left.type === 'Identifier') {
+                const binding = path.scope.getBinding(node.left.name);
+                this.setVariableIfNotLessConcrete(binding, node.left.name, value);
+            } else if (node.left.type === 'MemberExpression') {
+                this.setObjectProperty(node.left, value)
+            }
+        }
     }
 
     private gatherVariableValues() {
@@ -197,17 +257,8 @@ export class Analyzer {
             exit: (path) => {
                 this.currentPath = path;
                 const node = path.node;
-                if (node.type === 'VariableDeclarator' && node.init) {
-                    const binding = path.scope.getBinding(node.id.name);
-                    const value = this.valueFromASTNode(node.init);
-                    this.memory.set(binding, value);
-                    if (value instanceof FunctionValue) {
-                        this.addFunctionBinding(value.ast, binding);
-                    }
-                } else if (node.type === 'AssignmentExpression' && node.left.type === 'Identifier') {
-                    const binding = path.scope.getBinding(node.left.name);
-                    const value = this.valueFromASTNode(node.right);
-                    this.setVariableIfNotLessConcrete(binding, node.left.name, value);
+                if (node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
+                    this.setVariable(path);
                 } else if (node.type === 'FunctionDeclaration') {
                     const binding = path.scope.getBinding(node.id.name);
 
