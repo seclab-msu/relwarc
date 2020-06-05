@@ -27,7 +27,7 @@ export class WebsocketClient {
         });
     }
 
-    emit(messageType: string, messageData: any = undefined) {
+    emit(messageType: string, messageData?: any) {
         if (this.socket) {
             this.socket.send(JSON.stringify({
                 'type': messageType,
@@ -52,7 +52,7 @@ export class WebsocketClient {
         }
     }
 
-    on(eventType: string, callback: (any) => void) {
+    on(eventType: string, callback: (event: any) => void) {
         this.callbacks[eventType] = callback;
     }
 }
