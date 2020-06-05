@@ -1,20 +1,20 @@
 const system = require('system');
 
-import * as babel from 'analyzer/vendor/babel';
+import * as babel from './vendor/babel';
 
 import {
     UNKNOWN,
     UNKNOWN_FUNCTION,
     UNKNOWN_FROM_FUNCTION,
     isUnknown
-} from 'analyzer/unknownvalues';
+} from './unknownvalues';
 
-import {FROM_ARG, extractFormalArgs} from 'analyzer/formalarg';
+import {FROM_ARG, extractFormalArgs} from './formalarg';
 
-import { makeHAR } from 'analyzer/make-hars';
+import { makeHAR } from './make-hars';
 
 declare const Debugger: any;
-require('analyzer/debugger').addDebuggerToGlobal(this);
+require('./debugger').addDebuggerToGlobal(this);
 
 type ASTNode = any;
 
@@ -49,16 +49,38 @@ const signatures = {
 
 type VarScope = {[varName: string]: any; };
 
-interface FunctionDescription {
-    type: string;
-    args: string[];
-    code: ASTNode;
-    name?: string | null;
+enum CallConfigType {
+    Function,
+    Global
 }
 
-interface CallQueueElem {
-    func: FunctionDescription;
-    chain: FunctionDescription[];
+interface FunctionDescription {
+    type: CallConfigType;
+    args: string[];
+    code: ASTNode;
+}
+
+interface FunctionCallDescription extends FunctionDescription {
+    binding: any;
+}
+
+interface CallConfig {
+    func: any;
+    chain: FunctionCallDescription[];
+}
+
+enum AnalysisPhase {
+    VarGathering,
+    DEPExtracting
+}
+
+
+class FunctionValue {
+    ast: ASTNode;
+
+    constructor(ast: ASTNode) {
+        this.ast = ast;
+    }
 }
 
 export class Analyzer {
@@ -68,19 +90,27 @@ export class Analyzer {
     readonly hars: any[];
 
     private readonly globalDefinitions: VarScope;
-    private readonly argsStack: string[];
+    private readonly argsStack: string[][];
     private readonly formalArgValues: VarScope;
-    private readonly topLevelFunctions: FunctionDescription[];
-    private readonly callQueue: CallQueueElem[];
+    private readonly callQueue: CallConfig[];
 
-    private functionName: string | null;
-    private callChain: FunctionDescription[];
+    private callChain: FunctionCallDescription[];
     private callChainPosition: number;
-    private originalCallee: FunctionDescription | null;
+    private selectedFunction: FunctionDescription | null;
     private localsStack: VarScope[];
     private formalArgs: string[];
     private currentBody: ASTNode | null;
 
+    private readonly functionsStack: any[];
+    private mergedProgram: ASTNode;
+
+    private readonly memory: WeakMap<any, any>;
+    private readonly functions: WeakMap<any, any>;
+    private readonly functionToBinding: WeakMap<ASTNode, any[]>;
+
+    private currentPath: any;
+
+    private stage: AnalysisPhase | null;
 
     constructor() {
         this.parsedScripts = [];
@@ -93,14 +123,21 @@ export class Analyzer {
         this.formalArgs = [];
         this.formalArgValues = {};
 
-        this.topLevelFunctions = [];
-        this.functionName = null;
         this.callQueue = [];
         this.callChain = [];
         this.callChainPosition = 0;
-        this.originalCallee = null;
 
         this.hars = [];
+
+        this.functionsStack = [];
+
+        this.memory = new WeakMap();
+        this.functions = new WeakMap();
+        this.functionToBinding = new WeakMap();
+
+        this.currentPath = null;
+        this.stage = null;
+        this.selectedFunction = null;
     }
     attachDebugger(win: object): void {
         const dbg = new Debugger(win);
@@ -114,6 +151,70 @@ export class Analyzer {
             this.scripts.add(text);
         }
     }
+
+    private addFunctionBinding(funcAST: ASTNode, binding: any) {
+        if (this.functionToBinding.has(funcAST)) {
+            const already = <any[]>this.functionToBinding.get(funcAST);
+            already.push(binding);
+        } else {
+            this.functionToBinding.set(funcAST, [binding]);
+        }
+    }
+
+    private setVariableIfNotLessConcrete(binding, name: string, value) {
+        let isGlobal: boolean = false;
+
+        if (typeof binding === 'undefined') {
+            isGlobal = true;
+        }
+
+        // do not handle assignments for local variables. Humanity is not ready for it yet
+        if (!isGlobal) return;
+
+        if (isUnknown(value)) {
+            if (!isGlobal && this.memory.has(binding) && !isUnknown(this.memory.get(binding))) {
+                return
+            }
+            if (isGlobal && this.globalDefinitions.hasOwnProperty(name) && !isUnknown(this.globalDefinitions[name])) {
+                return
+            }
+        }
+
+        if (!isGlobal) {
+            this.memory.set(binding, value);
+        } else {
+            this.globalDefinitions[name] = value;
+        }
+
+    }
+
+    private gatherVariableValues() {
+        this.stage = AnalysisPhase.VarGathering;
+        babel.traverse(this.mergedProgram, {
+            exit: (path) => {
+                this.currentPath = path;
+                const node = path.node;
+                if (node.type === 'VariableDeclarator' && node.init) {
+                    const binding = path.scope.getBinding(node.id.name);
+                    const value = this.valueFromASTNode(node.init);
+                    this.memory.set(binding, value);
+                    if (value instanceof FunctionValue) {
+                        this.addFunctionBinding(value.ast, binding);
+                    }
+                } else if (node.type === 'AssignmentExpression' && node.left.type === 'Identifier') {
+                    const binding = path.scope.getBinding(node.left.name);
+                    const value = this.valueFromASTNode(node.right);
+                    this.setVariableIfNotLessConcrete(binding, node.left.name, value);
+                } else if (node.type === 'FunctionDeclaration') {
+                    const binding = path.scope.getBinding(node.id.name);
+
+                    this.functions.set(binding, path);
+                    this.addFunctionBinding(node, binding);
+                }
+            }
+        });
+    }
+
     extractGlobalDefinitions(ast: ASTNode) {
         babel.traverse(ast, {
             enter: (path) => {
@@ -187,13 +288,23 @@ export class Analyzer {
 
     processBinaryExpression(node: ASTNode) {
         if (node.operator === '+') {
-            //console.log('binary: ' + this.valueFromASTNode(node.left) + ' ' + this.valueFromASTNode(node.right));
             return this.valueFromASTNode(node.left) + this.valueFromASTNode(node.right);
         }
         return UNKNOWN;
     }
 
     getVariable(name: string) {
+        const binding = this.currentPath.scope.getBinding(name);
+
+        if (typeof binding !== 'undefined') {
+            if (this.memory.has(binding)) {
+                return this.memory.get(binding);
+            }
+            if (this.functions.has(binding)) {
+                return UNKNOWN_FUNCTION;
+            }
+        }
+        /*
         if (this.localsStack.length > 0) {
             for (let i = this.localsStack.length - 1; i >= 0; i--) {
                 let scope = this.localsStack[i];
@@ -201,7 +312,7 @@ export class Analyzer {
                     return scope[name];
                 }
             }
-        }
+        }*/
         if (~this.formalArgs.indexOf(name)) {
             if (this.formalArgValues.hasOwnProperty(name)) {
                 return this.formalArgValues[name];
@@ -274,56 +385,99 @@ export class Analyzer {
         }
 
         if (~node.type.indexOf('Function')) {
-            return UNKNOWN_FUNCTION;
+            if (this.stage === AnalysisPhase.DEPExtracting) {
+                return UNKNOWN_FUNCTION;
+            } else if (this.stage === AnalysisPhase.VarGathering) {
+                return new FunctionValue(node);
+            } else {
+                throw new Error('Unexpected stage: ' + this.stage);
+            }
         }
         return UNKNOWN;
     }
 
-    findCallers(calleeName): FunctionDescription[] {
-        const result: FunctionDescription[] = [];
-
-        for (let ast of this.parsedScripts) {
-            babel.traverse(ast, {
-                enter: (path) => {
-                    const node = path.node;
-                    if (~FUNCTION_DECLARATIONS.indexOf(node.type)) {
-                        path.skip();
-                        return;
-                    }
-                    if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === calleeName) {
-                        result.push({
-                            type: 'GLOBAL',
-                            code: ast,
-                            args: []
-                        });
-                        path.stop();
-                        return;
-                    }
-                }
-            });
-
+    private getFunctionForCallSite(path) {
+        path = path.scope.path;
+        while(path && path.scope && path.scope.parent && path.node && !path.node.type.includes('Function')) {
+            path = path.scope.parent.path;
         }
+        return path;
+    }
 
-        class StopTraversal extends Error {}
+    private findCallSitesForBinding(binding): any[] {
+        // based on https://github.com/babel/babel/blob/429840d/packages/babel-traverse/src/scope/lib/renamer.js#L5
+        const scope = binding.scope;
+        const identifier = binding.identifier;
+        const name = identifier.name;
+        const result: any[] = [];
 
-        for (let f of this.topLevelFunctions) {
-            try {
-                babel.traverse.cheap(f.code, (node) => {
-                    if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === calleeName) {
-                        result.push(f);
-                        throw new StopTraversal();
-                    }
-                });
-            } catch (err) {
-                if (!(err instanceof StopTraversal)) {
-                    throw err;
+        scope.traverse(binding.scope.block, {
+            ReferencedIdentifier(path) {
+                if (path.node.name === name && path.scope.getBinding(path.node.name) === binding) {
+                    result.push(path);
+                }
+            },
+            Scope(path) {
+                // TODO: this should skip traversal if name is shadowed, test it
+                if (!path.scope.bindingIdentifierEquals(name, identifier)) {
+                    path.skip();
                 }
             }
-        }
+        });
         return result;
     }
 
-    extractDEPFromArgs(funcName, args) {
+    private makeFunctionDescription(path): FunctionDescription {
+        const node = path.node;
+        if (node.type.includes('Function')) {
+            return {
+                type: CallConfigType.Function,
+                args: this.argNamesForFunctionNode(node),
+                code: path
+            };
+        } else if (node.type === 'Program') {
+            return {
+                type: CallConfigType.Global,
+                args: [],
+                code: path
+            };
+        } else {
+            throw new Error('Unexpected function node type: ' + node.type);
+        }
+    }
+
+    private buildCallChainsForMissingArgs() {
+        let func;
+
+        if (this.callChain.length + 1 >= MAX_CALL_CHAIN) {
+            return;
+        }
+
+        if (this.selectedFunction) {
+            func = this.selectedFunction;
+        } else {
+            func = this.functionsStack[this.functionsStack.length - 1];
+        }
+        const bindings = this.functionToBinding.get(func.node);
+        if (typeof bindings === 'undefined') {
+            return;
+        }
+
+        for (const binding of bindings) {
+            const callSites = this.findCallSitesForBinding(binding);
+
+            for (const callSite of callSites) {
+                const caller = this.getFunctionForCallSite(callSite);
+                const funcDescr = this.makeFunctionDescription(func);
+                const callDescr: FunctionCallDescription = {binding, ...funcDescr};
+                const chain = [callDescr].concat(this.callChain);
+                this.callQueue.push({func: caller, chain});
+            }
+
+        }
+    }
+
+    private extractDEPFromArgs(funcName, args) {
         let argsDependOnFormalArg = false;
 
         this.results.push([
@@ -331,6 +485,7 @@ export class Analyzer {
             args.map(arg => {
                 let v = this.valueFromASTNode(arg),
                     haveFormalArg;
+
                 [v, haveFormalArg] = extractFormalArgs(v);
                 if (haveFormalArg) {
                     argsDependOnFormalArg = true;
@@ -338,14 +493,8 @@ export class Analyzer {
                 return v;
             })
         ]);
-        if (argsDependOnFormalArg && this.originalCallee) {
-            for (let caller of this.findCallers(this.originalCallee.name)) {
-                let chain = [this.originalCallee].concat(this.callChain);
-                if (chain.length + 1 > MAX_CALL_CHAIN) {
-                    return;
-                }
-                this.callQueue.push({func: caller, chain});
-            }
+        if (argsDependOnFormalArg) {
+            this.buildCallChainsForMissingArgs();
         }
     }
 
@@ -366,46 +515,55 @@ export class Analyzer {
         this.callChainPosition--;
     }
 
-    extractDEPs(ast, funcInfo) {
-        if (funcInfo) {
+    private mergeASTs() {
+        const result = {
+            type: 'File',
+            program: {
+                'type': 'Program',
+                'body': <any[]>[],
+                'sourceType': 'script'
+            }
+        };
+        for (const ast of this.parsedScripts) {
+            result.program.body.push(...ast.program.body);
+        }
+        this.mergedProgram = result;
+    }
+
+    private argNamesForFunctionNode(node) {
+        return node.params.map(param => param.name);
+    }
+
+    extractDEPs(ast, funcInfo: FunctionDescription|null) {
+        this.functionsStack.length = 0;
+        this.stage = AnalysisPhase.DEPExtracting;
+        if (funcInfo !== null) {
             this.localsStack = [{}];
             this.formalArgs = funcInfo.args;
-            this.functionName = funcInfo.name;
             this.currentBody = ast;
         } else {
             this.localsStack = [];
             this.formalArgs = [];
-            this.functionName = null;
             this.currentBody = null;
         }
-        if (funcInfo !== null && ast.type === 'BlockStatement') {
-            ast = {
-                type: 'File',
-                program: {
-                    'type': 'Program',
-                    'body': ast,
-                    'sourceType': 'script'
-                }
-            };
-        }
-        babel.traverse(ast, {
+
+        const visitor = {
             enter: (path) => {
                 const node = path.node;
+                this.currentPath = path;
                 if (~FUNCTION_DECLARATIONS.indexOf(node.type)) {
-                    if (!funcInfo) {
-                        path.skip();
-                        return;
-                    }
-                    this.localsStack.push({});
-                    this.argsStack.push(node.params.map(param => param.name));
+                    //this.localsStack.push({});
+                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                    this.formalArgs = this.argsStack[this.argsStack.length - 1];
+                    this.functionsStack.push(path);
                 }
-
-                if (node.type === 'VariableDeclarator' && node.init) {
-                    if (this.localsStack.length > 0) {
-                        //console.log('add var ' + node.id.name + ' ' + JSON.stringify(node.init));
-                        this.localsStack[this.localsStack.length - 1][node.id.name] = this.valueFromASTNode(node.init);
-                    }
-                }
+                //
+                //if (node.type === 'VariableDeclarator' && node.init) {
+                //    if (this.localsStack.length > 0) {
+                //        //console.log('add var ' + node.id.name + ' ' + JSON.stringify(node.init));
+                //        this.localsStack[this.localsStack.length - 1][node.id.name] = this.valueFromASTNode(node.init);
+                //    }
+                //}
 
                 if (node.type !== 'CallExpression') {
                     return;
@@ -413,8 +571,11 @@ export class Analyzer {
 
                 const callee = node.callee;
 
-                if (this.callChain.length > 0 && this.callChainPosition < this.callChain.length && this.callChain[this.callChainPosition].name === callee.name) {
-                    this.proceedAlongCallChain(node);
+                if (this.callChain.length > 0 && this.callChainPosition < this.callChain.length && node.callee.type === 'Identifier') {
+                    const binding = path.scope.getBinding(node.callee.name);
+                    if (this.callChain[this.callChainPosition].binding === binding) {
+                        this.proceedAlongCallChain(node);
+                    }
                 }
 
                 if (callee.type === 'Identifier') {
@@ -456,47 +617,28 @@ export class Analyzer {
             },
             exit: (path) => {
                 if (~FUNCTION_DECLARATIONS.indexOf(path.node.type)) {
-                    this.localsStack.pop();
+                    //this.localsStack.pop();
                     this.argsStack.pop();
+                    this.functionsStack.pop();
                 }
             }
-        });
+        };
 
+        if (ast.traverse) {
+            ast.traverse(visitor);
+        } else {
+            babel.traverse(ast, visitor);
+        }
     }
 
-    gatherTopLevelFunctions(ast) {
-        babel.traverse(ast, {
-            enter: (path) => {
-                const node = path.node;
-                if (!~FUNCTION_DECLARATIONS.indexOf(node.type)) {
-                    return;
-                }
-                let name = null;
-                if (node.type === 'FunctionDeclaration' && node.id.type === 'Identifier') {
-                    name = node.id.name;
-                }
-                this.topLevelFunctions.push({
-                    type: 'function',
-                    name,
-                    args: node.params.map(param => param.name),
-                    code: node.body
-                });
-                path.skip();
-                return;
-            }
-        });
-    }
-
-    extractDEPsWithCallChain(callConfig) {
+    extractDEPsWithCallChain(callConfig: CallConfig) {
         this.callChain = callConfig.chain;
         this.callChainPosition = 0;
 
-        if (callConfig.hasOwnProperty('type') && callConfig.func.type === 'GLOBAL') {
-            throw new Error('not supported yet');
-        }
+        const func = callConfig.func;
 
-        this.originalCallee = callConfig.func;
-        this.extractDEPs(callConfig.func.code, callConfig.func);
+        this.selectedFunction = func;
+        this.extractDEPs(func, this.makeFunctionDescription(func));
     }
 
     analyze(url: string) {
@@ -508,26 +650,14 @@ export class Analyzer {
             }
         }
 
-        for (let ast of this.parsedScripts) {
-            this.extractGlobalDefinitions(ast);
-        }
+        this.mergeASTs();
 
-        //console.log('globals: ' + JSON.stringify(this.globalDefinitions));
+        this.gatherVariableValues();
 
-        for (let ast of this.parsedScripts) {
-            this.gatherTopLevelFunctions(ast);
-        }
-
-        for (let ast of this.parsedScripts) {
-            this.extractDEPs(ast, null);
-        }
-        for (let f of this.topLevelFunctions) {
-            this.originalCallee = f;
-            this.extractDEPs(f.code, f);
-        }
+        this.extractDEPs(this.mergedProgram, null);
 
         while (this.callQueue.length > 0) {
-            let callConfig = this.callQueue.shift();
+            let callConfig: CallConfig = <CallConfig> this.callQueue.shift();
 
             this.extractDEPsWithCallChain(callConfig);
         }
