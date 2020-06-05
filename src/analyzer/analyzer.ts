@@ -271,6 +271,17 @@ export class Analyzer {
         return UNKNOWN;
     }
 
+    private processUnaryExpression(node: ASTNode) {
+        if (node.operator === '!') {
+            const operand = this.valueFromASTNode(node.argument);
+            if (isUnknown(operand)) {
+                return UNKNOWN;
+            }
+            return !operand;
+        }
+        return UNKNOWN;
+    }
+
     getVariable(name: string) {
         const binding = this.currentPath.scope.getBinding(name);
 
@@ -358,6 +369,10 @@ export class Analyzer {
 
         if (node.type === 'NewExpression') {
             return this.processNewExpression(node);
+        }
+
+        if (node.type === 'UnaryExpression') {
+            return this.processUnaryExpression(node);
         }
 
         if (node.type === 'BinaryExpression') {
