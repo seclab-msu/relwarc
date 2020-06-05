@@ -112,6 +112,8 @@ export class Analyzer {
 
     private stage: AnalysisPhase | null;
 
+    private argsStackOffset: number | null;
+
     constructor() {
         this.parsedScripts = [];
         this.results = [];
@@ -138,6 +140,7 @@ export class Analyzer {
         this.currentPath = null;
         this.stage = null;
         this.selectedFunction = null;
+        this.argsStackOffset = null;
     }
     attachDebugger(win: object): void {
         const dbg = new Debugger(win);
@@ -313,7 +316,13 @@ export class Analyzer {
                 }
             }
         }*/
-        if (~this.formalArgs.indexOf(name)) {
+        let formalArgs: string[] = this.formalArgs;
+
+        if (this.argsStackOffset !== null) {
+            formalArgs = this.argsStack[this.argsStack.length - this.argsStackOffset - 1];
+        }
+
+        if (~formalArgs.indexOf(name) || this.selectedFunction) {
             if (this.formalArgValues.hasOwnProperty(name)) {
                 return this.formalArgValues[name];
             }
@@ -446,6 +455,17 @@ export class Analyzer {
         }
     }
 
+    private findClosestFrameWithArgs(): number {
+        const argsStackLength = this.argsStack.length;
+
+        for (let i = 0; i < argsStackLength; i += 1) {
+            if (this.argsStack[argsStackLength - i - 1].length > 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private buildCallChainsForMissingArgs() {
         let func;
 
@@ -456,7 +476,8 @@ export class Analyzer {
         if (this.selectedFunction) {
             func = this.selectedFunction;
         } else {
-            func = this.functionsStack[this.functionsStack.length - 1];
+            const offset = this.argsStackOffset || 0;
+            func = this.functionsStack[this.functionsStack.length - 1 - offset];
         }
         const bindings = this.functionToBinding.get(func.node);
         if (typeof bindings === 'undefined') {
@@ -480,6 +501,16 @@ export class Analyzer {
     private extractDEPFromArgs(funcName, args) {
         let argsDependOnFormalArg = false;
 
+        this.argsStackOffset = null;
+
+        if (!this.selectedFunction) {
+            const offset = this.findClosestFrameWithArgs();
+
+            if (offset !== -1) {
+                this.argsStackOffset = offset;
+            }
+        }
+
         this.results.push([
             funcName,
             args.map(arg => {
@@ -496,6 +527,7 @@ export class Analyzer {
         if (argsDependOnFormalArg) {
             this.buildCallChainsForMissingArgs();
         }
+        this.argsStackOffset = null;
     }
 
     setArgValues(actualArgs, formalArgs) {
