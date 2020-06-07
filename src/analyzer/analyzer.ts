@@ -196,7 +196,7 @@ export class Analyzer {
         if (SPECIAL_PROP_NAMES.includes(name)) {
             return false;
         }
-        if (name === 'length' && isUnknown(value)) {
+        if (name === 'length' && typeof value !== 'number') {
             return false;
         }
         return true;
@@ -234,6 +234,7 @@ export class Analyzer {
         if (type === 'VariableDeclarator' && node.init) {
             const binding = path.scope.getBinding(node.id.name);
             const value = this.valueFromASTNode(node.init);
+
             this.memory.set(binding, value);
             if (value instanceof FunctionValue) {
                 this.addFunctionBinding(value.ast, binding);
