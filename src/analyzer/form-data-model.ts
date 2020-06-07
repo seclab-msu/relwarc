@@ -14,5 +14,4 @@ export class FormDataModel {
     }
 
     toString() {return 'FORMDATA'}
-    toJSON() {return 'FORMDATA'}
 }
