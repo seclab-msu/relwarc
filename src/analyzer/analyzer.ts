@@ -246,7 +246,7 @@ export class Analyzer {
 
         const ob = this.valueFromASTNode(node.object);
 
-        if (ob && typeof ob === 'object' && !isUnknown(ob)) {
+        if (ob && typeof ob === 'object' && !isUnknown(ob) && ob !== this.globalDefinitions.location) {
             ob[propName] = value;
         }
 
