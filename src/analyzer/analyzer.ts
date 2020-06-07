@@ -376,6 +376,25 @@ export class Analyzer {
         return ob[propName];
     }
 
+    private processConditionalExpression(node) {
+        const test = this.valueFromASTNode(node.test);
+
+        let [first, second] = [node.consequent, node.alternate];
+
+        // try to preserve evaluation order && lazyness
+        if (!isUnknown(test) && !test) {
+            [second, first] = [first, second];
+        }
+
+        const firstValue = this.valueFromASTNode(first);
+
+        if (!isUnknown(firstValue)) {
+            return firstValue;
+        }
+
+        return this.valueFromASTNode(second);
+    }
+
     valueFromASTNode(node) {
         if (node.type.endsWith('Literal')) {
             return node.value;
@@ -422,6 +441,10 @@ export class Analyzer {
 
         if (node.type === 'MemberExpression') {
             return this.processMemberExpression(node);
+        }
+
+        if (node.type === 'ConditionalExpression') {
+            return this.processConditionalExpression(node);
         }
 
         if (~node.type.indexOf('Function')) {
