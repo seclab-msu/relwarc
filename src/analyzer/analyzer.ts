@@ -164,29 +164,49 @@ export class Analyzer {
         }
     }
 
-    private setVariableIfNotLessConcrete(binding, name: string, value) {
+    private setVariableIfNotLessConcrete(binding, name: string, value, op: string) {
         let isGlobal: boolean = false;
 
         if (typeof binding === 'undefined') {
             isGlobal = true;
         }
 
-        // do not handle assignments for local variables. Humanity is not ready for it yet
-        if (!isGlobal) return;
+        let newValue;
 
-        if (isUnknown(value)) {
-            if (!isGlobal && this.memory.has(binding) && !isUnknown(this.memory.get(binding))) {
-                return
-            }
-            if (isGlobal && this.globalDefinitions.hasOwnProperty(name) && !isUnknown(this.globalDefinitions[name])) {
-                return
+        let isUnk: boolean = isUnknown(value);
+
+        if (op === '=') {
+            // TODO: this is bad
+            isUnk = isUnk || (typeof value === 'string' && value.includes('UNKNOWN'));
+
+            if (isUnk) {
+                if (!isGlobal && this.memory.has(binding) && !isUnknown(this.memory.get(binding))) {
+                    return
+                }
+                if (isGlobal && this.globalDefinitions.hasOwnProperty(name) && !isUnknown(this.globalDefinitions[name])) {
+                    return
+                }
             }
         }
 
-        if (!isGlobal) {
-            this.memory.set(binding, value);
+        if (op === '=') {
+            newValue = value;
+         } else if (op === '+=') {
+            let oldValue;
+            if (isGlobal) {
+                oldValue = this.globalDefinitions[name];
+            } else {
+                oldValue = this.memory.get(binding);
+            }
+            newValue = oldValue + value;
         } else {
-            this.globalDefinitions[name] = value;
+            return;
+        }
+
+        if (!isGlobal) {
+            this.memory.set(binding, newValue);
+        } else {
+            this.globalDefinitions[name] = newValue;
         }
     }
 
@@ -243,7 +263,7 @@ export class Analyzer {
             const value = this.valueFromASTNode(node.right);
             if (node.left.type === 'Identifier') {
                 const binding = path.scope.getBinding(node.left.name);
-                this.setVariableIfNotLessConcrete(binding, node.left.name, value);
+                this.setVariableIfNotLessConcrete(binding, node.left.name, value, node.operator);
             } else if (node.left.type === 'MemberExpression') {
                 this.setObjectProperty(node.left, value)
             }
