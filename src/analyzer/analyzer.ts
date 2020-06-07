@@ -325,11 +325,17 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    processNewExpression(node: ASTNode) {
+    private processNewExpression(node: ASTNode) {
         const callee = node.callee;
 
-        if (callee.type === 'Identifier' && callee.name === 'Headers') {
+        if (callee.type !== 'Identifier') {
+            return UNKNOWN_FROM_FUNCTION;
+        }
+
+        if (callee.name === 'Headers') {
             return this.valueFromASTNode(node.arguments[0]);
+        } else if (callee.name === 'Object') {
+            return {};
         }
         return UNKNOWN_FROM_FUNCTION;
     }
