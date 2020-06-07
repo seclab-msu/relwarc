@@ -44,6 +44,10 @@ const signatures = {
         'jQuery': jQueryAjaxFunctions,
         '$http': ['get', 'post', 'put', 'jsonp'],
         'axios': ['get', 'post', 'put']
+    },
+    boundToCall: {
+        '$': ['load'],
+        'jQuery': ['load']
     }
 };
 
@@ -703,22 +707,36 @@ export class Analyzer {
                 }
 
                 let obName;
+                let objectIsCall: boolean = false;
 
                 if (ob.type === 'Identifier') {
                     obName = ob.name;
                 } else if (ob.type === 'MemberExpression' && ob.property.type === 'Identifier') {
                     // handle case a.b.x.$http.post(...)
                     obName = ob.property.name;
+                } else if (ob.type === 'CallExpression' && ob.callee.type === 'Identifier') {
+                    // handle case $(...).load(...)
+                    obName = ob.callee.name;
+                    objectIsCall = true;
                 } else {
                     return;
                 }
 
+                let obSignatures: {[obName: string]: string[]};
+
+                if (!objectIsCall) {
+                    obSignatures = signatures.bound;
+                } else {
+                    obSignatures = signatures.boundToCall;
+                }
+
                 if (
-                    !signatures.bound.hasOwnProperty(obName) ||
-                    !~(signatures.bound[obName].indexOf(prop.name))
+                    !obSignatures.hasOwnProperty(obName) ||
+                    !~(obSignatures[obName].indexOf(prop.name))
                 ) {
                     return;
                 }
+
                 this.extractDEPFromArgs(obName + '.' + prop.name, node.arguments);
             },
             exit: (path) => {
