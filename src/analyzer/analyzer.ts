@@ -764,6 +764,16 @@ export class Analyzer {
         this.extractDEPs(func, this.makeFunctionDescription(func));
     }
 
+    private seedGlobalScope(url: string) {
+        const globals = this.globalDefinitions;
+
+        globals.location = new URL(url);
+        globals.document = {
+            location: globals.location
+        };
+        globals.window = globals;
+    }
+
     analyze(url: string) {
         for (const script of this.scripts) {
             try {
@@ -774,6 +784,8 @@ export class Analyzer {
         }
 
         this.mergeASTs();
+
+        this.seedGlobalScope(url);
 
         this.gatherVariableValues();
 
