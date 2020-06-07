@@ -292,10 +292,24 @@ export class Analyzer {
         });
     }
 
+    private processStringMethod(val, methodName, argNodes: ASTNode[]) {
+        if (!String.prototype.hasOwnProperty(methodName)) {
+            return UNKNOWN;
+        }
+        const args = argNodes.map(n => this.valueFromASTNode(n));
+
+        if (!args.every(v => !isUnknown(v))) {
+            return UNKNOWN;
+        }
+
+        const method: Function = (<unknown>String.prototype[methodName]) as Function;
+
+        return method.apply(val, args);
+    }
+
     processFunctionCall(node: ASTNode) {
         const callee = node.callee;
         const encoders = {escape, encodeURIComponent, encodeURI};
-
 
         if (callee.type === 'Identifier') {
             if (encoders.hasOwnProperty(callee.name)) {
@@ -322,6 +336,11 @@ export class Analyzer {
                 }
                 if (ob.name === 'Math' && prop.name === 'random') {
                     return 0.8782736846632295;
+                }
+                const obValue = this.valueFromASTNode(ob);
+
+                if (typeof obValue === 'string') {
+                    return this.processStringMethod(obValue, prop.name, node.arguments);
                 }
             }
         }
