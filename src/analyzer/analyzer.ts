@@ -641,7 +641,7 @@ export class Analyzer {
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
                 }
-                if (node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
+                if (this.functionsStack.length > 0 && node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
                     this.setVariable(path);
                 }
 
