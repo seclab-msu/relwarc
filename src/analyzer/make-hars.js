@@ -234,6 +234,11 @@ function makeHARJQuery(funcName, args, baseURL) {
     const explicitCt = settings.contentType;
     //har.EXPLICIT_CT = explicitCt;
 
+    if (settings.dataType === 'jsonp') {
+        const callbackParamName = settings.jsonp || 'callback';
+        qs += (qs ? '&': '') + callbackParamName + '=jQuery111106567430573505544_1591529444128';
+    }
+
     if (method === 'GET') {
         har.url = replaceQuery(har.url, qs);
         har.reparseURL();
