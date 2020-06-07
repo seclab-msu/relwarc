@@ -2,6 +2,8 @@
 
 const { isUnknown, UNKNOWN_FUNCTION } = require('analyzer/unknownvalues');
 
+const { FormDataModel } = require('./form-data-model');
+
 function getQueryNameValue(q) {
     const arr = q.split('=');
     const result = arr.slice(0, 1);
@@ -80,7 +82,7 @@ HAR.prototype.parseQueryString = function(parsedURL) {
     }
 };
 
-HAR.prototype.setPostData = function(postData, isAngular=false) {
+HAR.prototype.setPostData = function(postData, isAngular=false, rawData=null) {
     this.postData = {
         "text": postData
     }
@@ -115,8 +117,8 @@ HAR.prototype.setPostData = function(postData, isAngular=false) {
             });
         }
     } else if (ctType === 'multipart/form-data') {
-        let boundary = ctParts[1].split('=')[1];
-        this.postData.params = parseMultipart(postData, boundary);
+        this.postData.text = null;
+        this.postData.params = rawData;
     }
 }
 
@@ -221,14 +223,26 @@ function makeHARJQuery(funcName, args, baseURL) {
 
     har.method = method;
 
-    let qs = data || "";
+    let isMultipart = false;
 
-    if (typeof qs === 'object') {
-        qs = queryStringFromObject(data);
+    if (data instanceof FormDataModel) {
+        isMultipart = true;
     }
 
-    if (isUnknown(qs)) {
-        return null;
+    let qs;
+
+    if (!isMultipart) {
+        qs = data || "";
+
+        if (typeof qs === 'object') {
+            qs = queryStringFromObject(data);
+        }
+
+        if (isUnknown(qs)) {
+            return null;
+        }
+    } else {
+        qs = '';
     }
 
     const explicitCt = settings.contentType;
@@ -249,13 +263,18 @@ function makeHARJQuery(funcName, args, baseURL) {
                 'value': explicitCt
             });
             //console.error('add explicit ct');
+        } else if (isMultipart) {
+            har.headers.push({
+                'name': 'Content-Type',
+                'value': 'multipart/form-data'
+            });
         } else if (qs) {
             har.headers.push({
                 'name': 'Content-Type',
                 'value': 'application/x-www-form-urlencoded'
             });
         }
-        har.setPostData(qs);
+        har.setPostData(qs, false, isMultipart ? data.getData() : null);
     }
     return har;
 }

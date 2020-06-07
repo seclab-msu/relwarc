@@ -13,6 +13,8 @@ import {FROM_ARG, extractFormalArgs} from './formalarg';
 
 import { makeHAR } from './make-hars';
 
+import { FormDataModel } from './form-data-model';
+
 declare const Debugger: any;
 require('./debugger').addDebuggerToGlobal(this);
 
@@ -359,6 +361,8 @@ export class Analyzer {
             return this.valueFromASTNode(node.arguments[0]);
         } else if (callee.name === 'Object') {
             return {};
+        } else if (callee.name === 'FormData') {
+            return new FormDataModel();
         }
         return UNKNOWN_FROM_FUNCTION;
     }
@@ -670,6 +674,14 @@ export class Analyzer {
         return node.params.map(param => param.name);
     }
 
+    private processFormDataAppend(fd: FormDataModel, methNode: ASTNode, argNodes: ASTNode[]) {
+        const args = argNodes.map(v => this.valueFromASTNode(v));
+
+        if (!isUnknown(args[0])) {
+            fd.append(args[0], args[1]);
+        }
+    }
+
     extractDEPs(ast, funcInfo: FunctionDescription|null) {
         this.functionsStack.length = 0;
         this.stage = AnalysisPhase.DEPExtracting;
@@ -730,6 +742,13 @@ export class Analyzer {
 
                 if (ob.type === 'Identifier') {
                     obName = ob.name;
+                    if (prop.name === 'append') {
+                        const obValue = this.valueFromASTNode(ob);
+                        if (obValue instanceof FormDataModel) {
+                            this.processFormDataAppend(obValue, prop, node.arguments);
+                            return;
+                        }
+                    }
                 } else if (ob.type === 'MemberExpression' && ob.property.type === 'Identifier') {
                     // handle case a.b.x.$http.post(...)
                     obName = ob.property.name;
