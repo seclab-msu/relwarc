@@ -18,7 +18,7 @@ import { makeHAR } from './make-hars';
 import { FormDataModel } from './form-data-model';
 
 declare const Debugger: any;
-require('./debugger').addDebuggerToGlobal(this);
+require('./debugger').addDebuggerToGlobal(global);
 
 type ASTNode = any;
 
