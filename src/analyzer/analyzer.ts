@@ -1,6 +1,8 @@
 const system = require('system');
 
-import * as babel from './vendor/babel';
+import * as parser from '@babel/parser';
+import traverse, { NodePath, Scope } from '@babel/traverse';
+import type { Program, Node, Expression, Statement, CallExpression } from 'babel-types';
 
 import {
     UNKNOWN,
@@ -16,7 +18,7 @@ import { makeHAR } from './make-hars';
 import { FormDataModel } from './form-data-model';
 
 declare const Debugger: any;
-require('./debugger').addDebuggerToGlobal(this);
+require('./debugger').addDebuggerToGlobal(global);
 
 type ASTNode = any;
 
@@ -106,10 +108,9 @@ export class Analyzer {
     private callChainPosition: number;
     private selectedFunction: FunctionDescription | null;
     private formalArgs: string[];
-    private currentBody: ASTNode | null;
 
     private readonly functionsStack: any[];
-    private mergedProgram: ASTNode;
+    private mergedProgram: ASTNode | null;
 
     private readonly memory: WeakMap<any, any>;
     private readonly functions: WeakMap<any, any>;
@@ -147,6 +148,7 @@ export class Analyzer {
         this.stage = null;
         this.selectedFunction = null;
         this.argsStackOffset = null;
+        this.mergedProgram = null;
     }
     attachDebugger(win: object): void {
         const dbg = new Debugger(win);
@@ -278,7 +280,7 @@ export class Analyzer {
 
     private gatherVariableValues() {
         this.stage = AnalysisPhase.VarGathering;
-        babel.traverse(this.mergedProgram, {
+        traverse(this.mergedProgram, {
             exit: (path) => {
                 this.currentPath = path;
                 const node = path.node;
@@ -309,7 +311,7 @@ export class Analyzer {
         return method.apply(val, args);
     }
 
-    processFunctionCall(node: ASTNode) {
+    processFunctionCall(node: CallExpression) {
         const callee = node.callee;
         const encoders = {escape, encodeURIComponent, encodeURI};
 
@@ -687,10 +689,8 @@ export class Analyzer {
         this.stage = AnalysisPhase.DEPExtracting;
         if (funcInfo !== null) {
             this.formalArgs = funcInfo.args;
-            this.currentBody = ast;
         } else {
             this.formalArgs = [];
-            this.currentBody = null;
         }
 
         const visitor = {
@@ -788,7 +788,7 @@ export class Analyzer {
         if (ast.traverse) {
             ast.traverse(visitor);
         } else {
-            babel.traverse(ast, visitor);
+            traverse(ast, visitor);
         }
     }
 
@@ -815,7 +815,7 @@ export class Analyzer {
     analyze(url: string) {
         for (const script of this.scripts) {
             try {
-                this.parsedScripts.push(babel.parser.parse(script));
+                this.parsedScripts.push(parser.parse(script));
             } catch (err) {
                 system.stderr.write('Script parsing error: ' + err + '\n');
             }
