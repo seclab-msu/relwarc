@@ -108,7 +108,6 @@ export class Analyzer {
     private callChainPosition: number;
     private selectedFunction: FunctionDescription | null;
     private formalArgs: string[];
-    private currentBody: ASTNode | null;
 
     private readonly functionsStack: any[];
     private mergedProgram: ASTNode | null;
@@ -690,10 +689,8 @@ export class Analyzer {
         this.stage = AnalysisPhase.DEPExtracting;
         if (funcInfo !== null) {
             this.formalArgs = funcInfo.args;
-            this.currentBody = ast;
         } else {
             this.formalArgs = [];
-            this.currentBody = null;
         }
 
         const visitor = {
