@@ -812,6 +812,10 @@ export class Analyzer {
         globals.window = globals;
     }
 
+    onNewHAR(har): void {
+        this.hars.push(har);
+    }
+
     analyze(url: string) {
         for (const script of this.scripts) {
             try {
@@ -842,7 +846,7 @@ export class Analyzer {
                 continue;
             }
 
-            this.hars.push(har);
+            this.onNewHAR(har);
         }
     }
 }
