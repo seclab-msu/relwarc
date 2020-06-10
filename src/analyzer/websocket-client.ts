@@ -57,5 +57,3 @@ export class WebsocketClient {
     }
 }
 
-
-module.exports = WebsocketClient;
