@@ -17,9 +17,6 @@ import { makeHAR } from './make-hars';
 
 import { FormDataModel } from './form-data-model';
 
-declare const Debugger: any;
-require('./debugger').addDebuggerToGlobal(global);
-
 type ASTNode = any;
 
 const MAX_CALL_CHAIN = 5;
@@ -150,17 +147,12 @@ export class Analyzer {
         this.argsStackOffset = null;
         this.mergedProgram = null;
     }
-    attachDebugger(win: object): void {
-        const dbg = new Debugger(win);
 
-        dbg.onNewScript = (script: any): void => {
-            const text: string = script.source.text;
-
-            if (this.scripts.has(text)) {
-                return;
-            }
-            this.scripts.add(text);
+    addScript(source: string): void {
+        if (this.scripts.has(source)) {
+            return;
         }
+        this.scripts.add(source);
     }
 
     private addFunctionBinding(funcAST: ASTNode, binding: any) {

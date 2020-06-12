@@ -1,5 +1,6 @@
-import { Analyzer } from 'analyzer/analyzer';
-import { HeadlessBot } from 'analyzer/headless-bot';
+import { Analyzer } from './analyzer';
+import { HeadlessBot } from './headless-bot';
+import { DynamicAnalyzer } from './dynamic/analyzer';
 
 export class DynamicPageAnalyzer {
     readonly analyzer: Analyzer;
@@ -8,8 +9,10 @@ export class DynamicPageAnalyzer {
     constructor() {
         const analyzer = new Analyzer();
         const bot = new HeadlessBot(false, false);
+        const dynamicAnalyzer = new DynamicAnalyzer();
 
-        bot.onWindowCreated = analyzer.attachDebugger.bind(analyzer);
+        dynamicAnalyzer.newScriptCallback = analyzer.addScript.bind(analyzer);
+        bot.onWindowCreated = dynamicAnalyzer.addWindow.bind(dynamicAnalyzer);
 
         this.analyzer = analyzer;
         this.bot = bot;
