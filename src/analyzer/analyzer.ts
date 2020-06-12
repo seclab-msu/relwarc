@@ -1,5 +1,3 @@
-const system = require('system');
-
 import * as parser from '@babel/parser';
 import traverse, { NodePath, Scope } from '@babel/traverse';
 import type { Program, Node, Expression, Statement, CallExpression } from 'babel-types';
@@ -813,7 +811,7 @@ export class Analyzer {
             try {
                 this.parsedScripts.push(parser.parse(script));
             } catch (err) {
-                system.stderr.write('Script parsing error: ' + err + '\n');
+                console.error('Script parsing error: ' + err + '\n');
             }
         }
 
