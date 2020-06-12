@@ -1,4 +1,4 @@
-import {Unknown, isUnknown, UNKNOWN} from 'analyzer/unknownvalues';
+import {Unknown, isUnknown, UNKNOWN} from './unknownvalues';
 
 class FromArg extends Unknown {
     readonly tag: string = 'FROM_ARG';

@@ -1,6 +1,6 @@
 "use strict"
 
-const { isUnknown, UNKNOWN_FUNCTION } = require('analyzer/unknownvalues');
+const { isUnknown, UNKNOWN_FUNCTION } = require('./unknownvalues');
 
 const { FormDataModel } = require('./form-data-model');
 
