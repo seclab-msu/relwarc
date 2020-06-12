@@ -2,8 +2,8 @@ const system = require('system');
 
 const { create: createWebpage } = require('webpage');
 
-const WindowEvents = require('analyzer/window-events');
-import { getWrappedWindow, wait, formatStack } from 'analyzer/utils';
+const WindowEvents = require('./window-events');
+import { getWrappedWindow, wait, formatStack } from '../utils';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
