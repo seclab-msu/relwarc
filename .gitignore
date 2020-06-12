@@ -8,3 +8,4 @@ website/*.gpg
 test_reports/
 node_modules
 tsconfig.tsbuildinfo
+package-lock.json
