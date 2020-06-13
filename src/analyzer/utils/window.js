@@ -1,10 +1,10 @@
-const { Cc, Ci, Cu, Cr } = require('chrome');
+const { Cu } = require('chrome');
 
-Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/Services.jsm'); /* global XPCNativeWrapper */
 
-module.exports.getWrappedWindow = function(webpage) {
+module.exports.getWrappedWindow = function (webpage) {
     const win = webpage.evaluate(function () {
         return window;
     });
     return new XPCNativeWrapper(win);
-}
+};
