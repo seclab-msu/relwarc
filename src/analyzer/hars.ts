@@ -1,22 +1,111 @@
-"use strict"
+import { Unknown, isUnknown, UNKNOWN_FUNCTION } from './unknownvalues';
 
-const { isUnknown, UNKNOWN_FUNCTION } = require('./unknownvalues');
+import { FormDataModel } from './form-data-model';
 
-const { FormDataModel } = require('./form-data-model');
-
-function getQueryNameValue(q) {
-    const arr = q.split('=');
-    const result = arr.slice(0, 1);
-
-    result.push(arr.slice(1).join('='));
-    return result;
+interface KeyValue {
+    name: string;
+    value: string;
 }
 
-function headersFromMap(headersMap) {
-    const result = [];
+interface PostData {
+    text: string|null;
+    params?: KeyValue[];
+    mimeType?: string;
+}
 
-    for (let k in headersMap) {
-        if (headersMap.hasOwnProperty(k)) {
+export class HAR {
+    method: string;
+    url: string;
+    httpVersion: string;
+    headers: KeyValue[];
+    queryString: KeyValue[];
+    bodySize: number;
+
+    private postData?: PostData;
+
+    constructor(url: string, baseURL: string) {
+        const parsedURL = new URL(url, baseURL);
+
+        this.method = 'GET';
+        this.url = parsedURL.href;
+        this.httpVersion = 'HTTP/1.1';
+        this.headers = [{
+            "name": "Host",
+            "value": parsedURL.host
+        }];
+        this.queryString = [];
+        this.parseQueryString(parsedURL);
+        this.bodySize = 0;
+    }
+    reparseURL(): void {
+        const parsedURL = new URL(this.url);
+        this.queryString = [];
+        this.parseQueryString(parsedURL);
+    }
+    private parseQueryString(parsedURL: URL): void {
+        if (parsedURL.search) {
+            for (const part of parsedURL.search.substring(1).split('&')) {
+                const [name, value] = getQueryNameValue(part);
+                this.queryString.push({
+                    name,
+                    value
+                });
+            }
+        }
+    }
+    setPostData(postData: string, isAngular=false, rawData?: KeyValue[]) {
+        this.postData = {
+            "text": postData
+        }
+        this.bodySize = postData.length;
+        this.headers.push({
+            'name': 'Content-Length',
+            'value': '' + postData.length
+        })
+        let ct, ctParts, ctType;
+        if (hasHeader(this.headers, 'content-type')) {
+            ct = getHeader(this.headers, 'content-type');
+            if (isAngular && typeof ct === 'undefined') {
+                ct = 'text/plain';
+                for (let h of this.headers) {
+                    if (h.name.toLowerCase() === 'content-type') {
+                        h.value = 'text/plain';
+                        break;
+                    }
+                }
+            }
+            this.postData.mimeType = ct;
+            ctParts = ct.split('; ');
+            ctType = ctParts[0];
+        }
+        if (ctType === 'application/x-www-form-urlencoded') {
+            this.postData.params = [];
+            for (let part of postData.split('&')) {
+                let [name, value] = getQueryNameValue(part);
+                this.postData.params.push({
+                    name,
+                    value
+                });
+            }
+        } else if (ctType === 'multipart/form-data') {
+            this.postData.text = null;
+            this.postData.params = <KeyValue[]>rawData;
+        }
+    }
+
+}
+function getQueryNameValue(q: string): [string, string] {
+    const arr = q.split('=');
+    const key: string = arr.slice(0, 1)[0];
+
+    return [key, arr.slice(1).join('=')];
+}
+
+function headersFromMap(headersMap: Record<string, string>): KeyValue[] {
+    const result: KeyValue[] = [];
+
+    for (const k in headersMap) {
+        if (Object.prototype.hasOwnProperty.call(headersMap, k)) {
             result.push({
                 'name': k,
                 'value': headersMap[k]
@@ -26,9 +115,9 @@ function headersFromMap(headersMap) {
     return result;
 }
 
-function hasHeader(headers, name) {
+function hasHeader(headers: KeyValue[], name: string): boolean {
     const n = name.toLowerCase();
-    for (let h of headers) {
+    for (const h of headers) {
         if (h.name.toLowerCase() === n) {
             return true;
         }
@@ -36,103 +125,27 @@ function hasHeader(headers, name) {
     return false;
 }
 
-function getHeader(headers, name) {
+function getHeader(headers: KeyValue[], name: string): string|undefined {
     const n = name.toLowerCase();
     for (let h of headers) {
         if (h.name.toLowerCase() === n) {
             return h.value;
         }
     }
-    return false;
 }
 
-function HAR(url, baseURL) {
-    if (!new.target) {
-        throw new Error('HAR is a constructor and should be called with `new`');
-    }
-    const parsedURL = new URL(url, baseURL);
 
-    this.method = 'GET';
-    this.url = parsedURL.href;
-    this.httpVersion = 'HTTP/1.1';
-    this.headers = [{
-        "name": "Host",
-        "value": parsedURL.host
-    }];
-    this.queryString = [];
-    this.parseQueryString(parsedURL);
-    this.bodySize = 0;
-}
-
-HAR.prototype.reparseURL = function() {
-    const parsedURL = new URL(this.url);
-    this.queryString = [];
-    this.parseQueryString(parsedURL);
-}
-
-HAR.prototype.parseQueryString = function(parsedURL) {
-    if (parsedURL.search) {
-        for (let part of parsedURL.search.substring(1).split('&')) {
-            let [name, value] = getQueryNameValue(part);
-            this.queryString.push({
-                name,
-                value
-            });
-        }
-    }
-};
-
-HAR.prototype.setPostData = function(postData, isAngular=false, rawData=null) {
-    this.postData = {
-        "text": postData
-    }
-    this.bodySize = postData.length;
-    this.headers.push({
-        'name': 'Content-Length',
-        'value': '' + postData.length
-    })
-    let ct, ctParts, ctType;
-    if (hasHeader(this.headers, 'content-type')) {
-        ct = getHeader(this.headers, 'content-type');
-        if (isAngular && typeof ct === 'undefined') {
-            ct = 'text/plain';
-            for (let h of this.headers) {
-                if (h.name.toLowerCase() === 'content-type') {
-                    h.value = 'text/plain';
-                    break;
-                }
-            }
-        }
-        this.postData.mimeType = ct;
-        ctParts = ct.split('; ');
-        ctType = ctParts[0];
-    }
-    if (ctType === 'application/x-www-form-urlencoded') {
-        this.postData.params = [];
-        for (let part of postData.split('&')) {
-            let [name, value] = getQueryNameValue(part);
-            this.postData.params.push({
-                name,
-                value
-            });
-        }
-    } else if (ctType === 'multipart/form-data') {
-        this.postData.text = null;
-        this.postData.params = rawData;
-    }
-}
-
-function queryStringFromObject(ob) {
-    const resParts = [];
+function queryStringFromObject(ob: Record<string, string|string[]>|Unknown): string|Unknown {
+    const resParts: string[] = [];
 
     let val;
 
-    if (isUnknown(ob)) {
+    if (ob instanceof Unknown) {
         return ob;
     }
 
     for (let k in ob) {
-        if (ob.hasOwnProperty(k)) {
+        if (Object.prototype.hasOwnProperty.call(ob, k)) {
             val = ob[k];
             if (Array.isArray(val)) {
                 if (!k.endsWith('[]')) {
@@ -149,7 +162,7 @@ function queryStringFromObject(ob) {
     return resParts.join('&');
 }
 
-function replaceQuery(url, qs) {
+function replaceQuery(url: string, qs): string {
     if (!qs) {
         return url;
     }
@@ -182,8 +195,8 @@ function makeHARFetch(args, baseURL) {
     return har;
 }
 
-function makeHARJQuery(funcName, args, baseURL) {
-    let settings = {},
+function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
+    let settings: Record<string, any> = {},
         url,
         method,
         data;
@@ -281,7 +294,7 @@ function makeHARJQuery(funcName, args, baseURL) {
 
 function makeHARAxios(funcName, args, baseURL) {
     let url,
-        settings = {},
+        settings: Record<string, any> = {},
         method,
         postData;
 
@@ -418,7 +431,7 @@ function makeHARAngular(name, args, baseURL) {
     return har;
 }
 
-function makeHAR(name, args, baseURL) {
+export function makeHAR(name: string, args, baseURL: string): HAR|null {
     if (name === 'fetch') {
         return makeHARFetch(args, baseURL);
     }
@@ -450,5 +463,3 @@ function makeHAR(name, args, baseURL) {
 
     throw Error('Function not supported: ' + name);
 }
-
-exports.makeHAR = makeHAR;

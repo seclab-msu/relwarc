@@ -11,7 +11,7 @@ import {
 
 import {FROM_ARG, extractFormalArgs} from './formalarg';
 
-import { makeHAR } from './make-hars';
+import { HAR, makeHAR } from './hars';
 
 import { FormDataModel } from './form-data-model';
 
@@ -92,7 +92,7 @@ export class Analyzer {
     readonly parsedScripts: ASTNode[];
     readonly results: any[];
     readonly scripts: Set<string>;
-    readonly hars: any[];
+    readonly hars: HAR[];
 
     private readonly globalDefinitions: VarScope;
     private readonly argsStack: string[][];
@@ -802,7 +802,7 @@ export class Analyzer {
         globals.window = globals;
     }
 
-    onNewHAR(har): void {
+    onNewHAR(har: HAR): void {
         this.hars.push(har);
     }
 
