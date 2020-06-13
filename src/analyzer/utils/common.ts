@@ -8,7 +8,7 @@ export interface ErrorStackTraceFrame {
     readonly column: number;
 }
 
-export function formatStack(stack: ErrorStackTraceFrame[]) {
+export function formatStack(stack: ErrorStackTraceFrame[]): string {
     return stack.map(
         entry => '   -> ' + entry.file + ': ' + entry.line +
                  ' | col: ' + entry.column

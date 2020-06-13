@@ -24,13 +24,13 @@ export class DynamicAnalyzer {
         this.newScriptCallback = null;
     }
 
-    addWindow(win) {
+    addWindow(win: object): void {
         const dbg = new Debugger(win);
 
         dbg.onNewScript = (script: Script): void => {
             if (this.newScriptCallback) {
                 this.newScriptCallback(script.source.text);
             }
-        }
+        };
     }
 }
