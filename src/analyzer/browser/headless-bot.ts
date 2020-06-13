@@ -3,21 +3,42 @@ const system = require('system');
 const { create: createWebpage } = require('webpage');
 
 const WindowEvents = require('./window-events');
-import { getWrappedWindow, wait, formatStack } from '../utils';
+import {
+    getWrappedWindow,
+    wait,
+    formatStack,
+    ErrorStackTraceFrame
+} from '../utils';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
+// TODO: replace with type definitions for slimerjs
+interface ResourceResponse {
+    stage: string
+}
+
+// TODO: replace with type definitions for slimerjs
+interface Webpage {
+    open(url: string): Promise<string>,
+    settings: {
+        [userAgent: string]: string
+    },
+    onConsoleMessage: (msg: string) => void,
+    onResourceRequested: () => void,
+    onResourceReceived: (response: ResourceResponse) => void;
+    onError: (message: string, stack: ErrorStackTraceFrame[]) => void
+}
 
 export class HeadlessBot {
-    onWindowCreated: null | ((win: any, doc: any) => void);
+    onWindowCreated: null | ((win: object, doc: object) => void);
 
-    private readonly webpage: any;
+    private readonly webpage: Webpage;
     private readonly printPageErrors: boolean;
 
     private pendingRequestCount: number;
     private notifyAllRequestsAreDone: null | (() => void);
 
-    constructor(printPageErrors:boolean=false, printPageConsoleLog:boolean=true) {
+    constructor(printPageErrors=false, printPageConsoleLog=true) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
 
@@ -32,37 +53,40 @@ export class HeadlessBot {
         this.notifyAllRequestsAreDone = null;
 
         WindowEvents.on(WindowEvents.DOCUMENT_CREATED_EVENT, (win, doc) => {
-            if (win === getWrappedWindow(this.webpage) && this.onWindowCreated) {
+            if (
+                win === getWrappedWindow(this.webpage) && this.onWindowCreated
+            ) {
                 this.onWindowCreated(win, doc);
             }
         });
 
         this.webpage.onResourceRequested = () => {
             this.pendingRequestCount++;
-        }
+        };
 
         this.webpage.onResourceReceived = response => {
             if (response.stage !== 'end') {
                 return;
             }
             this.pendingRequestCount--;
-            if (this.pendingRequestCount === 0 && this.notifyAllRequestsAreDone) {
+            if (
+                this.pendingRequestCount === 0 && this.notifyAllRequestsAreDone
+            ) {
                 this.notifyAllRequestsAreDone();
             }
-        }
+        };
 
         this.webpage.onError = (message, stack) => {
             if (this.printPageErrors) {
                 system.stderr.write(
-                    "JavaScript error: " + message + '\nStack:\n' +
+                    'JavaScript error: ' + message + '\nStack:\n' +
                     formatStack(stack) + '\n'
                 );
             }
         };
-
     }
 
-    async navigate(url: string) {
+    async navigate(url: string): Promise<void> {
         const status: string = await this.webpage.open(url);
 
         if (status !== 'success') {
