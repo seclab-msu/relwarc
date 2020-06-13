@@ -15,7 +15,7 @@ export function wait(d): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, d));
 }
 
-interface ErrorStackTraceFrame {
+export interface ErrorStackTraceFrame {
     readonly file: string;
     readonly line: number;
     readonly column: number;
