@@ -737,7 +737,11 @@ export class Analyzer {
                     if (prop.name === 'append') {
                         const obValue = this.valueFromASTNode(ob);
                         if (obValue instanceof FormDataModel) {
-                            this.processFormDataAppend(obValue, prop, node.arguments);
+                            this.processFormDataAppend(
+                                obValue,
+                                prop,
+                                node.arguments
+                            );
                             return;
                         }
                     }
@@ -769,7 +773,7 @@ export class Analyzer {
 
                 this.extractDEPFromArgs(obName + '.' + prop.name, node.arguments);
             },
-            exit: (path) => {
+            exit: path => {
                 if (~FUNCTION_DECLARATIONS.indexOf(path.node.type)) {
                     this.argsStack.pop();
                     this.functionsStack.pop();
@@ -784,7 +788,7 @@ export class Analyzer {
         }
     }
 
-    extractDEPsWithCallChain(callConfig: CallConfig) {
+    extractDEPsWithCallChain(callConfig: CallConfig): void {
         this.callChain = callConfig.chain;
         this.callChainPosition = 0;
 
@@ -826,7 +830,7 @@ export class Analyzer {
         this.extractDEPs(this.mergedProgram, null);
 
         while (this.callQueue.length > 0) {
-            let callConfig: CallConfig = <CallConfig> this.callQueue.shift();
+            const callConfig: CallConfig = <CallConfig> this.callQueue.shift();
 
             this.extractDEPsWithCallChain(callConfig);
         }
