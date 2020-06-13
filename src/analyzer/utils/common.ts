@@ -1,16 +1,3 @@
-const { Cc, Ci, Cu, Cr } = require('chrome');
-
-declare const XPCNativeWrapper: any;
-
-Cu.import('resource://gre/modules/Services.jsm');
-
-export function getWrappedWindow(webpage) {
-    const win = webpage.evaluate(function () {
-        return window;
-    });
-    return new XPCNativeWrapper(win);
-}
-
 export function wait(d): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, d));
 }
@@ -34,4 +21,8 @@ export function makeCallbackPromise(): [Promise<unknown>, () => void] {
     const p = new Promise(resolve => {doneCallback = resolve});
 
     return [p, doneCallback as (() => void)];
+}
+
+export function hasattr(ob: object, attr: string): boolean {
+    return Object.prototype.hasOwnProperty.call(ob, attr);
 }
