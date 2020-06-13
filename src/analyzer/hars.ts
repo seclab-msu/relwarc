@@ -2,6 +2,8 @@ import { Unknown, isUnknown, UNKNOWN_FUNCTION } from './unknownvalues';
 
 import { FormDataModel } from './form-data-model';
 
+import { hasattr } from './utils/common';
+
 interface KeyValue {
     name: string;
     value: string;
@@ -105,7 +107,7 @@ function headersFromMap(headersMap: Record<string, string>): KeyValue[] {
     const result: KeyValue[] = [];
 
     for (const k in headersMap) {
-        if (Object.prototype.hasOwnProperty.call(headersMap, k)) {
+        if (hasattr(headersMap, k)) {
             result.push({
                 'name': k,
                 'value': headersMap[k]
@@ -145,7 +147,7 @@ function queryStringFromObject(ob: Record<string, string|string[]>|Unknown): str
     }
 
     for (let k in ob) {
-        if (Object.prototype.hasOwnProperty.call(ob, k)) {
+        if (hasattr(ob, k)) {
             val = ob[k];
             if (Array.isArray(val)) {
                 if (!k.endsWith('[]')) {

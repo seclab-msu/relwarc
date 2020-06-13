@@ -9,6 +9,8 @@ import {
     isUnknown
 } from './unknownvalues';
 
+import { hasattr } from './utils/common';
+
 import {FROM_ARG, extractFormalArgs} from './formalarg';
 
 import { HAR, makeHAR } from './hars';
@@ -181,7 +183,7 @@ export class Analyzer {
                 if (!isGlobal && this.memory.has(binding) && !isUnknown(this.memory.get(binding))) {
                     return
                 }
-                if (isGlobal && this.globalDefinitions.hasOwnProperty(name) && !isUnknown(this.globalDefinitions[name])) {
+                if (isGlobal && hasattr(this.globalDefinitions, name) && !isUnknown(this.globalDefinitions[name])) {
                     return
                 }
             }
@@ -287,7 +289,7 @@ export class Analyzer {
     }
 
     private processStringMethod(val, methodName, argNodes: ASTNode[]) {
-        if (!String.prototype.hasOwnProperty(methodName)) {
+        if (!hasattr(String.prototype, methodName)) {
             return UNKNOWN;
         }
         const args = argNodes.map(n => this.valueFromASTNode(n));
@@ -306,7 +308,7 @@ export class Analyzer {
         const encoders = {escape, encodeURIComponent, encodeURI};
 
         if (callee.type === 'Identifier') {
-            if (encoders.hasOwnProperty(callee.name)) {
+            if (hasattr(encoders, callee.name)) {
                 const argValue = this.valueFromASTNode(node.arguments[0]);
 
                 if (isUnknown(argValue)) {
@@ -396,12 +398,12 @@ export class Analyzer {
         }
 
         if (~formalArgs.indexOf(name) || this.selectedFunction) {
-            if (this.formalArgValues.hasOwnProperty(name)) {
+            if (hasattr(this.formalArgValues, name)) {
                 return this.formalArgValues[name];
             }
             return FROM_ARG;
         }
-        if (this.globalDefinitions.hasOwnProperty(name)) {
+        if (hasattr(this.globalDefinitions, name)) {
             return this.globalDefinitions[name];
         }
         return UNKNOWN;
@@ -759,7 +761,7 @@ export class Analyzer {
                 }
 
                 if (
-                    !obSignatures.hasOwnProperty(obName) ||
+                    !hasattr(obSignatures, obName) ||
                     !~(obSignatures[obName].indexOf(prop.name))
                 ) {
                     return;

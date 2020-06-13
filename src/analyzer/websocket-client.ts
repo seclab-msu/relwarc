@@ -1,3 +1,5 @@
+import { hasattr } from './utils/common';
+
 interface CommunicationEvent {
     type: string;
     data: any;
@@ -44,7 +46,7 @@ export class WebsocketClient {
             const messageType = data.type;
             const messageData = data.data;
 
-            if (this.callbacks.hasOwnProperty(messageType)) {
+            if (hasattr(this.callbacks, messageType)) {
                 this.callbacks[messageType](messageData);
             }
         } catch (exc) {
