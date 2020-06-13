@@ -3,12 +3,9 @@ const system = require('system');
 const { create: createWebpage } = require('webpage');
 
 const WindowEvents = require('./window-events');
-import {
-    getWrappedWindow,
-    wait,
-    formatStack,
-    ErrorStackTraceFrame
-} from '../utils';
+
+import { getWrappedWindow } from '../utils/window';
+import { wait, formatStack, ErrorStackTraceFrame } from '../utils/common';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
