@@ -447,7 +447,7 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    processBinaryExpression(node: BinaryExpression): Value {
+    private processBinaryExpression(node: BinaryExpression): Value {
         if (node.operator === '+') {
             // @ts-ignore
             return this.valueFromASTNode(node.left) + this.valueFromASTNode(node.right);
@@ -500,7 +500,7 @@ export class Analyzer {
         return UNKNOWN;
     }
 
-    processMemberExpression(node: MemberExpression): Value {
+    private processMemberExpression(node: MemberExpression): Value {
         const ob = this.valueFromASTNode(node.object);
         if (!ob || isUnknown(ob)) {
             return UNKNOWN;
@@ -758,7 +758,7 @@ export class Analyzer {
         this.argsStackOffset = null;
     }
 
-    setArgValues(actualArgs: ASTNode[], formalArgs: string[]): void {
+    private setArgValues(actualArgs: ASTNode[], formalArgs: string[]): void {
         for (let i = 0; i < formalArgs.length; i++) {
             if (i >= actualArgs.length) {
                 break;
@@ -767,7 +767,7 @@ export class Analyzer {
         }
     }
 
-    proceedAlongCallChain(node: CallExpression): void {
+    private proceedAlongCallChain(node: CallExpression): void {
         const f = this.callChain[this.callChainPosition];
         this.setArgValues(node.arguments, f.args);
         this.callChainPosition++;
@@ -926,7 +926,7 @@ export class Analyzer {
         }
     }
 
-    extractDEPsWithCallChain(callConfig: CallConfig): void {
+    private extractDEPsWithCallChain(callConfig: CallConfig): void {
         this.callChain = callConfig.chain;
         this.callChainPosition = 0;
 
