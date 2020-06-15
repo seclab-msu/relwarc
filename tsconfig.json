@@ -13,6 +13,7 @@
     },
     "include": [
         "src",
-        "src/analyzer"
+        "src/analyzer",
+        "test/analyzer"
     ]
 }
