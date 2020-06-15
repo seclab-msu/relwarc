@@ -1,6 +1,6 @@
-import { Unknown, isUnknown, UNKNOWN_FUNCTION } from './unknownvalues';
+import { Unknown, isUnknown, UNKNOWN_FUNCTION } from './types/unknown';
 
-import { FormDataModel } from './form-data-model';
+import { FormDataModel } from './types/form-data';
 
 import { hasattr } from './utils/common';
 

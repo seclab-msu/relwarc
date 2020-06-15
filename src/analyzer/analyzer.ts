@@ -5,8 +5,9 @@ import type { Binding } from '@babel/traverse';
 import {
     // node types
     Node as ASTNode,
+    File as AST,
     Function as FunctionASTNode,
-    File, CallExpression, BinaryExpression, UnaryExpression,
+    CallExpression, BinaryExpression, UnaryExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier,
     // validators
@@ -19,17 +20,17 @@ import {
     UNKNOWN_FUNCTION,
     UNKNOWN_FROM_FUNCTION,
     isUnknown,
-    isUnknownOrUnknownString,
-    Unknown
-} from './unknownvalues';
+    isUnknownOrUnknownString
+} from './types/unknown';
+
+import { FROM_ARG, extractFormalArgs } from './types/formalarg';
+import { FormDataModel } from './types/form-data';
+import { FunctionValue } from './types/function';
+import { Value } from './types/generic';
 
 import { hasattr } from './utils/common';
 
-import { FROM_ARG, extractFormalArgs } from './formalarg';
-
 import { HAR, makeHAR } from './hars';
-
-import { FormDataModel } from './form-data-model';
 
 
 const MAX_CALL_CHAIN = 5;
@@ -61,22 +62,6 @@ const signatures = {
 
 const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
 
-
-type AST = File;
-
-type Value =
-    | undefined
-    | null
-    | string
-    | number
-    | boolean
-    | Record<string, unknown>
-    | Unknown
-    | RegExp
-    | FunctionValue
-    | FormDataModel
-    | URL
-    | Value[];
 
 type VarScope = { [varName: string]: Value };
 type ObjectSignatureSet = { [obName: string]: string[] };
@@ -153,15 +138,6 @@ function matchMethodCallSignature(
         return obName;
     }
     return null;
-}
-
-
-class FunctionValue {
-    ast: FunctionASTNode;
-
-    constructor(ast: FunctionASTNode) {
-        this.ast = ast;
-    }
 }
 
 
@@ -872,7 +848,7 @@ export class Analyzer {
                 'body': [] as Statement[],
                 'sourceType': 'script'
             }
-        } as File;
+        } as AST;
         for (const ast of this.parsedScripts) {
             result.program.body.push(...ast.program.body);
         }
@@ -1059,7 +1035,7 @@ export class Analyzer {
             try {
                 this.parsedScripts.push(parser.parse(script));
             } catch (err) {
-                console.error('Script parsing error: ' + err + '\n');
+                //console.error('Script parsing error: ' + err + '\n');
             }
         }
         this.mergeASTs();
