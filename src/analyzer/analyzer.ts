@@ -316,7 +316,7 @@ export class Analyzer {
                 if (typeof binding !== 'undefined') {
                     this.setLocalVariable(binding, value, op);
                 } else {
-                    this.setGlobalVariable(name, value, op);
+                    this.setGlobalVariable(node.left.name, value, op);
                 }
             } else if (node.left.type === 'MemberExpression') {
                 this.setObjectProperty(node.left, value);
@@ -392,6 +392,7 @@ export class Analyzer {
             }
             return argValue;
         }
+        return UNKNOWN_FROM_FUNCTION;
     }
 
     private processMethodCall(callee: MemberExpression, args: ASTNode[]): Value {
@@ -411,6 +412,7 @@ export class Analyzer {
                 return this.processStringMethod(obValue, prop.name, args);
             }
         }
+        return UNKNOWN_FROM_FUNCTION;
     }
 
     private processFunctionCall(node: CallExpression): Value {
