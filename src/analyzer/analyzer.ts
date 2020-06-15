@@ -647,7 +647,6 @@ export class Analyzer {
             // type definitions, but it is used in Babel's own code
             // @ts-ignore
             ReferencedIdentifier(path) {
-                console.log('ReferencedIdentifier called');
                 if (path.node.name === name && path.scope.getBinding(path.node.name) === binding) {
                     result.push(path);
                 }
