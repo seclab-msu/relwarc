@@ -986,7 +986,7 @@ export class Analyzer {
         }
     }
 
-    extractDEPs(
+    private extractDEPs(
         code: AST | NodePath | null,
         funcInfo: FunctionDescription | null
     ): void {
@@ -1026,11 +1026,7 @@ export class Analyzer {
         globals.window = globals;
     }
 
-    onNewHAR(har: HAR): void {
-        this.hars.push(har);
-    }
-
-    parseCode(): void {
+    private parseCode(): void {
         for (const script of this.scripts) {
             try {
                 this.parsedScripts.push(parser.parse(script));
@@ -1041,7 +1037,11 @@ export class Analyzer {
         this.mergeASTs();
     }
 
-    analyze(url: string): void {
+    onNewHAR(har: HAR): void {
+        this.hars.push(har);
+    }
+
+    mineArgsForDEPCalls(url: string): void {
         this.parseCode();
 
         this.seedGlobalScope(url);
@@ -1055,7 +1055,9 @@ export class Analyzer {
 
             this.extractDEPsWithCallChain(callConfig);
         }
+    }
 
+    makeHARsFromMinedDEPCallArgs(url: string): void {
         for (const result of this.results) {
             const har = makeHAR(result.funcName, result.args, url);
 
@@ -1065,5 +1067,10 @@ export class Analyzer {
 
             this.onNewHAR(har);
         }
+    }
+
+    analyze(url: string): void {
+        this.mineArgsForDEPCalls(url);
+        this.makeHARsFromMinedDEPCallArgs(url);
     }
 }
