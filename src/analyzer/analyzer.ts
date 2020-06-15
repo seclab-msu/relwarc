@@ -1035,7 +1035,7 @@ export class Analyzer {
             try {
                 this.parsedScripts.push(parser.parse(script));
             } catch (err) {
-                //console.error('Script parsing error: ' + err + '\n');
+                console.error('Script parsing error: ' + err + '\n');
             }
         }
         this.mergeASTs();
