@@ -86,7 +86,7 @@ interface CallConfig {
     chain: FunctionCallDescription[];
 }
 
-interface SinkCall {
+export interface SinkCall {
     funcName: string;
     args: Value[];
 }
