@@ -105,6 +105,9 @@ export class HAR {
         }
     }
 
+    getPostData(): PostData | undefined {
+        return this.postData;
+    }
 }
 function getQueryNameValue(q: string): [string, string] {
     const arr = q.split('=');
