@@ -1,6 +1,8 @@
 const system = require('system');
 
-declare const slimer: any;
+declare const slimer: {
+    exit(status: number): void;
+};
 
 import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
 
@@ -34,7 +36,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     try {
         exitStatus = await main(system.args.length, system.args);
-    } catch(e) {
+    } catch (e) {
         system.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
         exitStatus = 1;
     }

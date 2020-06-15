@@ -12,6 +12,13 @@ export const UNKNOWN = new Unknown();
 export const UNKNOWN_FUNCTION = new Unknown();
 export const UNKNOWN_FROM_FUNCTION = new Unknown();
 
-export function isUnknown(ob: any): boolean {
+export function isUnknown<T>(ob: T): boolean {
     return ob instanceof Unknown;
+}
+
+// TODO: this is bad
+export function isUnknownOrUnknownString<T>(ob: T): boolean {
+    return isUnknown<T>(ob) || (
+        typeof ob === 'string' && ob.includes('UNKNOWN')
+    );
 }

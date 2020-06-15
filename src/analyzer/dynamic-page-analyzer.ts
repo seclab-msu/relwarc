@@ -18,7 +18,7 @@ export class DynamicPageAnalyzer {
         this.bot = bot;
     }
 
-    async run(url: string) {
+    async run(url: string): Promise<void> {
         await this.bot.navigate(url);
         this.analyzer.analyze(url);
     }

@@ -1,4 +1,4 @@
-export function wait(d): Promise<void> {
+export function wait(d: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, d));
 }
 
@@ -8,7 +8,7 @@ export interface ErrorStackTraceFrame {
     readonly column: number;
 }
 
-export function formatStack(stack: ErrorStackTraceFrame[]) {
+export function formatStack(stack: ErrorStackTraceFrame[]): string {
     return stack.map(
         entry => '   -> ' + entry.file + ': ' + entry.line +
                  ' | col: ' + entry.column
@@ -18,7 +18,9 @@ export function formatStack(stack: ErrorStackTraceFrame[]) {
 export function makeCallbackPromise(): [Promise<unknown>, () => void] {
     let doneCallback: undefined | (() => void);
 
-    const p = new Promise(resolve => {doneCallback = resolve});
+    const p = new Promise(resolve => {
+        doneCallback = resolve;
+    });
 
     return [p, doneCallback as (() => void)];
 }

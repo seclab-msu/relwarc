@@ -1,29 +1,39 @@
 import * as parser from '@babel/parser';
 import traverse, { NodePath, Scope } from '@babel/traverse';
-import type { Program, Node, Expression, Statement, CallExpression } from 'babel-types';
+import type { Binding } from '@babel/traverse';
+
+import {
+    // node types
+    Node as ASTNode,
+    File as AST,
+    Function as FunctionASTNode,
+    CallExpression, BinaryExpression, UnaryExpression,
+    MemberExpression, NewExpression, Statement, ConditionalExpression,
+    Literal, ObjectExpression, Identifier,
+    // validators
+    isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
+    isTemplateLiteral, isSpreadElement, isFunction
+} from '@babel/types';
 
 import {
     UNKNOWN,
     UNKNOWN_FUNCTION,
     UNKNOWN_FROM_FUNCTION,
-    isUnknown
-} from './unknownvalues';
+    isUnknown,
+    isUnknownOrUnknownString
+} from './types/unknown';
 
-import {FROM_ARG, extractFormalArgs} from './formalarg';
+import { FROM_ARG, extractFormalArgs } from './types/formalarg';
+import { FormDataModel } from './types/form-data';
+import { FunctionValue } from './types/function';
+import { Value } from './types/generic';
+
+import { hasattr } from './utils/common';
 
 import { HAR, makeHAR } from './hars';
 
-import { FormDataModel } from './form-data-model';
-
-type ASTNode = any;
 
 const MAX_CALL_CHAIN = 5;
-
-const FUNCTION_DECLARATIONS = [
-    'ArrowFunctionExpression',
-    'FunctionDeclaration',
-    'FunctionExpression'
-]
 
 const jQueryAjaxFunctions = [
     'ajax',
@@ -52,7 +62,9 @@ const signatures = {
 
 const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
 
-type VarScope = {[varName: string]: any; };
+
+type VarScope = { [varName: string]: Value };
+type ObjectSignatureSet = { [obName: string]: string[] };
 
 enum CallConfigType {
     Function,
@@ -62,16 +74,21 @@ enum CallConfigType {
 interface FunctionDescription {
     type: CallConfigType;
     args: string[];
-    code: ASTNode;
+    code: NodePath;
 }
 
 interface FunctionCallDescription extends FunctionDescription {
-    binding: any;
+    binding: Binding;
 }
 
 interface CallConfig {
-    func: any;
+    func: NodePath;
     chain: FunctionCallDescription[];
+}
+
+interface SinkCall {
+    funcName: string;
+    args: Value[];
 }
 
 enum AnalysisPhase {
@@ -79,18 +96,54 @@ enum AnalysisPhase {
     DEPExtracting
 }
 
+function matchMethodCallSignature(
+    ob: ASTNode,
+    prop: Identifier
+): string | null {
+    let obName: string,
+        objectIsCall = false;
 
-class FunctionValue {
-    ast: ASTNode;
-
-    constructor(ast: ASTNode) {
-        this.ast = ast;
+    if (ob.type === 'Identifier') {
+        obName = ob.name;
+    } else if (
+        ob.type === 'MemberExpression' &&
+        ob.property.type === 'Identifier'
+    ) {
+        // handle case a.b.x.$http.post(...)
+        obName = ob.property.name;
+    } else if (
+        ob.type === 'CallExpression' &&
+        ob.callee.type === 'Identifier'
+    ) {
+        // handle case $(...).load(...)
+        obName = ob.callee.name;
+        objectIsCall = true;
+    } else {
+        return null;
     }
+
+    let obSignatures: ObjectSignatureSet;
+
+    if (!objectIsCall) {
+        obSignatures = signatures.bound;
+    } else {
+        obSignatures = signatures.boundToCall;
+    }
+
+    if (!hasattr(obSignatures, obName)) {
+        return null;
+    }
+
+    if (obSignatures[obName].includes(prop.name)) {
+        return obName;
+    }
+    return null;
 }
 
+
 export class Analyzer {
-    readonly parsedScripts: ASTNode[];
-    readonly results: any[];
+    readonly parsedScripts: AST[];
+    readonly results: SinkCall[];
     readonly scripts: Set<string>;
     readonly hars: HAR[];
 
@@ -101,17 +154,17 @@ export class Analyzer {
 
     private callChain: FunctionCallDescription[];
     private callChainPosition: number;
-    private selectedFunction: FunctionDescription | null;
+    private selectedFunction: NodePath | null;
     private formalArgs: string[];
 
-    private readonly functionsStack: any[];
-    private mergedProgram: ASTNode | null;
+    private readonly functionsStack: NodePath[];
+    private mergedProgram: AST | null;
 
-    private readonly memory: WeakMap<any, any>;
-    private readonly functions: WeakMap<any, any>;
-    private readonly functionToBinding: WeakMap<ASTNode, any[]>;
+    private readonly memory: WeakMap<Binding, Value>;
+    private readonly functions: WeakMap<Binding, NodePath>;
+    private readonly functionToBinding: WeakMap<ASTNode, Binding[]>;
 
-    private currentPath: any;
+    private currentPath: NodePath | null;
 
     private stage: AnalysisPhase | null;
 
@@ -153,62 +206,81 @@ export class Analyzer {
         this.scripts.add(source);
     }
 
-    private addFunctionBinding(funcAST: ASTNode, binding: any) {
-        if (this.functionToBinding.has(funcAST)) {
-            const already = <any[]>this.functionToBinding.get(funcAST);
+    private addFunctionBinding(
+        funcAST: FunctionASTNode,
+        binding: Binding
+    ): void {
+        const already = this.functionToBinding.get(funcAST);
+        if (already) {
             already.push(binding);
         } else {
             this.functionToBinding.set(funcAST, [binding]);
         }
     }
 
-    private setVariableIfNotLessConcrete(binding, name: string, value, op: string) {
-        let isGlobal: boolean = false;
-
-        if (typeof binding === 'undefined') {
-            isGlobal = true;
+    private lessConcreteThanOldVal(
+        key: string | Binding,
+        value: Value
+    ): boolean {
+        // TODO: this is bad
+        if (!isUnknownOrUnknownString(value)) {
+            return false;
         }
-
-        let newValue;
-
-        let isUnk: boolean = isUnknown(value);
-
-        if (op === '=') {
-            // TODO: this is bad
-            isUnk = isUnk || (typeof value === 'string' && value.includes('UNKNOWN'));
-
-            if (isUnk) {
-                if (!isGlobal && this.memory.has(binding) && !isUnknown(this.memory.get(binding))) {
-                    return
-                }
-                if (isGlobal && this.globalDefinitions.hasOwnProperty(name) && !isUnknown(this.globalDefinitions[name])) {
-                    return
-                }
+        if (typeof key === 'string') {
+            // global variable
+            if (!hasattr(this.globalDefinitions, key)) {
+                return false;
             }
+            return !isUnknown(this.globalDefinitions[key]);
         }
+
+        // local variable
+        if (!this.memory.has(key)) {
+            return false;
+        }
+        return !isUnknown(this.memory.get(key));
+    }
+
+    private setLocalVariable(binding: Binding, value: Value, op: string): void {
+        if (op === '=' && this.lessConcreteThanOldVal(binding, value)) {
+            return;
+        }
+
+        let newValue: Value;
 
         if (op === '=') {
             newValue = value;
-         } else if (op === '+=') {
-            let oldValue;
-            if (isGlobal) {
-                oldValue = this.globalDefinitions[name];
-            } else {
-                oldValue = this.memory.get(binding);
-            }
+        } else if (op === '+=') {
+            const oldValue = this.memory.get(binding);
+            // @ts-ignore
+            newValue = oldValue + value;
+        } else {
+            // TODO: support other type of assignment
+            return;
+        }
+        this.memory.set(binding, newValue);
+    }
+
+    private setGlobalVariable(name: string, value: Value, op: string): void {
+        if (op === '=' && this.lessConcreteThanOldVal(name, value)) {
+            return;
+        }
+
+        let newValue: Value;
+
+        if (op === '=') {
+            newValue = value;
+        } else if (op === '+=') {
+            const oldValue = this.globalDefinitions[name];
+            // @ts-ignore
             newValue = oldValue + value;
         } else {
             return;
         }
-
-        if (!isGlobal) {
-            this.memory.set(binding, newValue);
-        } else {
-            this.globalDefinitions[name] = newValue;
-        }
+        this.globalDefinitions[name] = newValue;
     }
 
-    private shouldSetObjectProperty(name: string, value: any): boolean {
+    private shouldSetObjectProperty(name: string, value: Value): boolean {
         // try to avoid problems with some special properties
         // TODO: reconsider
         if (SPECIAL_PROP_NAMES.includes(name)) {
@@ -220,7 +292,7 @@ export class Analyzer {
         return true;
     }
 
-    private setObjectProperty(node, value) {
+    private setObjectProperty(node: MemberExpression, value): void {
         const prop = node.property;
         let propName;
 
@@ -230,7 +302,11 @@ export class Analyzer {
             propName = prop.name;
         }
 
-        if (typeof propName === 'undefined' || propName === null || isUnknown(propName)) {
+        if (
+            typeof propName === 'undefined' ||
+            propName === null ||
+            isUnknown(propName)
+        ) {
             return;
         }
 
@@ -240,44 +316,84 @@ export class Analyzer {
 
         const ob = this.valueFromASTNode(node.object);
 
-        if (ob && typeof ob === 'object' && !isUnknown(ob) && ob !== this.globalDefinitions.location) {
+        if (
+            ob &&
+            typeof ob === 'object' &&
+            !isUnknown(ob) &&
+            ob !== this.globalDefinitions.location
+        ) {
             ob[propName] = value;
         }
-
     }
 
-    private setVariable(path) {
-        const node = path.node;
-        const type = node.type;
-        if (type === 'VariableDeclarator' && node.init) {
+    private setVariable(path: NodePath): void {
+        const node: ASTNode = path.node;
+        if (node.type === 'VariableDeclarator' && node.init) {
+            if (node.id.type !== 'Identifier') {
+                return;
+            }
+
             const binding = path.scope.getBinding(node.id.name);
+
+            if (binding === null || typeof binding === 'undefined') {
+                console.error('Warning: no binding for declared local var');
+                return;
+            }
+
             const value = this.valueFromASTNode(node.init);
 
             this.memory.set(binding, value);
             if (value instanceof FunctionValue) {
                 this.addFunctionBinding(value.ast, binding);
             }
-        } else if (type === 'AssignmentExpression') {
+        } else if (node.type === 'AssignmentExpression') {
             const value = this.valueFromASTNode(node.right);
             if (node.left.type === 'Identifier') {
                 const binding = path.scope.getBinding(node.left.name);
-                this.setVariableIfNotLessConcrete(binding, node.left.name, value, node.operator);
+                const op = node.operator;
+                if (typeof binding !== 'undefined') {
+                    this.setLocalVariable(binding, value, op);
+                } else {
+                    this.setGlobalVariable(node.left.name, value, op);
+                }
             } else if (node.left.type === 'MemberExpression') {
-                this.setObjectProperty(node.left, value)
+                this.setObjectProperty(node.left, value);
             }
         }
     }
 
-    private gatherVariableValues() {
+    private gatherVariableValues(): void {
         this.stage = AnalysisPhase.VarGathering;
+        if (this.mergedProgram === null) {
+            throw new Error('gatherVariableValues was called before mergeASTs');
+        }
         traverse(this.mergedProgram, {
-            exit: (path) => {
+            exit: (path: NodePath) => {
                 this.currentPath = path;
-                const node = path.node;
-                if (node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
+                const node: ASTNode = path.node;
+                if (
+                    node.type === 'VariableDeclarator' ||
+                    node.type === 'AssignmentExpression'
+                ) {
                     this.setVariable(path);
                 } else if (node.type === 'FunctionDeclaration') {
+                    if (node.id === null) {
+                        console.error(
+                            'Warning: id is null for function declaration: ' +
+                                JSON.stringify(node)
+                        );
+                        return;
+                    }
+
                     const binding = path.scope.getBinding(node.id.name);
+
+                    if (typeof binding === 'undefined') {
+                        console.error(
+                            'Warning: no binding function declaration: ' +
+                                JSON.stringify(node)
+                        );
+                        return;
+                    }
 
                     this.functions.set(binding, path);
                     this.addFunctionBinding(node, binding);
@@ -286,8 +402,12 @@ export class Analyzer {
         });
     }
 
-    private processStringMethod(val, methodName, argNodes: ASTNode[]) {
-        if (!String.prototype.hasOwnProperty(methodName)) {
+    private processStringMethod(
+        val: string,
+        methodName: string,
+        argNodes: ASTNode[]
+    ): Value {
+        if (!hasattr(String.prototype, methodName)) {
             return UNKNOWN;
         }
         const args = argNodes.map(n => this.valueFromASTNode(n));
@@ -296,53 +416,74 @@ export class Analyzer {
             return UNKNOWN;
         }
 
-        const method: Function = (<unknown>String.prototype[methodName]) as Function;
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        const method: Function = String.prototype[methodName];
 
         return method.apply(val, args);
     }
 
-    processFunctionCall(node: CallExpression) {
-        const callee = node.callee;
-        const encoders = {escape, encodeURIComponent, encodeURI};
+    private processFreeStandingFunctionCall(
+        name: string,
+        args: ASTNode[]
+    ): Value {
+        const encoders = { escape, encodeURIComponent, encodeURI };
 
-        if (callee.type === 'Identifier') {
-            if (encoders.hasOwnProperty(callee.name)) {
-                const argValue = this.valueFromASTNode(node.arguments[0]);
+        if (hasattr(encoders, name)) {
+            const argValue = this.valueFromASTNode(args[0]);
 
-                if (isUnknown(argValue)) {
-                    return argValue;
-                }
-
-                if (typeof argValue === 'string') {
-                    return encoders[callee.name](argValue);
-                }
+            if (isUnknown(argValue)) {
                 return argValue;
             }
+
+            if (typeof argValue === 'string') {
+                return encoders[name](argValue);
+            }
+            return argValue;
+        }
+        return UNKNOWN_FROM_FUNCTION;
+    }
+
+    private processMethodCall(
+        callee: MemberExpression,
+        args: ASTNode[]
+    ): Value {
+        const ob = callee.object;
+        const prop = callee.property;
+
+        if (ob.type === 'Identifier' && prop.type === 'Identifier') {
+            if (ob.name === 'JSON' && prop.name === 'stringify') {
+                return JSON.stringify(this.valueFromASTNode(args[0]));
+            }
+            if (ob.name === 'Math' && prop.name === 'random') {
+                return 0.8782736846632295;
+            }
+            const obValue = this.valueFromASTNode(ob);
+
+            if (typeof obValue === 'string') {
+                return this.processStringMethod(obValue, prop.name, args);
+            }
+        }
+        return UNKNOWN_FROM_FUNCTION;
+    }
+
+    private processFunctionCall(node: CallExpression): Value {
+        const callee = node.callee;
+
+        if (callee.type === 'Identifier') {
+            return this.processFreeStandingFunctionCall(
+                callee.name,
+                node.arguments
+            );
         }
 
         if (callee.type === 'MemberExpression') {
-            const ob = callee.object;
-            const prop = callee.property;
-
-            if (ob.type === 'Identifier' && prop.type === 'Identifier') {
-                if (ob.name === 'JSON' && prop.name === 'stringify') {
-                    return JSON.stringify(this.valueFromASTNode(node.arguments[0]));
-                }
-                if (ob.name === 'Math' && prop.name === 'random') {
-                    return 0.8782736846632295;
-                }
-                const obValue = this.valueFromASTNode(ob);
-
-                if (typeof obValue === 'string') {
-                    return this.processStringMethod(obValue, prop.name, node.arguments);
-                }
-            }
+            return this.processMethodCall(callee, node.arguments);
         }
 
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    private processNewExpression(node: ASTNode) {
+    private processNewExpression(node: NewExpression): Value {
         const callee = node.callee;
 
         if (callee.type !== 'Identifier') {
@@ -359,14 +500,17 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    processBinaryExpression(node: ASTNode) {
+    private processBinaryExpression(node: BinaryExpression): Value {
         if (node.operator === '+') {
-            return this.valueFromASTNode(node.left) + this.valueFromASTNode(node.right);
+            const left = this.valueFromASTNode(node.left);
+            const right = this.valueFromASTNode(node.right);
+            // @ts-ignore
+            return left + right;
         }
         return UNKNOWN;
     }
 
-    private processUnaryExpression(node: ASTNode) {
+    private processUnaryExpression(node: UnaryExpression): Value {
         if (node.operator === '!') {
             const operand = this.valueFromASTNode(node.argument);
             if (isUnknown(operand)) {
@@ -377,7 +521,11 @@ export class Analyzer {
         return UNKNOWN;
     }
 
-    getVariable(name: string) {
+    getVariable(name: string): Value {
+        if (this.currentPath === null) {
+            throw new Error('getVariable called without currentPath set');
+        }
+
         const binding = this.currentPath.scope.getBinding(name);
 
         if (typeof binding !== 'undefined') {
@@ -392,22 +540,24 @@ export class Analyzer {
         let formalArgs: string[] = this.formalArgs;
 
         if (this.argsStackOffset !== null) {
-            formalArgs = this.argsStack[this.argsStack.length - this.argsStackOffset - 1];
+            formalArgs = this.argsStack[
+                this.argsStack.length - this.argsStackOffset - 1
+            ];
         }
 
         if (~formalArgs.indexOf(name) || this.selectedFunction) {
-            if (this.formalArgValues.hasOwnProperty(name)) {
+            if (hasattr(this.formalArgValues, name)) {
                 return this.formalArgValues[name];
             }
             return FROM_ARG;
         }
-        if (this.globalDefinitions.hasOwnProperty(name)) {
+        if (hasattr(this.globalDefinitions, name)) {
             return this.globalDefinitions[name];
         }
         return UNKNOWN;
     }
 
-    processMemberExpression(node) {
+    private processMemberExpression(node: MemberExpression): Value {
         const ob = this.valueFromASTNode(node.object);
         if (!ob || isUnknown(ob)) {
             return UNKNOWN;
@@ -415,14 +565,15 @@ export class Analyzer {
         if (!node.computed) {
             return ob[node.property.name];
         }
-        let propName = this.valueFromASTNode(node.property);
+        const propName = this.valueFromASTNode(node.property);
         if (!propName || isUnknown(propName)) {
             return UNKNOWN;
         }
+        // @ts-ignore
         return ob[propName];
     }
 
-    private processConditionalExpression(node) {
+    private processConditionalExpression(node: ConditionalExpression): Value {
         const test = this.valueFromASTNode(node.test);
 
         let [first, second] = [node.consequent, node.alternate];
@@ -441,32 +592,70 @@ export class Analyzer {
         return this.valueFromASTNode(second);
     }
 
-    valueFromASTNode(node) {
-        if (node.type.endsWith('Literal')) {
-            return node.value;
+    private valueFromLiteral(node: Literal): Value {
+        if (isNullLiteral(node)) {
+            return null;
         }
-        if (node.type === 'Identifier') {
+        if (isRegExpLiteral(node)) {
+            return new RegExp(node.pattern);
+        }
+        if (isTemplateLiteral(node)) {
+            // TODO: add support for template strings: #1123
+            return UNKNOWN;
+        }
+        return node.value;
+    }
+
+    private processObjectExpression(node: ObjectExpression): Value {
+        const result = {};
+        for (const prop of node.properties) {
+            let key;
+
+            if (isSpreadElement(prop)) {
+                // TODO: add support for object destructuring
+                continue;
+            }
+
+            if (isObjectMethod(prop)) {
+                // NOTE: object methods are note supported for now
+                continue;
+            }
+
+            if (isIdentifier(prop.key)) {
+                key = prop.key.name;
+            } else {
+                key = prop.key.value;
+            }
+            result[key] = this.valueFromASTNode(prop.value);
+        }
+        return result;
+    }
+
+    private processFunction(node: FunctionASTNode): Value {
+        if (this.stage === AnalysisPhase.DEPExtracting) {
+            return UNKNOWN_FUNCTION;
+        } else if (this.stage === AnalysisPhase.VarGathering) {
+            return new FunctionValue(node);
+        } else {
+            throw new Error('Unexpected stage: ' + this.stage);
+        }
+    }
+
+    private valueFromASTNode(node: ASTNode): Value {
+        if (isLiteral(node)) {
+            return this.valueFromLiteral(node);
+        }
+        if (isIdentifier(node)) {
             return this.getVariable(node.name);
         }
         if (node.type === 'ObjectExpression') {
-            const result = {};
-            for (let prop of node.properties) {
-                let key;
-
-                if (prop.key.type === 'Identifier') {
-                    key = prop.key.name;
-                } else if (prop.key.type.endsWith('Literal')) {
-                    key = prop.key.value
-                } else {
-                    return UNKNOWN;
-                }
-                result[key] = this.valueFromASTNode(prop.value);
-            }
-            return result;
+            return this.processObjectExpression(node);
         }
 
         if (node.type === 'ArrayExpression') {
-            return node.elements.map(elem => elem !== null ? this.valueFromASTNode(elem) : undefined);
+            return node.elements.map(elem => elem !== null ?
+                this.valueFromASTNode(elem) : undefined
+            );
         }
 
         if (node.type === 'CallExpression') {
@@ -493,36 +682,36 @@ export class Analyzer {
             return this.processConditionalExpression(node);
         }
 
-        if (~node.type.indexOf('Function')) {
-            if (this.stage === AnalysisPhase.DEPExtracting) {
-                return UNKNOWN_FUNCTION;
-            } else if (this.stage === AnalysisPhase.VarGathering) {
-                return new FunctionValue(node);
-            } else {
-                throw new Error('Unexpected stage: ' + this.stage);
-            }
+        if (isFunction(node)) {
+            return this.processFunction(node);
         }
         return UNKNOWN;
     }
 
-    private getFunctionForCallSite(path) {
+    private getFunctionForCallSite(path: NodePath): NodePath {
         path = path.scope.path;
-        while(path && path.scope && path.scope.parent && path.node && !path.node.type.includes('Function')) {
+        while (path?.scope?.parent && path.node && !isFunction(path.node)) {
             path = path.scope.parent.path;
         }
         return path;
     }
 
-    private findCallSitesForBinding(binding): any[] {
+    private findCallSitesForBinding(binding: Binding): NodePath[] {
         // based on https://github.com/babel/babel/blob/429840d/packages/babel-traverse/src/scope/lib/renamer.js#L5
         const scope = binding.scope;
         const identifier = binding.identifier;
         const name = identifier.name;
-        const result: any[] = [];
+        const result: NodePath[] = [];
 
         scope.traverse(binding.scope.block, {
+            // XXX: ReferencedIdentifier is not defined in Babel's TypeScript
+            // type definitions, but it is used in Babel's own code
+            // @ts-ignore
             ReferencedIdentifier(path) {
-                if (path.node.name === name && path.scope.getBinding(path.node.name) === binding) {
+                if (
+                    path.node.name === name &&
+                    path.scope.getBinding(path.node.name) === binding
+                ) {
                     result.push(path);
                 }
             },
@@ -536,9 +725,9 @@ export class Analyzer {
         return result;
     }
 
-    private makeFunctionDescription(path): FunctionDescription {
+    private makeFunctionDescription(path: NodePath): FunctionDescription {
         const node = path.node;
-        if (node.type.includes('Function')) {
+        if (isFunction(node)) {
             return {
                 type: CallConfigType.Function,
                 args: this.argNamesForFunctionNode(node),
@@ -566,7 +755,7 @@ export class Analyzer {
         return -1;
     }
 
-    private buildCallChainsForMissingArgs() {
+    private buildCallChainsForMissingArgs(): void {
         let func;
 
         if (this.callChain.length + 1 >= MAX_CALL_CHAIN) {
@@ -590,15 +779,17 @@ export class Analyzer {
             for (const callSite of callSites) {
                 const caller = this.getFunctionForCallSite(callSite);
                 const funcDescr = this.makeFunctionDescription(func);
-                const callDescr: FunctionCallDescription = {binding, ...funcDescr};
+                const callDescr: FunctionCallDescription = {
+                    binding,
+                    ...funcDescr
+                };
                 const chain = [callDescr].concat(this.callChain);
-                this.callQueue.push({func: caller, chain});
+                this.callQueue.push({ func: caller, chain });
             }
-
         }
     }
 
-    private extractDEPFromArgs(funcName, args) {
+    private extractDEPFromArgs(funcName: string, args: ASTNode[]): void {
         let argsDependOnFormalArg = false;
 
         this.argsStackOffset = null;
@@ -611,9 +802,9 @@ export class Analyzer {
             }
         }
 
-        this.results.push([
+        this.results.push({
             funcName,
-            args.map(arg => {
+            args: args.map(arg => {
                 let v = this.valueFromASTNode(arg),
                     haveFormalArg;
 
@@ -623,23 +814,25 @@ export class Analyzer {
                 }
                 return v;
             })
-        ]);
+        });
         if (argsDependOnFormalArg) {
             this.buildCallChainsForMissingArgs();
         }
         this.argsStackOffset = null;
     }
 
-    setArgValues(actualArgs, formalArgs) {
+    private setArgValues(actualArgs: ASTNode[], formalArgs: string[]): void {
         for (let i = 0; i < formalArgs.length; i++) {
             if (i >= actualArgs.length) {
                 break;
             }
-            this.formalArgValues[formalArgs[i]] = this.valueFromASTNode(actualArgs[i]);
+            this.formalArgValues[formalArgs[i]] = this.valueFromASTNode(
+                actualArgs[i]
+            );
         }
     }
 
-    proceedAlongCallChain(node) {
+    private proceedAlongCallChain(node: CallExpression): void {
         const f = this.callChain[this.callChainPosition];
         this.setArgValues(node.arguments, f.args);
         this.callChainPosition++;
@@ -647,26 +840,36 @@ export class Analyzer {
         this.callChainPosition--;
     }
 
-    private mergeASTs() {
+    private mergeASTs(): void {
         const result = {
             type: 'File',
             program: {
                 'type': 'Program',
-                'body': <any[]>[],
+                'body': [] as Statement[],
                 'sourceType': 'script'
             }
-        };
+        } as AST;
         for (const ast of this.parsedScripts) {
             result.program.body.push(...ast.program.body);
         }
         this.mergedProgram = result;
     }
 
-    private argNamesForFunctionNode(node) {
-        return node.params.map(param => param.name);
+    private argNamesForFunctionNode(node: FunctionASTNode): string[] {
+        return node.params.map(param => {
+            if (isIdentifier(param)) {
+                return param.name;
+            }
+            // TODO: support other parameter forms
+            return 'unknownParam';
+        });
     }
 
-    private processFormDataAppend(fd: FormDataModel, methNode: ASTNode, argNodes: ASTNode[]) {
+    private processFormDataAppend(
+        fd: FormDataModel,
+        methNode: ASTNode,
+        argNodes: ASTNode[]
+    ): void {
         const args = argNodes.map(v => this.valueFromASTNode(v));
 
         if (!isUnknown(args[0])) {
@@ -674,7 +877,125 @@ export class Analyzer {
         }
     }
 
-    extractDEPs(ast, funcInfo: FunctionDescription|null) {
+    private tryFormDataOp(
+        ob: Identifier,
+        prop: Identifier,
+        args: ASTNode[]
+    ): boolean {
+        if (prop.name === 'append') {
+            const obValue = this.valueFromASTNode(ob);
+            if (obValue instanceof FormDataModel) {
+                this.processFormDataAppend(obValue, prop, args);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private extractDEPsFreeStandingCall(
+        calleeName: string,
+        node: CallExpression,
+        scope: Scope
+    ): void {
+        if (
+            this.callChain.length > 0 &&
+            this.callChainPosition < this.callChain.length
+        ) {
+            const binding = scope.getBinding(calleeName);
+            if (this.callChain[this.callChainPosition].binding === binding) {
+                this.proceedAlongCallChain(node);
+            }
+        }
+
+        if (~signatures.freeStanding.indexOf(calleeName)) {
+            this.extractDEPFromArgs(calleeName, node.arguments);
+        }
+    }
+
+    private extractDEPsMethodCall(
+        callee: MemberExpression,
+        args: ASTNode[]
+    ): void {
+        const prop = callee.property;
+        const ob = callee.object;
+
+        if (prop.type !== 'Identifier') {
+            return;
+        }
+
+        if (ob.type === 'Identifier') {
+            const isFormDataOp = this.tryFormDataOp(ob, prop, args);
+            if (isFormDataOp) {
+                return;
+            }
+        }
+
+        const obName = matchMethodCallSignature(ob, prop);
+
+        if (obName === null) {
+            return;
+        }
+
+        this.extractDEPFromArgs(obName + '.' + prop.name, args);
+    }
+
+    private extractDEPsFromCall(node: CallExpression, scope: Scope): void {
+        const callee = node.callee;
+
+        if (callee.type === 'Identifier') {
+            this.extractDEPsFreeStandingCall(callee.name, node, scope);
+        } else if (callee.type === 'MemberExpression') {
+            this.extractDEPsMethodCall(callee, node.arguments);
+        }
+    }
+
+    private traverseASTForDEPExtraction(code: AST | NodePath): void {
+        const visitor = {
+            enter: (path: NodePath): void => {
+                const node = path.node;
+                this.currentPath = path;
+                if (isFunction(node)) {
+                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                    this.formalArgs = this.argsStack[this.argsStack.length - 1];
+                    this.functionsStack.push(path);
+                }
+                if (
+                    this.functionsStack.length > 0 &&
+                    node.type === 'VariableDeclarator' ||
+                    node.type === 'AssignmentExpression'
+                ) {
+                    this.setVariable(path);
+                }
+
+                if (node.type === 'CallExpression') {
+                    this.extractDEPsFromCall(node, path.scope);
+                }
+            },
+            exit: (path: NodePath): void => {
+                if (isFunction(path.node)) {
+                    this.argsStack.pop();
+                    this.functionsStack.pop();
+                }
+            }
+        };
+
+        if (code instanceof NodePath) {
+            code.traverse(visitor);
+        } else {
+            traverse(code, visitor);
+        }
+    }
+
+    extractDEPs(
+        code: AST | NodePath | null,
+        funcInfo: FunctionDescription | null
+    ): void {
+        if (code === null) {
+            throw new Error(
+                'extractDEPs called with null code (mergeASTs was not called?)'
+            );
+        }
+
         this.functionsStack.length = 0;
         this.stage = AnalysisPhase.DEPExtracting;
         if (funcInfo !== null) {
@@ -682,107 +1003,10 @@ export class Analyzer {
         } else {
             this.formalArgs = [];
         }
-
-        const visitor = {
-            enter: (path) => {
-                const node = path.node;
-                this.currentPath = path;
-                if (~FUNCTION_DECLARATIONS.indexOf(node.type)) {
-                    this.argsStack.push(this.argNamesForFunctionNode(node));
-                    this.formalArgs = this.argsStack[this.argsStack.length - 1];
-                    this.functionsStack.push(path);
-                }
-                if (this.functionsStack.length > 0 && node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
-                    this.setVariable(path);
-                }
-
-                if (node.type !== 'CallExpression') {
-                    return;
-                }
-
-                const callee = node.callee;
-
-                if (this.callChain.length > 0 && this.callChainPosition < this.callChain.length && node.callee.type === 'Identifier') {
-                    const binding = path.scope.getBinding(node.callee.name);
-                    if (this.callChain[this.callChainPosition].binding === binding) {
-                        this.proceedAlongCallChain(node);
-                    }
-                }
-
-                if (callee.type === 'Identifier') {
-                    if (~signatures.freeStanding.indexOf(callee.name)) {
-                        this.extractDEPFromArgs(callee.name, node.arguments);
-                    }
-                    return;
-                }
-
-                if (callee.type !== 'MemberExpression') {
-                    return;
-                }
-
-                const prop = callee.property;
-                const ob = callee.object;
-
-                if (prop.type !== 'Identifier') {
-                    return;
-                }
-
-                let obName;
-                let objectIsCall: boolean = false;
-
-                if (ob.type === 'Identifier') {
-                    obName = ob.name;
-                    if (prop.name === 'append') {
-                        const obValue = this.valueFromASTNode(ob);
-                        if (obValue instanceof FormDataModel) {
-                            this.processFormDataAppend(obValue, prop, node.arguments);
-                            return;
-                        }
-                    }
-                } else if (ob.type === 'MemberExpression' && ob.property.type === 'Identifier') {
-                    // handle case a.b.x.$http.post(...)
-                    obName = ob.property.name;
-                } else if (ob.type === 'CallExpression' && ob.callee.type === 'Identifier') {
-                    // handle case $(...).load(...)
-                    obName = ob.callee.name;
-                    objectIsCall = true;
-                } else {
-                    return;
-                }
-
-                let obSignatures: {[obName: string]: string[]};
-
-                if (!objectIsCall) {
-                    obSignatures = signatures.bound;
-                } else {
-                    obSignatures = signatures.boundToCall;
-                }
-
-                if (
-                    !obSignatures.hasOwnProperty(obName) ||
-                    !~(obSignatures[obName].indexOf(prop.name))
-                ) {
-                    return;
-                }
-
-                this.extractDEPFromArgs(obName + '.' + prop.name, node.arguments);
-            },
-            exit: (path) => {
-                if (~FUNCTION_DECLARATIONS.indexOf(path.node.type)) {
-                    this.argsStack.pop();
-                    this.functionsStack.pop();
-                }
-            }
-        };
-
-        if (ast.traverse) {
-            ast.traverse(visitor);
-        } else {
-            traverse(ast, visitor);
-        }
+        this.traverseASTForDEPExtraction(code);
     }
 
-    extractDEPsWithCallChain(callConfig: CallConfig) {
+    private extractDEPsWithCallChain(callConfig: CallConfig): void {
         this.callChain = callConfig.chain;
         this.callChainPosition = 0;
 
@@ -792,7 +1016,7 @@ export class Analyzer {
         this.extractDEPs(func, this.makeFunctionDescription(func));
     }
 
-    private seedGlobalScope(url: string) {
+    private seedGlobalScope(url: string): void {
         const globals = this.globalDefinitions;
 
         globals.location = new URL(url);
@@ -806,7 +1030,7 @@ export class Analyzer {
         this.hars.push(har);
     }
 
-    analyze(url: string) {
+    parseCode(): void {
         for (const script of this.scripts) {
             try {
                 this.parsedScripts.push(parser.parse(script));
@@ -814,8 +1038,11 @@ export class Analyzer {
                 console.error('Script parsing error: ' + err + '\n');
             }
         }
-
         this.mergeASTs();
+    }
+
+    analyze(url: string): void {
+        this.parseCode();
 
         this.seedGlobalScope(url);
 
@@ -824,13 +1051,13 @@ export class Analyzer {
         this.extractDEPs(this.mergedProgram, null);
 
         while (this.callQueue.length > 0) {
-            let callConfig: CallConfig = <CallConfig> this.callQueue.shift();
+            const callConfig: CallConfig = this.callQueue.shift() as CallConfig;
 
             this.extractDEPsWithCallChain(callConfig);
         }
 
         for (const result of this.results) {
-            const har = makeHAR(result[0], result[1], url);
+            const har = makeHAR(result.funcName, result.args, url);
 
             if (har === null) {
                 continue;

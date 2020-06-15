@@ -1,4 +1,5 @@
-import {Unknown, isUnknown, UNKNOWN} from './unknownvalues';
+import { Unknown, isUnknown, UNKNOWN } from './unknown';
+import type { Value } from './generic';
 
 class FromArg extends Unknown {
     readonly tag: string = 'FROM_ARG';
@@ -6,7 +7,7 @@ class FromArg extends Unknown {
 
 export const FROM_ARG = new FromArg();
 
-export function extractFormalArgs(val): [any, boolean] {
+export function extractFormalArgs(val: Value): [Value, boolean] {
     if (val === FROM_ARG) {
         return [UNKNOWN, true];
     }
@@ -31,7 +32,7 @@ export function extractFormalArgs(val): [any, boolean] {
         }
         return [val, haveArg];
     }
-    for (let propName of Object.getOwnPropertyNames(val)) {
+    for (const propName of Object.getOwnPropertyNames(val)) {
         [elt, haveArgHere] = extractFormalArgs(val[propName]);
         val[propName] = elt;
         haveArg = haveArg || haveArgHere;
