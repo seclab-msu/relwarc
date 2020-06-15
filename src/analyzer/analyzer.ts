@@ -64,8 +64,8 @@ const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
 
 type AST = File;
 
-type Value
-    = undefined
+type Value =
+    | undefined
     | null
     | string
     | number
@@ -78,8 +78,8 @@ type Value
     | URL
     | Value[];
 
-type VarScope = {[varName: string]: Value; };
-type ObjectSignatureSet = {[obName: string]: string[]};
+type VarScope = { [varName: string]: Value };
+type ObjectSignatureSet = { [obName: string]: string[] };
 
 enum CallConfigType {
     Function,
@@ -111,7 +111,10 @@ enum AnalysisPhase {
     DEPExtracting
 }
 
-function matchMethodCallSignature(ob: ASTNode, prop: Identifier): string|null {
+function matchMethodCallSignature(
+    ob: ASTNode,
+    prop: Identifier
+): string | null {
     let obName: string,
         objectIsCall = false;
 
@@ -227,7 +230,10 @@ export class Analyzer {
         this.scripts.add(source);
     }
 
-    private addFunctionBinding(funcAST: FunctionASTNode, binding: Binding): void {
+    private addFunctionBinding(
+        funcAST: FunctionASTNode,
+        binding: Binding
+    ): void {
         const already = this.functionToBinding.get(funcAST);
         if (already) {
             already.push(binding);
@@ -236,7 +242,10 @@ export class Analyzer {
         }
     }
 
-    private lessConcreteThanOldVal(key: string|Binding, value: Value): boolean {
+    private lessConcreteThanOldVal(
+        key: string | Binding,
+        value: Value
+    ): boolean {
         // TODO: this is bad
         if (!isUnknownOrUnknownString(value)) {
             return false;
@@ -317,7 +326,11 @@ export class Analyzer {
             propName = prop.name;
         }
 
-        if (typeof propName === 'undefined' || propName === null || isUnknown(propName)) {
+        if (
+            typeof propName === 'undefined' ||
+            propName === null ||
+            isUnknown(propName)
+        ) {
             return;
         }
 
@@ -327,7 +340,12 @@ export class Analyzer {
 
         const ob = this.valueFromASTNode(node.object);
 
-        if (ob && typeof ob === 'object' && !isUnknown(ob) && ob !== this.globalDefinitions.location) {
+        if (
+            ob &&
+            typeof ob === 'object' &&
+            !isUnknown(ob) &&
+            ob !== this.globalDefinitions.location
+        ) {
             ob[propName] = value;
         }
     }
@@ -377,13 +395,16 @@ export class Analyzer {
             exit: (path: NodePath) => {
                 this.currentPath = path;
                 const node: ASTNode = path.node;
-                if (node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
+                if (
+                    node.type === 'VariableDeclarator' ||
+                    node.type === 'AssignmentExpression'
+                ) {
                     this.setVariable(path);
                 } else if (node.type === 'FunctionDeclaration') {
                     if (node.id === null) {
                         console.error(
                             'Warning: id is null for function declaration: ' +
-                            JSON.stringify(node)
+                                JSON.stringify(node)
                         );
                         return;
                     }
@@ -393,7 +414,7 @@ export class Analyzer {
                     if (typeof binding === 'undefined') {
                         console.error(
                             'Warning: no binding function declaration: ' +
-                            JSON.stringify(node)
+                                JSON.stringify(node)
                         );
                         return;
                     }
@@ -405,7 +426,11 @@ export class Analyzer {
         });
     }
 
-    private processStringMethod(val: string, methodName: string, argNodes: ASTNode[]): Value {
+    private processStringMethod(
+        val: string,
+        methodName: string,
+        argNodes: ASTNode[]
+    ): Value {
         if (!hasattr(String.prototype, methodName)) {
             return UNKNOWN;
         }
@@ -421,7 +446,10 @@ export class Analyzer {
         return method.apply(val, args);
     }
 
-    private processFreeStandingFunctionCall(name: string, args: ASTNode[]): Value {
+    private processFreeStandingFunctionCall(
+        name: string,
+        args: ASTNode[]
+    ): Value {
         const encoders = { escape, encodeURIComponent, encodeURI };
 
         if (hasattr(encoders, name)) {
@@ -439,7 +467,10 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    private processMethodCall(callee: MemberExpression, args: ASTNode[]): Value {
+    private processMethodCall(
+        callee: MemberExpression,
+        args: ASTNode[]
+    ): Value {
         const ob = callee.object;
         const prop = callee.property;
 
@@ -495,8 +526,10 @@ export class Analyzer {
 
     private processBinaryExpression(node: BinaryExpression): Value {
         if (node.operator === '+') {
+            const left = this.valueFromASTNode(node.left);
+            const right = this.valueFromASTNode(node.right);
             // @ts-ignore
-            return this.valueFromASTNode(node.left) + this.valueFromASTNode(node.right);
+            return left + right;
         }
         return UNKNOWN;
     }
@@ -531,7 +564,9 @@ export class Analyzer {
         let formalArgs: string[] = this.formalArgs;
 
         if (this.argsStackOffset !== null) {
-            formalArgs = this.argsStack[this.argsStack.length - this.argsStackOffset - 1];
+            formalArgs = this.argsStack[
+                this.argsStack.length - this.argsStackOffset - 1
+            ];
         }
 
         if (~formalArgs.indexOf(name) || this.selectedFunction) {
@@ -697,7 +732,10 @@ export class Analyzer {
             // type definitions, but it is used in Babel's own code
             // @ts-ignore
             ReferencedIdentifier(path) {
-                if (path.node.name === name && path.scope.getBinding(path.node.name) === binding) {
+                if (
+                    path.node.name === name &&
+                    path.scope.getBinding(path.node.name) === binding
+                ) {
                     result.push(path);
                 }
             },
@@ -851,7 +889,11 @@ export class Analyzer {
         });
     }
 
-    private processFormDataAppend(fd: FormDataModel, methNode: ASTNode, argNodes: ASTNode[]): void {
+    private processFormDataAppend(
+        fd: FormDataModel,
+        methNode: ASTNode,
+        argNodes: ASTNode[]
+    ): void {
         const args = argNodes.map(v => this.valueFromASTNode(v));
 
         if (!isUnknown(args[0])) {
@@ -859,7 +901,11 @@ export class Analyzer {
         }
     }
 
-    private tryFormDataOp(ob: Identifier, prop: Identifier, args: ASTNode[]): boolean {
+    private tryFormDataOp(
+        ob: Identifier,
+        prop: Identifier,
+        args: ASTNode[]
+    ): boolean {
         if (prop.name === 'append') {
             const obValue = this.valueFromASTNode(ob);
             if (obValue instanceof FormDataModel) {
@@ -870,7 +916,11 @@ export class Analyzer {
         return false;
     }
 
-    private extractDEPsFreeStandingCall(calleeName: string, node: CallExpression, scope: Scope): void {
+    private extractDEPsFreeStandingCall(
+        calleeName: string,
+        node: CallExpression,
+        scope: Scope
+    ): void {
         if (
             this.callChain.length > 0 &&
             this.callChainPosition < this.callChain.length
@@ -886,7 +936,10 @@ export class Analyzer {
         }
     }
 
-    private extractDEPsMethodCall(callee: MemberExpression, args: ASTNode[]): void {
+    private extractDEPsMethodCall(
+        callee: MemberExpression,
+        args: ASTNode[]
+    ): void {
         const prop = callee.property;
         const ob = callee.object;
 
@@ -920,7 +973,7 @@ export class Analyzer {
         }
     }
 
-    private traverseASTForDEPExtraction(code: AST|NodePath): void {
+    private traverseASTForDEPExtraction(code: AST | NodePath): void {
         const visitor = {
             enter: (path: NodePath): void => {
                 const node = path.node;
@@ -957,7 +1010,10 @@ export class Analyzer {
         }
     }
 
-    extractDEPs(code: AST|NodePath|null, funcInfo: FunctionDescription|null): void {
+    extractDEPs(
+        code: AST | NodePath | null,
+        funcInfo: FunctionDescription | null
+    ): void {
         if (code === null) {
             throw new Error(
                 'extractDEPs called with null code (mergeASTs was not called?)'
