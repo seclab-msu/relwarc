@@ -1,5 +1,5 @@
 import * as parser from '@babel/parser';
-import traverse, { NodePath } from '@babel/traverse';
+import traverse, { NodePath, Scope } from '@babel/traverse';
 import type { Binding } from '@babel/traverse';
 
 import {
@@ -8,7 +8,7 @@ import {
     Function as FunctionASTNode,
     File, CallExpression, BinaryExpression, UnaryExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
-    Literal, ObjectExpression,
+    Literal, ObjectExpression, Identifier,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction
@@ -79,6 +79,7 @@ type Value
     | Value[];
 
 type VarScope = {[varName: string]: Value; };
+type ObjectSignatureSet = {[obName: string]: string[]};
 
 enum CallConfigType {
     Function,
@@ -110,6 +111,47 @@ enum AnalysisPhase {
     DEPExtracting
 }
 
+function matchMethodCallSignature(ob: ASTNode, prop: Identifier): string|null {
+    let obName: string,
+        objectIsCall = false;
+
+    if (ob.type === 'Identifier') {
+        obName = ob.name;
+    } else if (
+        ob.type === 'MemberExpression' &&
+        ob.property.type === 'Identifier'
+    ) {
+        // handle case a.b.x.$http.post(...)
+        obName = ob.property.name;
+    } else if (
+        ob.type === 'CallExpression' &&
+        ob.callee.type === 'Identifier'
+    ) {
+        // handle case $(...).load(...)
+        obName = ob.callee.name;
+        objectIsCall = true;
+    } else {
+        return null;
+    }
+
+    let obSignatures: ObjectSignatureSet;
+
+    if (!objectIsCall) {
+        obSignatures = signatures.bound;
+    } else {
+        obSignatures = signatures.boundToCall;
+    }
+
+    if (!hasattr(obSignatures, obName)) {
+        return null;
+    }
+
+    if (obSignatures[obName].includes(prop.name)) {
+        return obName;
+    }
+    return null;
+}
+
 
 class FunctionValue {
     ast: FunctionASTNode;
@@ -118,6 +160,7 @@ class FunctionValue {
         this.ast = ast;
     }
 }
+
 
 export class Analyzer {
     readonly parsedScripts: AST[];
@@ -295,6 +338,7 @@ export class Analyzer {
             if (node.id.type !== 'Identifier') {
                 return;
             }
+
             const binding = path.scope.getBinding(node.id.name);
 
             if (binding === null || typeof binding === 'undefined') {
@@ -576,6 +620,16 @@ export class Analyzer {
         return result;
     }
 
+    private processFunction(node: FunctionASTNode): Value {
+        if (this.stage === AnalysisPhase.DEPExtracting) {
+            return UNKNOWN_FUNCTION;
+        } else if (this.stage === AnalysisPhase.VarGathering) {
+            return new FunctionValue(node);
+        } else {
+            throw new Error('Unexpected stage: ' + this.stage);
+        }
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -618,13 +672,7 @@ export class Analyzer {
         }
 
         if (isFunction(node)) {
-            if (this.stage === AnalysisPhase.DEPExtracting) {
-                return UNKNOWN_FUNCTION;
-            } else if (this.stage === AnalysisPhase.VarGathering) {
-                return new FunctionValue(node);
-            } else {
-                throw new Error('Unexpected stage: ' + this.stage);
-            }
+            return this.processFunction(node);
         }
         return UNKNOWN;
     }
@@ -764,7 +812,9 @@ export class Analyzer {
             if (i >= actualArgs.length) {
                 break;
             }
-            this.formalArgValues[formalArgs[i]] = this.valueFromASTNode(actualArgs[i]);
+            this.formalArgValues[formalArgs[i]] = this.valueFromASTNode(
+                actualArgs[i]
+            );
         }
     }
 
@@ -809,21 +859,68 @@ export class Analyzer {
         }
     }
 
-    extractDEPs(code: AST|NodePath|null, funcInfo: FunctionDescription|null):void {
-        if (code === null) {
-            throw new Error(
-                'extractDEPs called with null code (mergeASTs was not called?)'
-            );
+    private tryFormDataOp(ob: Identifier, prop: Identifier, args: ASTNode[]): boolean {
+        if (prop.name === 'append') {
+            const obValue = this.valueFromASTNode(ob);
+            if (obValue instanceof FormDataModel) {
+                this.processFormDataAppend(obValue, prop, args);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private extractDEPsFreeStandingCall(calleeName: string, node: CallExpression, scope: Scope): void {
+        if (
+            this.callChain.length > 0 &&
+            this.callChainPosition < this.callChain.length
+        ) {
+            const binding = scope.getBinding(calleeName);
+            if (this.callChain[this.callChainPosition].binding === binding) {
+                this.proceedAlongCallChain(node);
+            }
         }
 
-        this.functionsStack.length = 0;
-        this.stage = AnalysisPhase.DEPExtracting;
-        if (funcInfo !== null) {
-            this.formalArgs = funcInfo.args;
-        } else {
-            this.formalArgs = [];
+        if (~signatures.freeStanding.indexOf(calleeName)) {
+            this.extractDEPFromArgs(calleeName, node.arguments);
+        }
+    }
+
+    private extractDEPsMethodCall(callee: MemberExpression, args: ASTNode[]): void {
+        const prop = callee.property;
+        const ob = callee.object;
+
+        if (prop.type !== 'Identifier') {
+            return;
         }
 
+        if (ob.type === 'Identifier') {
+            const isFormDataOp = this.tryFormDataOp(ob, prop, args);
+            if (isFormDataOp) {
+                return;
+            }
+        }
+
+        const obName = matchMethodCallSignature(ob, prop);
+
+        if (obName === null) {
+            return;
+        }
+
+        this.extractDEPFromArgs(obName + '.' + prop.name, args);
+    }
+
+    private extractDEPsFromCall(node: CallExpression, scope: Scope): void {
+        const callee = node.callee;
+
+        if (callee.type === 'Identifier') {
+            this.extractDEPsFreeStandingCall(callee.name, node, scope);
+        } else if (callee.type === 'MemberExpression') {
+            this.extractDEPsMethodCall(callee, node.arguments);
+        }
+    }
+
+    private traverseASTForDEPExtraction(code: AST|NodePath): void {
         const visitor = {
             enter: (path: NodePath): void => {
                 const node = path.node;
@@ -833,84 +930,17 @@ export class Analyzer {
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
                 }
-                if (this.functionsStack.length > 0 && node.type === 'VariableDeclarator' || node.type === 'AssignmentExpression') {
+                if (
+                    this.functionsStack.length > 0 &&
+                    node.type === 'VariableDeclarator' ||
+                    node.type === 'AssignmentExpression'
+                ) {
                     this.setVariable(path);
                 }
 
-                if (node.type !== 'CallExpression') {
-                    return;
+                if (node.type === 'CallExpression') {
+                    this.extractDEPsFromCall(node, path.scope);
                 }
-
-                const callee = node.callee;
-
-                if (this.callChain.length > 0 && this.callChainPosition < this.callChain.length && node.callee.type === 'Identifier') {
-                    const binding = path.scope.getBinding(node.callee.name);
-                    if (this.callChain[this.callChainPosition].binding === binding) {
-                        this.proceedAlongCallChain(node);
-                    }
-                }
-
-                if (callee.type === 'Identifier') {
-                    if (~signatures.freeStanding.indexOf(callee.name)) {
-                        this.extractDEPFromArgs(callee.name, node.arguments);
-                    }
-                    return;
-                }
-
-                if (callee.type !== 'MemberExpression') {
-                    return;
-                }
-
-                const prop = callee.property;
-                const ob = callee.object;
-
-                if (prop.type !== 'Identifier') {
-                    return;
-                }
-
-                let obName: string;
-                let objectIsCall = false;
-
-                if (ob.type === 'Identifier') {
-                    obName = ob.name;
-                    if (prop.name === 'append') {
-                        const obValue = this.valueFromASTNode(ob);
-                        if (obValue instanceof FormDataModel) {
-                            this.processFormDataAppend(
-                                obValue,
-                                prop,
-                                node.arguments
-                            );
-                            return;
-                        }
-                    }
-                } else if (ob.type === 'MemberExpression' && ob.property.type === 'Identifier') {
-                    // handle case a.b.x.$http.post(...)
-                    obName = ob.property.name;
-                } else if (ob.type === 'CallExpression' && ob.callee.type === 'Identifier') {
-                    // handle case $(...).load(...)
-                    obName = ob.callee.name;
-                    objectIsCall = true;
-                } else {
-                    return;
-                }
-
-                let obSignatures: {[obName: string]: string[]};
-
-                if (!objectIsCall) {
-                    obSignatures = signatures.bound;
-                } else {
-                    obSignatures = signatures.boundToCall;
-                }
-
-                if (
-                    !hasattr(obSignatures, obName) ||
-                    !~(obSignatures[obName].indexOf(prop.name))
-                ) {
-                    return;
-                }
-
-                this.extractDEPFromArgs(obName + '.' + prop.name, node.arguments);
             },
             exit: (path: NodePath): void => {
                 if (isFunction(path.node)) {
@@ -925,6 +955,23 @@ export class Analyzer {
         } else {
             traverse(code, visitor);
         }
+    }
+
+    extractDEPs(code: AST|NodePath|null, funcInfo: FunctionDescription|null): void {
+        if (code === null) {
+            throw new Error(
+                'extractDEPs called with null code (mergeASTs was not called?)'
+            );
+        }
+
+        this.functionsStack.length = 0;
+        this.stage = AnalysisPhase.DEPExtracting;
+        if (funcInfo !== null) {
+            this.formalArgs = funcInfo.args;
+        } else {
+            this.formalArgs = [];
+        }
+        this.traverseASTForDEPExtraction(code);
     }
 
     private extractDEPsWithCallChain(callConfig: CallConfig): void {
