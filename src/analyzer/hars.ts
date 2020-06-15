@@ -55,6 +55,16 @@ export class HAR {
             }
         }
     }
+
+    getHeader(name: string): string|undefined {
+        const n = name.toLowerCase();
+        for (let h of this.headers) {
+            if (h.name.toLowerCase() === n) {
+                return h.value;
+            }
+        }
+    }
+
     setPostData(postData: string, isAngular=false, rawData?: KeyValue[]) {
         this.postData = {
             "text": postData
@@ -66,7 +76,7 @@ export class HAR {
         })
         let ct, ctParts, ctType;
         if (hasHeader(this.headers, 'content-type')) {
-            ct = getHeader(this.headers, 'content-type');
+            ct = this.getHeader('content-type');
             if (isAngular && typeof ct === 'undefined') {
                 ct = 'text/plain';
                 for (let h of this.headers) {
@@ -126,16 +136,6 @@ function hasHeader(headers: KeyValue[], name: string): boolean {
     }
     return false;
 }
-
-function getHeader(headers: KeyValue[], name: string): string|undefined {
-    const n = name.toLowerCase();
-    for (let h of headers) {
-        if (h.name.toLowerCase() === n) {
-            return h.value;
-        }
-    }
-}
-
 
 function queryStringFromObject(ob: Record<string, string|string[]>|Unknown): string|Unknown {
     const resParts: string[] = [];
