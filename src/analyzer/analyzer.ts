@@ -262,6 +262,10 @@ export class Analyzer {
     }
 
     private setGlobalVariable(name: string, value: Value, op: string): void {
+        if (name === 'location') {
+            return;
+        }
+
         if (op === '=' && this.lessConcreteThanOldVal(name, value)) {
             return;
         }
@@ -1018,8 +1022,14 @@ export class Analyzer {
 
     private seedGlobalScope(url: string): void {
         const globals = this.globalDefinitions;
+        const locationObject = new URL(url);
 
-        globals.location = new URL(url);
+        Object.defineProperty(globals, 'location', {
+            value: locationObject,
+            writable: false,
+            configurable: false
+        });
+
         globals.document = {
             location: globals.location
         };

@@ -1,12 +1,6 @@
 import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
+import { makeAndRunSimple } from './common';
 
-
-function makeAndRunSimple(script: string, url='http://example.com/'): Analyzer {
-    const analyzer = new Analyzer();
-    analyzer.addScript(script);
-    analyzer.mineArgsForDEPCalls(url);
-    return analyzer;
-}
 
 describe("Analyzer finding args of DEP sinks", () => {
     it("smoke test", function() {
