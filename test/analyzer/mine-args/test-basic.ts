@@ -1,4 +1,4 @@
-import { Analyzer, SinkCall } from "../../src/analyzer/analyzer";
+import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
 
 
 function makeAndRunSimple(script: string, url='http://example.com/'): Analyzer {

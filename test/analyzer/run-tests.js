@@ -20,7 +20,9 @@ const jasmine = new Jasmine();
 jasmine.loadConfig({
     spec_dir: 'test/analyzer',
     spec_files: [
-        'test*.js'
+        'test*.js',
+        'mine-args/test*.js',
+        'mine-deps/test*.js'
     ],
 });
 
