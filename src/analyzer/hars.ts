@@ -206,6 +206,13 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
         method,
         data;
 
+    if (funcName === 'load' && typeof args[0] !== 'string') {
+        // jQuery until 3.0 also had event-handling function .load
+        // See https://api.jquery.com/load/
+        // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
+        return null;
+    }
+
     if (typeof args[0] === 'object') {
         settings = args[0];
         url = settings.url;
