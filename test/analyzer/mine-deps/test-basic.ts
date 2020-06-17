@@ -1,12 +1,6 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
 
-
-function makeAndRunSimple(script: string, url='http://example.com/'): Analyzer {
-    const analyzer = new Analyzer();
-    analyzer.addScript(script);
-    analyzer.analyze(url);
-    return analyzer;
-}
+import { makeAndRunSimple } from './common';
 
 describe("Analyzer mining HARs for JS DEPs", () => {
     it("smoke test", () => {
