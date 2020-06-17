@@ -299,7 +299,18 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
                 'value': 'application/x-www-form-urlencoded'
             });
         }
-        har.setPostData(qs, false, isMultipart ? data.getData() : null);
+        if (isMultipart) {
+            const forcedPostData: KeyValue[] = [];
+            for (const [name, value] of Object.entries(data.getData())) {
+                // TODO: dirty type conversion to string in value
+                // reconsider type of value in KeyValue (change to Value?)
+                // @ts-ignore
+                forcedPostData.push({ name, value });
+            }
+            har.setPostData(qs, false, forcedPostData)
+        } else {
+            har.setPostData(qs);
+        }
     }
     return har;
 }
