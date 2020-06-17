@@ -1,0 +1,29 @@
+[
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://fabfitfun.com/magazine/wp-json/wp/v2/posts",
+        {
+          "params": {
+            "page": "UNKNOWN",
+            "per_page": "UNKNOWN",
+            "offset": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://fabfitfun.com/magazine/wp-json/wp/v2/posts",
+        {
+          "params": {
+            "page": "UNKNOWN",
+            "per_page": "UNKNOWN",
+            "offset": "UNKNOWN",
+            "categories_exclude": "UNKNOWN"
+          }
+        }
+      ]
+    }
+]

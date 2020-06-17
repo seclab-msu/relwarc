@@ -1,0 +1,95 @@
+[
+   {
+      "postData" : {
+         "text" : ""
+      },
+      "bodySize" : 0,
+      "url" : "https://event.1111.com.tw/careermaster/position/random",
+      "httpVersion" : "HTTP/1.1",
+      "method" : "POST",
+      "queryString" : [],
+      "headers" : [
+         {
+            "name" : "Host",
+            "value" : "event.1111.com.tw"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "0"
+         }
+      ]
+   },
+   {
+      "bodySize" : 0,
+      "postData" : {
+         "text" : ""
+      },
+      "queryString" : [],
+      "headers" : [
+         {
+            "value" : "event.1111.com.tw",
+            "name" : "Host"
+         },
+         {
+            "value" : "0",
+            "name" : "Content-Length"
+         }
+      ],
+      "method" : "POST",
+      "url" : "https://event.1111.com.tw/careermaster/detail/%replaceData%/3/json",
+      "httpVersion" : "HTTP/1.1"
+   },
+   {
+      "headers" : [
+         {
+            "value" : "event.1111.com.tw",
+            "name" : "Host"
+         }
+      ],
+      "queryString" : [],
+      "method" : "GET",
+      "url" : "https://event.1111.com.tw/careermaster/apis/articles/detail/%replaceData%",
+      "httpVersion" : "HTTP/1.1",
+      "bodySize" : 0
+   },
+   {
+      "queryString" : [],
+      "method" : "POST",
+      "headers" : [
+         {
+            "value" : "event.1111.com.tw",
+            "name" : "Host"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "0"
+         }
+      ],
+      "url" : "https://event.1111.com.tw/careermaster/detail/%replaceData%/9/json",
+      "httpVersion" : "HTTP/1.1",
+      "bodySize" : 0,
+      "postData" : {
+         "text" : ""
+      }
+   },
+   {
+      "bodySize" : 0,
+      "postData" : {
+         "text" : ""
+      },
+      "queryString" : [],
+      "method" : "POST",
+      "headers" : [
+         {
+            "name" : "Host",
+            "value" : "event.1111.com.tw"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "0"
+         }
+      ],
+      "httpVersion" : "HTTP/1.1",
+      "url" : "https://event.1111.com.tw/careermaster/detail/%replaceData%/4/json"
+   }
+]

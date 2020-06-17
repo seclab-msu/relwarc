@@ -1,0 +1,111 @@
+[
+    {
+       "httpVersion" : "HTTP/1.1",
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          }
+       ],
+       "method" : "GET",
+       "queryString" : [
+          {
+             "value" : "UNKNOWN",
+             "name" : "seriesId"
+          }
+       ],
+       "url" : "http://js-training.seclab/ajax/history-item?seriesId=UNKNOWN"
+    },
+    {
+       "bodySize" : 0,
+       "httpVersion" : "HTTP/1.1",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          }
+       ],
+       "url" : "http://js-training.seclab/ajax/favorite/one?seriesId=UNKNOWN",
+       "queryString" : [
+          {
+             "value" : "UNKNOWN",
+             "name" : "seriesId"
+          }
+       ],
+       "method" : "GET"
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          }
+       ],
+       "queryString" : [
+          {
+             "name" : "withFolders",
+             "value" : "1"
+          },
+          {
+             "name" : "seriesId",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "url" : "http://js-training.seclab/ajax/favorite/one?withFolders=1&seriesId=UNKNOWN",
+       "method" : "GET"
+    },
+    {
+       "queryString" : [],
+       "method" : "POST",
+       "url" : "http://js-training.seclab/ajax/favorite/upsert",
+       "postData" : {
+          "text" : "{\"seriesId\":\"UNKNOWN\",\"folderId\":\"UNKNOWN\"}",
+          "mimeType" : "application/json"
+       },
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          },
+          {
+             "value" : "application/json",
+             "name" : "Content-Type"
+          },
+          {
+             "value" : "43",
+             "name" : "Content-Length"
+          }
+       ],
+       "bodySize" : 43,
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "queryString" : [],
+       "url" : "http://js-training.seclab/ajax/favorite/delete",
+       "method" : "POST",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "application/json"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "23"
+          }
+       ],
+       "postData" : {
+          "mimeType" : "application/json",
+          "text" : "{\"seriesIds\":\"UNKNOWN\"}"
+       },
+       "httpVersion" : "HTTP/1.1",
+       "bodySize" : 23
+    }
+ ]
+ 

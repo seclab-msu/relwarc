@@ -1,0 +1,32 @@
+[
+    {
+      "funcName": "axios.post",
+      "args": [
+        "https://event.1111.com.tw/careermaster/position/random"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "https://event.1111.com.tw/careermaster/detail/%replaceData%/3/json"
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "https://event.1111.com.tw/careermaster/apis/articles/detail/%replaceData%"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "https://event.1111.com.tw/careermaster/detail/%replaceData%/9/json"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "https://event.1111.com.tw/careermaster/detail/%replaceData%/4/json"
+      ]
+    }
+]

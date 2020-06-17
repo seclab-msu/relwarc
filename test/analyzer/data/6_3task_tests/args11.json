@@ -1,0 +1,138 @@
+[
+    {
+      "funcName": "axios.post",
+      "args": [
+        "/api/v1/topics/UNKNOWN/messages",
+        {
+          "content": "UNKNOWN",
+          "status": "UNKNOWN",
+          "expires_in": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/topics/UNKNOWN/messages",
+        {
+          "params": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/topics/UNKNOWN/messages/UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/topics/UNKNOWN/messages/UNKNOWN?operation=SUPPRESS"
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/topics/UNKNOWN/messages/UNKNOWN?operation=POST"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "/api/v1/topics/UNKNOWN/subscriptions",
+        {
+          "user_id": "UNKNOWN",
+          "status": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/topics/UNKNOWN/subscriptions",
+        {
+          "params": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/topics/UNKNOWN/subscriptions/UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/topics/UNKNOWN/subscriptions/UNKNOWN?operation=BLOCK"
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/topics/UNKNOWN/subscriptions/UNKNOWN?operation=ACTIVATE"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "/api/v1/topics",
+        {
+          "external_id": "UNKNOWN",
+          "status": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/topics",
+        {
+          "params": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/topics/UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/topics/UNKNOWN?operation=BLOCK"
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/topics/UNKNOWN?operation=ACTIVATE"
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/users/UNKNOWN/subscriptions",
+        {
+          "params": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/api/v1/users/UNKNOWN/messages",
+        {
+          "params": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.put",
+      "args": [
+        "/api/v1/users/UNKNOWN/messages/UNKNOWN"
+      ]
+    }
+  ]
