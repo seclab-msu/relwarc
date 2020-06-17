@@ -2,6 +2,8 @@ import * as parser from '@babel/parser';
 import traverse, { NodePath, Scope } from '@babel/traverse';
 import type { Binding } from '@babel/traverse';
 
+import * as stableStringify from 'json-stable-stringify';
+
 import {
     // node types
     Node as ASTNode,
@@ -170,6 +172,8 @@ export class Analyzer {
 
     private argsStackOffset: number | null;
 
+    private resultsAlready: Set<string>;
+
     constructor() {
         this.parsedScripts = [];
         this.results = [];
@@ -197,6 +201,8 @@ export class Analyzer {
         this.selectedFunction = null;
         this.argsStackOffset = null;
         this.mergedProgram = null;
+
+        this.resultsAlready = new Set();
     }
 
     addScript(source: string): void {
@@ -793,6 +799,17 @@ export class Analyzer {
         }
     }
 
+    private saveResult(result: SinkCall): void {
+        const resultStringified = stableStringify(result);
+
+        // deduplicate results
+        if (this.resultsAlready.has(resultStringified)) {
+            return;
+        }
+        this.resultsAlready.add(resultStringified);
+        this.results.push(result);
+    }
+
     private extractDEPFromArgs(funcName: string, args: ASTNode[]): void {
         let argsDependOnFormalArg = false;
 
@@ -806,19 +823,19 @@ export class Analyzer {
             }
         }
 
-        this.results.push({
-            funcName,
-            args: args.map(arg => {
-                let v = this.valueFromASTNode(arg),
-                    haveFormalArg;
+        const argValues = args.map(arg => {
+            let v = this.valueFromASTNode(arg),
+                haveFormalArg;
 
-                [v, haveFormalArg] = extractFormalArgs(v);
-                if (haveFormalArg) {
-                    argsDependOnFormalArg = true;
-                }
-                return v;
-            })
+            [v, haveFormalArg] = extractFormalArgs(v);
+            if (haveFormalArg) {
+                argsDependOnFormalArg = true;
+            }
+            return v;
         });
+
+        this.saveResult({ funcName, args: argValues });
+
         if (argsDependOnFormalArg) {
             this.buildCallChainsForMissingArgs();
         }
@@ -1068,12 +1085,22 @@ export class Analyzer {
     }
 
     makeHARsFromMinedDEPCallArgs(url: string): void {
+        const harsAlready: Set<string> = new Set();
+
         for (const result of this.results) {
             const har = makeHAR(result.funcName, result.args, url);
 
             if (har === null) {
                 continue;
             }
+
+            const harStringified = stableStringify(har);
+
+            // deduplicate HARs
+            if (harsAlready.has(harStringified)) {
+                continue;
+            }
+            harsAlready.add(harStringified);
 
             this.onNewHAR(har);
         }
