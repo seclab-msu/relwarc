@@ -1023,16 +1023,17 @@ export class Analyzer {
     private seedGlobalScope(url: string): void {
         const globals = this.globalDefinitions;
         const locationObject = new URL(url);
-
-        Object.defineProperty(globals, 'location', {
-            value: locationObject,
-            writable: false,
-            configurable: false
-        });
-
-        globals.document = {
-            location: globals.location
+        const propDescr = {
+            configurable: false,
+            get: () => locationObject,
+            set: () => {/* ignore setting */}
         };
+
+        Object.defineProperty(globals, 'location', propDescr);
+        globals.document = {};
+
+        Object.defineProperty(globals.document, 'location', propDescr);
+
         globals.window = globals;
     }
 

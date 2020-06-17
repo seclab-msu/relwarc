@@ -6,6 +6,7 @@ describe("Analyzing code that uses location object", () => {
     it("does not fail on assigning", function() {
         makeAndRunSimple('location = "/test";');
         makeAndRunSimple('document.location = "/test";');
+        makeAndRunSimple('window.location = "/test";');
     });
 
     it("does not fail on assigning location property", function() {
