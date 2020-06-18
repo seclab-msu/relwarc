@@ -11,7 +11,7 @@ function makeAndRunSimple(script: string, url='http://test.com/test'): Analyzer 
 }
 
 describe("Analyzer finding args of DEPs in combined stand", () => {
-    it("DEP number 3", function() {
+    it("DEP number 3 (just ajax request)", function() {
         const analyzer = makeAndRunSimple(`$.ajax({
             url: '/application/jie8Ye/interface/aesi9X/handle',
             data: {
@@ -30,7 +30,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 4", function() {
+    it("DEP number 4 (function is called when an event \"onclick\" occurs)", function() {
         const analyzer = makeAndRunSimple(`function request4() {
             $.ajax({
                 url: '/application/Yai0au/interface/Eikei0/handle',
@@ -51,7 +51,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 5", function() {
+    it("DEP number 5 (addEventListener function)", function() {
         const analyzer = makeAndRunSimple(`function request5() {
             $.ajax({
                 url: '/application/aeP2je/interface/aiH7io/handle',
@@ -73,13 +73,13 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 6", function() {
+    it("DEP number 6 (ajax request with string literals)", function() {
         const analyzer = makeAndRunSimple(`function request6() {
             $.ajax({
                 url: '/application/aet0Mu/interface/MooS8u/handle',
-                  data: {
-                      'veiw4I': "1",
-                  },
+                data: {
+                    'veiw4I': "1",
+                },
             });
         }`);
         expect(analyzer.results.length).toEqual(1);
@@ -94,7 +94,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 7", function() {
+    it("DEP number 7 (concat global variable and string literal in request)", function() {
         const analyzer = makeAndRunSimple(`var api = "/application/iuT6ei/";
 
         function request7() {
@@ -111,7 +111,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 8", function() {
+    it("DEP number 8 (params for ajax request are local variables)", function() {
         const analyzer = makeAndRunSimple(`function request8() {
             var url = "/application/gf32d2/interface/vcj442/handle";
             var param = "lkvo24=1";
@@ -132,7 +132,8 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 9", function() {
+    it("DEP number 9 (url is concatination of local variable and global viriable," +
+        "which changed in other script)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`var param9 = "";
 
@@ -156,7 +157,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 10", function() {
+    it("DEP number 10 (overlapping scopes of variables)", function() {
         const source = fs.readFileSync(__dirname + "/../data/10.js").toString();
         const analyzer = makeAndRunSimple(source);
         expect(analyzer.results.length).toEqual(1);
@@ -171,7 +172,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
 
     /* DEP number 11 is skipped so far*/
     
-    it("DEP number 12", function() {
+    it("DEP number 12 (params for request taken from global config, which is literal object)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`function request12() {
             var request_args = {
@@ -203,7 +204,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 13", function() {
+    it("DEP number 13 (params for request taken from global config, which is new Object)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`function request13() {
             $.ajax({
@@ -229,7 +230,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 14", function() {
+    it("DEP number 14 (params for request taken from local config, which is new Object)", function() {
         const analyzer = makeAndRunSimple(`function request14() {
             var request = new Object();
             request.country = "country";
@@ -252,7 +253,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     }); 
 
-    it("DEP number 16", function() {
+    it("DEP number 16 (IIFE and call-chain inside)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`(function () {
             var entity = 91,
@@ -293,7 +294,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 17", function() {
+    it("DEP number 17 (multipart request)", function() {
         const analyzer = makeAndRunSimple(`function request17() {
             var data = new FormData();
             data.append('ffdj3v', '1');
@@ -324,7 +325,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 18", function() {
+    it("DEP number 18 (parse location for request params)", function() {
         const analyzer = makeAndRunSimple(`function request18() {
             var baseUrl = document.location.origin;
             var path = window.location.pathname;
@@ -342,7 +343,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 19", function() {
+    it("DEP number 19 (new JS features)", function() {
         const analyzer = makeAndRunSimple(`request19 = () => {
             const url = '/application/to0Hei/interface/maM2uc/handle';
             let data = '2';

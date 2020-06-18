@@ -44,7 +44,7 @@ function makeHar(harIn: HAR): any {
 
 
 describe("Analyzer finding HARs of DEPs in combined stand", () => {
-    it("DEP number 3 (har)", function() {
+    it("DEP number 3 har (just ajax request)", function() {
         const analyzer = makeAndRunSimple(`$.ajax({
             url: '/application/jie8Ye/interface/aesi9X/handle',
             data: {
@@ -76,7 +76,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 4 (har)", function() {
+    it("DEP number 4 har (function is called when an event \"onclick\" occurs)", function() {
         const analyzer = makeAndRunSimple(`function request4() {
             $.ajax({
                 url: '/application/Yai0au/interface/Eikei0/handle',
@@ -110,7 +110,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 5 (har)", function() {
+    it("DEP number 5 har (addEventListener function)", function() {
         const analyzer = makeAndRunSimple(`function request5() {
             $.ajax({
                 url: '/application/aeP2je/interface/aiH7io/handle',
@@ -145,7 +145,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 6 (har)", function() {
+    it("DEP number 6 har (ajax request with string literals)", function() {
         const analyzer = makeAndRunSimple(`function request6() {
             $.ajax({
                 url: '/application/aet0Mu/interface/MooS8u/handle',
@@ -179,7 +179,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
     
-    it("DEP number 7 (har)", function() {
+    it("DEP number 7 har (concat global variable and string literal in request)", function() {
         const analyzer = makeAndRunSimple(`var api = "/application/iuT6ei/";
 
         function request7() {
@@ -224,7 +224,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 8 (har)", function() {
+    it("DEP number 8 har (params for ajax request are local variables)", function() {
         const analyzer = makeAndRunSimple(`function request8() {
             var url = "/application/gf32d2/interface/vcj442/handle";
             var param = "lkvo24=1";
@@ -257,7 +257,8 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
  
-    it("DEP number 9 (har)", function() {
+    it("DEP number 9 har (url is concatination of local variable and global viriable," +
+        "which changed in other script)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`var param9 = "";
 
@@ -298,7 +299,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 10 (har)", function() {
+    it("DEP number 10 har (overlapping scopes of variables)", function() {
         const source = fs.readFileSync(__dirname + "/../data/10.js").toString();
         const analyzer = makeAndRunSimple(source);
         expect(analyzer.hars.length).toEqual(1);
@@ -330,7 +331,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
 
     /* DEP number 11 is skipped so far*/
 
-    it("DEP number 12 (har)", function() {
+    it("DEP number 12 har (params for request taken from global config, which is literal object)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`function request12() {
             var request_args = {
@@ -372,7 +373,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
     
-    it("DEP number 13 (har)", function() {
+    it("DEP number 13 har (params for request taken from global config, which is new Object)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`function request13() {
             $.ajax({
@@ -410,7 +411,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 14 (har)", function() {
+    it("DEP number 14 har (params for request taken from local config, which is new Object)", function() {
         const analyzer = makeAndRunSimple(`function request14() {
             var request = new Object();
             request.country = "country";
@@ -450,7 +451,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 16 (har)", function() {
+    it("DEP number 16 har (IIFE and call-chain inside)", function() {
         const analyzer = new Analyzer();
         analyzer.addScript(`(function () {
             var entity = 91,
@@ -512,7 +513,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     }); 
 
-    it("DEP number 17 (har)", function() {
+    it("DEP number 17 har (multipart request)", function() {
         const analyzer = makeAndRunSimple(`function request17() {
             var data = new FormData();
             data.append('ffdj3v', '1');
@@ -573,7 +574,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 18 (har)", function() {
+    it("DEP number 18 har (parse location for request params)", function() {
         const analyzer = makeAndRunSimple(`function request18() {
             var baseUrl = document.location.origin;
             var path = window.location.pathname;
@@ -605,7 +606,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
         });
     });
 
-    it("DEP number 19 (har)", function() {
+    it("DEP number 19 har (new JS features)", function() {
         const analyzer = makeAndRunSimple(`request19 = () => {
             const url = '/application/to0Hei/interface/maM2uc/handle';
             let data = '2';
