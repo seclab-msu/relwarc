@@ -1,8 +1,6 @@
-import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
-import { FormDataModel } from "../../../src/analyzer/types/form-data";
+import { Analyzer } from "../../../src/analyzer/analyzer";
 import { HAR } from "../../../src/analyzer/hars";
 import * as fs from 'fs';
-
 
 
 function makeAndRunSimple(script: string, url = "http://test.com/test"): Analyzer {
