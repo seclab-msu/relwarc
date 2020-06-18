@@ -169,19 +169,6 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 10", function() {
-        const source = fs.readFileSync("test/analyzer/mine-args/data/10.js").toString();
-        const analyzer = makeAndRunSimple(source);
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            "funcName": "$.ajax",
-            "args": [{
-                type: "GET",
-                url: "/application/p0065n/interface/zbtghr/handle?hg3f2d=4&id=12"
-            }]
-        } as SinkCall);
-    });
-
     /* DEP number 11 is skipped so far*/
     
     it("DEP number 12", function() {
