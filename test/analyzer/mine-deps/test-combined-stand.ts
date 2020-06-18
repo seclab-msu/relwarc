@@ -301,7 +301,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 10 (har)", function() {
-        const source = fs.readFileSync("test/analyzer/mine-args/data/10.js").toString();
+        const source = fs.readFileSync(__dirname + "/../data/10.js").toString();
         const analyzer = makeAndRunSimple(source);
         expect(analyzer.hars.length).toEqual(1);
 

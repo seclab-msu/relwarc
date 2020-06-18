@@ -157,7 +157,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
     });
 
     it("DEP number 10", function() {
-        const source = fs.readFileSync("test/analyzer/mine-args/data/10.js").toString();
+        const source = fs.readFileSync(__dirname + "/../data/10.js").toString();
         const analyzer = makeAndRunSimple(source);
         expect(analyzer.results.length).toEqual(1);
         expect(analyzer.results[0]).toEqual({
