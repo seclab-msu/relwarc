@@ -26,6 +26,19 @@ function readSrc(path): any {
 //     return check;
 // }
 
+// function makeSimpleHar2(dep): any {
+//     const check = new Set([
+//         ["url", dep.url],
+//         ["method", dep.method],
+//         ["httpVersion", dep.httpVersion],
+//         ["headers", dep.headers],
+//         ["queryString", dep.queryString],
+//         ["bodySize", dep.bodySize],
+//     ]);
+
+//     return check;
+// }
+
 function makeSimpleHar(dep: HAR): any {
     interface NewHar {
         url: any;
@@ -63,36 +76,49 @@ function makeAndRunSimple(
     return analyzer;
 }
 
+function checker(depsFromAnalyzer, depsFromChecker) {
+    let hars: any[] = [];
+    depsFromAnalyzer.forEach((dep) => {
+        hars.push(makeSimpleHar(dep));
+    });
+    for (let i = 0; i < depsFromChecker.length; i++) {
+        expect(hars).toContain(depsFromChecker[i]);
+    }
+}
+
 describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 1", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/1.js"),
             "http://js-training.seclab"
         );
-        expect(analyzer.results.length).toEqual(1);
+        expect(analyzer.results.length).toBeGreaterThan(0);
 
-        const dep = makeSimpleHar(analyzer.hars[0]);
-        const check = {
-            httpVersion: "HTTP/1.1",
-            url:
-                "http://js-training.seclab/jp/eltex/xsp/ajax/custom/AjaxSuggestBean.json?q=UNKNOWN",
-            queryString: [
-                {
-                    name: "q",
-                    value: "UNKNOWN",
-                },
-            ],
-            headers: [
-                {
-                    value: "js-training.seclab",
-                    name: "Host",
-                },
-            ],
-            bodySize: 0,
-            method: "GET",
-        };
+        const dep = analyzer.hars;
+        const check = [
+            {
+                httpVersion: "HTTP/1.1",
+                url:
+                    "http://js-training.seclab/jp/eltex/xsp/ajax/custom/AjaxSuggestBean.json?q=UNKNOWN",
+                queryString: [
+                    {
+                        name: "q",
+                        value: "UNKNOWN",
+                    },
+                ],
+                headers: [
+                    {
+                        value: "js-training.seclab",
+                        name: "Host",
+                    },
+                ],
+                bodySize: 0,
+                method: "GET",
+            },
+        ];
 
-        expect(dep).toEqual(check);
+        checker(dep, check);
+        // expect(dep).toContain(check);
     });
 
     it("sample 2", () => {
@@ -100,13 +126,10 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
             readSrc(__dirname + "/data/2.js"),
             "http://js-training.seclab"
         );
-        expect(analyzer.results.length).toEqual(2);
+        expect(analyzer.results.length).toBeGreaterThan(1);
 
-        const dep = new Set([
-            makeSimpleHar(analyzer.hars[0]),
-            makeSimpleHar(analyzer.hars[1]),
-        ]);
-        const check = new Set([
+        const dep = analyzer.hars;
+        const check = [
             {
                 method: "GET",
                 url: "http://js-training.seclab/doing/actions.php?n=x85",
@@ -149,8 +172,8 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                     text: "xn=85",
                 },
             },
-        ]);
-        expect(dep).toEqual(check);
+        ];
+        checker(dep, check);
     });
 
     it("sample 3", () => {
@@ -158,24 +181,26 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
             readSrc(__dirname + "/data/3.js"),
             "http://js-training.seclab"
         );
-        expect(analyzer.results.length).toEqual(1);
+        expect(analyzer.results.length).toBeGreaterThan(0);
 
-        const dep = makeSimpleHar(analyzer.hars[0]);
-        const check = {
-            method: "GET",
-            httpVersion: "HTTP/1.1",
-            bodySize: 0,
-            queryString: [],
-            headers: [
-                {
-                    value: "js-training.seclab",
-                    name: "Host",
-                },
-            ],
-            url:
-                "http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131",
-        };
-        expect(dep).toEqual(check);
+        const dep = analyzer.hars;
+        const check = [
+            {
+                method: "GET",
+                httpVersion: "HTTP/1.1",
+                bodySize: 0,
+                queryString: [],
+                headers: [
+                    {
+                        value: "js-training.seclab",
+                        name: "Host",
+                    },
+                ],
+                url:
+                    "http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131",
+            },
+        ];
+        checker(dep, check);
     });
 
     xit("sample 4", () => {
@@ -183,10 +208,10 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
             readSrc(__dirname + "/data/4.js"),
             "http://js-training.seclab"
         );
-        expect(analyzer.results.length).toEqual(1);
+        expect(analyzer.results.length).toBeGreaterThan(0);
 
-        const dep = makeSimpleHar(analyzer.hars[0]);
-        const check = {
+        const dep = analyzer.hars;
+        const check = [{
             httpVersion: "HTTP/1.1",
             bodySize: 31,
             method: "POST",
@@ -220,7 +245,44 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 ],
                 text: "action=wikiPageView&url=UNKNOWN",
             },
-        };
-        expect(dep).toEqual(check);
+        }];
+        checker(dep, check);
+
+    });
+
+    it("sample 5", () => {
+        const analyzer = makeAndRunSimple(
+            readSrc(__dirname + "/data/5.js"),
+            "http://js-training.seclab"
+        );
+        expect(analyzer.results.length).toBeGreaterThan(0);
+
+        const dep = analyzer.hars;
+        const check = [{
+            url: "http://www.aninews.in/devices/",
+            postData: {
+                text: '{"registration_id":"UNKNOWN","type":"web"}',
+                mimeType: "application/json",
+            },
+            httpVersion: "HTTP/1.1",
+            method: "POST",
+            headers: [
+                {
+                    value: "www.aninews.in",
+                    name: "Host",
+                },
+                {
+                    name: "Content-Type",
+                    value: "application/json",
+                },
+                {
+                    value: "42",
+                    name: "Content-Length",
+                },
+            ],
+            bodySize: 42,
+            queryString: [],
+        }];
+        checker(dep, check);
     });
 });

@@ -15,7 +15,7 @@ function makeAndRunSimple(script, url = "http://example.com/") {
 describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
     it("sample 1", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/1.js"));
-        expect(analyzer.results.length).toEqual(1);
+        expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "$.ajax",
             args: [
@@ -35,7 +35,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
     });
     it("sample 2", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/2.js"));
-        expect(analyzer.results.length).toEqual(2);
+        expect(analyzer.results.length).toBeGreaterThan(1);
         expect(analyzer.results[0]).toEqual({
             funcName: "$.ajax",
             args: [
@@ -63,7 +63,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
     });
     it("sample 3", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/3.js"));
-        expect(analyzer.results.length).toEqual(1);
+        expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "$http.get",
             args: ["/Umbraco/EuroNCAP/Widgets/GetTweets/17131"],
@@ -71,7 +71,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
     });
     xit("sample 4", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/4.js"));
-        expect(analyzer.results.length).toEqual(1);
+        expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "fetch",
             args: [
@@ -82,6 +82,24 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
                     body: "action=wikiPageView&url=http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
+                },
+            ],
+        });
+    });
+    it("sample 5", () => {
+        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/5.js"));
+        expect(analyzer.results.length).toBeGreaterThan(0);
+        expect(analyzer.results[0]).toEqual({
+            funcName: "fetch",
+            args: [
+                "http://www.aninews.in/devices/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: '{"registration_id":"UNKNOWN","type":"web"}',
+                    credentials: "include",
                 },
             ],
         });
