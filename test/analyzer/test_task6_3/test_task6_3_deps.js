@@ -34,8 +34,8 @@ function makeSimpleHar(dep) {
         url: dep.url,
         method: dep.method,
         httpVersion: dep.httpVersion,
-        headers: dep.headers,
-        queryString: dep.queryString,
+        headers: new Set(dep.headers),
+        queryString: new Set(dep.queryString),
         bodySize: dep.bodySize,
         postData: dep.getPostData() ? dep.getPostData() : null,
     };
@@ -49,6 +49,13 @@ function makeAndRunSimple(script, url = "http://example.com/") {
     analyzer.addScript(script);
     analyzer.analyze(url);
     return analyzer;
+}
+function convertToSet(deps) {
+    deps.forEach((dep) => {
+        dep.headers = new Set(dep.headers);
+        dep.queryString = new Set(dep.queryString);
+    });
+    return deps;
 }
 function checker(depsFromAnalyzer, depsFromChecker) {
     let hars = [];
@@ -84,8 +91,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 method: "GET",
             },
         ];
-        checker(dep, check);
-        // expect(dep).toContain(check);
+        checker(dep, convertToSet(check));
     });
     it("sample 2", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/2.js"), "http://js-training.seclab");
@@ -96,12 +102,12 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 method: "GET",
                 url: "http://js-training.seclab/doing/actions.php?n=x85",
                 httpVersion: "HTTP/1.1",
-                headers: [
+                headers: new Set([
                     {
                         name: "Host",
                         value: "js-training.seclab",
                     },
-                ],
+                ]),
                 queryString: [
                     {
                         name: "n",
@@ -135,7 +141,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 },
             },
         ];
-        checker(dep, check);
+        checker(dep, convertToSet(check));
     });
     it("sample 3", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/3.js"), "http://js-training.seclab");
@@ -156,13 +162,14 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 url: "http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131",
             },
         ];
-        checker(dep, check);
+        checker(dep, convertToSet(check));
     });
     xit("sample 4", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/4.js"), "http://js-training.seclab");
         expect(analyzer.results.length).toBeGreaterThan(0);
         const dep = analyzer.hars;
-        const check = [{
+        const check = [
+            {
                 httpVersion: "HTTP/1.1",
                 bodySize: 31,
                 method: "POST",
@@ -196,14 +203,16 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                     ],
                     text: "action=wikiPageView&url=UNKNOWN",
                 },
-            }];
-        checker(dep, check);
+            },
+        ];
+        checker(dep, convertToSet(check));
     });
     it("sample 5", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/5.js"), "http://js-training.seclab");
         expect(analyzer.results.length).toBeGreaterThan(0);
         const dep = analyzer.hars;
-        const check = [{
+        const check = [
+            {
                 url: "http://www.aninews.in/devices/",
                 postData: {
                     text: '{"registration_id":"UNKNOWN","type":"web"}',
@@ -227,7 +236,38 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 ],
                 bodySize: 42,
                 queryString: [],
-            }];
-        checker(dep, check);
+            },
+        ];
+        checker(dep, convertToSet(check));
+    });
+    it("sample 6", () => {
+        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/6.js"), "http://js-training.seclab");
+        expect(analyzer.results.length).toBeGreaterThan(0);
+        const dep = analyzer.hars;
+        const check = [
+            {
+                bodySize: 0,
+                url: "https://www.site24x7.com/benchmarks/app?vertical=UNKNOWN&daySeparator=UNKNOWN",
+                headers: [
+                    {
+                        name: "Host",
+                        value: "www.site24x7.com",
+                    },
+                ],
+                httpVersion: "HTTP/1.1",
+                method: "GET",
+                queryString: [
+                    {
+                        name: "vertical",
+                        value: "UNKNOWN",
+                    },
+                    {
+                        value: "UNKNOWN",
+                        name: "daySeparator",
+                    },
+                ],
+            },
+        ];
+        checker(dep, convertToSet(check));
     });
 });

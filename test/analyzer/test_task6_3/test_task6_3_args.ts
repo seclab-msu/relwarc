@@ -118,4 +118,19 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
             ],
         } as SinkCall);
     });
+
+    it("sample 6", () => {
+        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/6.js"));
+        expect(analyzer.results.length).toBeGreaterThan(0);
+        expect(analyzer.results[0]).toEqual({
+            funcName: "$http",
+            args: [
+                {
+                    method: "GET",
+                    url:
+                        "https://www.site24x7.com/benchmarks/app?vertical=UNKNOWN&daySeparator=UNKNOWN",
+                },
+            ],
+        } as SinkCall);
+    });
 });

@@ -39,7 +39,7 @@ function readSrc(path): any {
 //     return check;
 // }
 
-function makeSimpleHar(dep: HAR): any {
+function makeSimpleHar(dep): any {
     interface NewHar {
         url: any;
         method: any;
@@ -54,8 +54,8 @@ function makeSimpleHar(dep: HAR): any {
         url: dep.url,
         method: dep.method,
         httpVersion: dep.httpVersion,
-        headers: dep.headers,
-        queryString: dep.queryString,
+        headers: new Set(dep.headers),
+        queryString: new Set(dep.queryString),
         bodySize: dep.bodySize,
         postData: dep.getPostData() ? dep.getPostData() : null,
     };
@@ -74,6 +74,14 @@ function makeAndRunSimple(
     analyzer.addScript(script);
     analyzer.analyze(url);
     return analyzer;
+}
+
+function convertToSet(deps) {
+    deps.forEach((dep) => {
+        dep.headers = new Set(dep.headers);
+        dep.queryString = new Set(dep.queryString);
+    });
+    return deps;
 }
 
 function checker(depsFromAnalyzer, depsFromChecker) {
@@ -117,8 +125,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
             },
         ];
 
-        checker(dep, check);
-        // expect(dep).toContain(check);
+        checker(dep, convertToSet(check));
     });
 
     it("sample 2", () => {
@@ -134,12 +141,12 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 method: "GET",
                 url: "http://js-training.seclab/doing/actions.php?n=x85",
                 httpVersion: "HTTP/1.1",
-                headers: [
+                headers: new Set([
                     {
                         name: "Host",
                         value: "js-training.seclab",
                     },
-                ],
+                ]),
                 queryString: [
                     {
                         name: "n",
@@ -173,7 +180,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 },
             },
         ];
-        checker(dep, check);
+        checker(dep, convertToSet(check));
     });
 
     it("sample 3", () => {
@@ -200,7 +207,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                     "http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131",
             },
         ];
-        checker(dep, check);
+        checker(dep, convertToSet(check));
     });
 
     xit("sample 4", () => {
@@ -211,43 +218,44 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
         expect(analyzer.results.length).toBeGreaterThan(0);
 
         const dep = analyzer.hars;
-        const check = [{
-            httpVersion: "HTTP/1.1",
-            bodySize: 31,
-            method: "POST",
-            headers: [
-                {
-                    name: "Host",
-                    value: "js-training.seclab",
-                },
-                {
-                    value: "application/x-www-form-urlencoded",
-                    name: "Content-Type",
-                },
-                {
-                    value: "31",
-                    name: "Content-Length",
-                },
-            ],
-            queryString: [],
-            url: "http://js-training.seclab/stats/",
-            postData: {
-                mimeType: "application/x-www-form-urlencoded",
-                params: [
+        const check = [
+            {
+                httpVersion: "HTTP/1.1",
+                bodySize: 31,
+                method: "POST",
+                headers: [
                     {
-                        value: "wikiPageView",
-                        name: "action",
+                        name: "Host",
+                        value: "js-training.seclab",
                     },
                     {
-                        value: "UNKNOWN",
-                        name: "url",
+                        value: "application/x-www-form-urlencoded",
+                        name: "Content-Type",
+                    },
+                    {
+                        value: "31",
+                        name: "Content-Length",
                     },
                 ],
-                text: "action=wikiPageView&url=UNKNOWN",
+                queryString: [],
+                url: "http://js-training.seclab/stats/",
+                postData: {
+                    mimeType: "application/x-www-form-urlencoded",
+                    params: [
+                        {
+                            value: "wikiPageView",
+                            name: "action",
+                        },
+                        {
+                            value: "UNKNOWN",
+                            name: "url",
+                        },
+                    ],
+                    text: "action=wikiPageView&url=UNKNOWN",
+                },
             },
-        }];
-        checker(dep, check);
-
+        ];
+        checker(dep, convertToSet(check));
     });
 
     it("sample 5", () => {
@@ -258,31 +266,69 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
         expect(analyzer.results.length).toBeGreaterThan(0);
 
         const dep = analyzer.hars;
-        const check = [{
-            url: "http://www.aninews.in/devices/",
-            postData: {
-                text: '{"registration_id":"UNKNOWN","type":"web"}',
-                mimeType: "application/json",
+        const check = [
+            {
+                url: "http://www.aninews.in/devices/",
+                postData: {
+                    text: '{"registration_id":"UNKNOWN","type":"web"}',
+                    mimeType: "application/json",
+                },
+                httpVersion: "HTTP/1.1",
+                method: "POST",
+                headers: [
+                    {
+                        value: "www.aninews.in",
+                        name: "Host",
+                    },
+                    {
+                        name: "Content-Type",
+                        value: "application/json",
+                    },
+                    {
+                        value: "42",
+                        name: "Content-Length",
+                    },
+                ],
+                bodySize: 42,
+                queryString: [],
             },
-            httpVersion: "HTTP/1.1",
-            method: "POST",
-            headers: [
-                {
-                    value: "www.aninews.in",
-                    name: "Host",
-                },
-                {
-                    name: "Content-Type",
-                    value: "application/json",
-                },
-                {
-                    value: "42",
-                    name: "Content-Length",
-                },
-            ],
-            bodySize: 42,
-            queryString: [],
-        }];
-        checker(dep, check);
+        ];
+        checker(dep, convertToSet(check));
+    });
+
+    it("sample 6", () => {
+        const analyzer = makeAndRunSimple(
+            readSrc(__dirname + "/data/6.js"),
+            "http://js-training.seclab"
+        );
+        expect(analyzer.results.length).toBeGreaterThan(0);
+
+        const dep = analyzer.hars;
+        const check = [
+            {
+                bodySize: 0,
+                url:
+                    "https://www.site24x7.com/benchmarks/app?vertical=UNKNOWN&daySeparator=UNKNOWN",
+                headers: [
+                    {
+                        name: "Host",
+                        value: "www.site24x7.com",
+                    },
+                ],
+                httpVersion: "HTTP/1.1",
+                method: "GET",
+                queryString: [
+                    {
+                        name: "vertical",
+                        value: "UNKNOWN",
+                    },
+                    {
+                        value: "UNKNOWN",
+                        name: "daySeparator",
+                    },
+                ],
+            },
+        ];
+        checker(dep, convertToSet(check));
     });
 });
