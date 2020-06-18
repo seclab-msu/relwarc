@@ -11,33 +11,19 @@ function readSrc(path): any {
     return readFileSync(path, "utf8");
 }
 
-// function makeHar(har): HAR {
-//     let check = new HAR("http://example.com/", "http://example.com/");
-//     check.url = har.url;
-//     check.method = har.method;
-//     check.httpVersion = har.httpVersion;
-//     check.headers = har.headers;
-//     check.queryString = har.queryString;
-//     check.bodySize = har.bodySize;
-//     // if (check.bodySize != 0) {
-//     //     check.postData = har.postData;
-//     // }
-
-//     return check;
-// }
-
-// function makeSimpleHar2(dep): any {
-//     const check = new Set([
-//         ["url", dep.url],
-//         ["method", dep.method],
-//         ["httpVersion", dep.httpVersion],
-//         ["headers", dep.headers],
-//         ["queryString", dep.queryString],
-//         ["bodySize", dep.bodySize],
-//     ]);
-
-//     return check;
-// }
+function readCheckFromFile(path) {
+    const check = JSON.parse(readSrc(path));
+    // , function(k,v) {
+    //         if (v === "UNKNOWN") {
+    //             return UNKNOWN;
+    //         }
+    //         if (v === "FROM_FUNCTION_CALL") {
+    //             return UNKNOWN;
+    //         }
+    //         return v;
+    //     });
+    return check;
+}
 
 function makeSimpleHar(dep): any {
     interface NewHar {
@@ -98,7 +84,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 1", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/1.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/1.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(0);
 
@@ -131,7 +117,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 2", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/2.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/2.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(1);
 
@@ -186,7 +172,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 3", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/3.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/3.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(0);
 
@@ -213,7 +199,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     xit("sample 4", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/4.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/4.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(0);
 
@@ -261,7 +247,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 5", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/5.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/5.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(0);
 
@@ -299,7 +285,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 6", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/6.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/6.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(0);
 
@@ -335,7 +321,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
     it("sample 7", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/data/7.js"),
-            "http://js-training.seclab"
+            "http://js-training.seclab/js-dep/func-args/samples/computed/7.html"
         );
         expect(analyzer.results.length).toBeGreaterThan(0);
 
@@ -373,7 +359,80 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 method: "POST",
             },
         ];
-        expect(makeSimpleHar(dep[0])).toEqual(convertToSet(check)[0]);
-        // checker(dep, convertToSet(check));
+        // expect(makeSimpleHar(dep[0])).toEqual(convertToSet(check)[0]);
+        checker(dep, convertToSet(check));
+    });
+
+    it("sample 18", () => {
+        const test = 18;
+        const analyzer = makeAndRunSimple(
+            readSrc(__dirname + `/data/${test}.js`),
+            `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`
+        );
+        expect(analyzer.results.length).toBeGreaterThan(3);
+
+        const dep = analyzer.hars;
+        const check = readCheckFromFile(
+            __dirname + `/data/check/${test}_hars.json`
+        );
+
+        checker(dep, convertToSet(check));
+    });
+
+    it("sample 20", () => {
+        const test = 20;
+        const analyzer = makeAndRunSimple(
+            readSrc(__dirname + `/data/${test}.js`),
+            `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`
+        );
+        expect(analyzer.results.length).toBeGreaterThan(2);
+
+        const dep = analyzer.hars;
+        const check = readCheckFromFile(
+            __dirname + `/data/check/${test}_hars.json`
+        );
+
+        checker(dep, convertToSet(check));
+    });
+
+    it("sample 21", () => {
+        const test = 21;
+        const analyzer = makeAndRunSimple(
+            readSrc(__dirname + `/data/${test}.js`),
+            `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`
+        );
+        expect(analyzer.results.length).toBeGreaterThan(0);
+
+        const dep = analyzer.hars;
+        const check = [
+            {
+                bodySize: 62,
+                url:
+                    "https://report.seznamzpravy.cz.test.js-training.seclab/report/custom",
+                httpVersion: "HTTP/1.1",
+                headers: [
+                    {
+                        value: "report.seznamzpravy.cz.test.js-training.seclab",
+                        name: "Host",
+                    },
+                    {
+                        name: "Content-Type",
+                        value: "application/json",
+                    },
+                    {
+                        name: "Content-Length",
+                        value: "62",
+                    },
+                ],
+                method: "POST",
+                queryString: [],
+                postData: {
+                    mimeType: "application/json",
+                    text:
+                        '{"$type":"runner:error","message":"UNKNOWN","stack":"UNKNOWN"}',
+                },
+            },
+        ];
+        checker(dep, convertToSet(check));
     });
 });

@@ -6,6 +6,23 @@ const unknown_1 = require("../../../src/analyzer/types/unknown");
 function readSrc(path) {
     return fs_1.readFileSync(path, "utf8");
 }
+function readCheckFromFile(path) {
+    const check = JSON.parse(readSrc(path), function (k, v) {
+        if (v === "UNKNOWN") {
+            return unknown_1.UNKNOWN;
+        }
+        if (v === "FROM_FUNCTION_CALL") {
+            return unknown_1.UNKNOWN;
+        }
+        return v;
+    });
+    return check;
+}
+function check(argsFromAnalyzer, argsFromChecker) {
+    for (let i = 0; i < argsFromChecker.length; i++) {
+        expect(argsFromAnalyzer).toContain(argsFromChecker[i]);
+    }
+}
 function makeAndRunSimple(script, url = "http://example.com/") {
     const analyzer = new analyzer_1.Analyzer();
     analyzer.addScript(script);
@@ -14,7 +31,8 @@ function makeAndRunSimple(script, url = "http://example.com/") {
 }
 describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
     it("sample 1", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/1.js"));
+        const test = 1;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "$.ajax",
@@ -34,7 +52,8 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         });
     });
     it("sample 2", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/2.js"));
+        const test = 2;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(1);
         expect(analyzer.results[0]).toEqual({
             funcName: "$.ajax",
@@ -62,7 +81,8 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         });
     });
     it("sample 3", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/3.js"));
+        const test = 3;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "$http.get",
@@ -70,7 +90,8 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         });
     });
     xit("sample 4", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/4.js"));
+        const test = 4;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "fetch",
@@ -87,7 +108,8 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         });
     });
     it("sample 5", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/5.js"));
+        const test = 5;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "fetch",
@@ -105,7 +127,8 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         });
     });
     it("sample 6", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/6.js"));
+        const test = 6;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "$http",
@@ -118,7 +141,8 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         });
     });
     it("sample 7", () => {
-        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/7.js"));
+        const test = 7;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
         expect(analyzer.results[0]).toEqual({
             funcName: "fetch",
@@ -135,5 +159,23 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
                 },
             ],
         });
+    });
+    it("sample 18", () => {
+        const test = 18;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
+        expect(analyzer.results.length).toBeGreaterThan(3);
+        check(analyzer.results, readCheckFromFile(__dirname + `/data/check/${test}_args.json`));
+    });
+    xit("sample 19", () => {
+        const test = 19;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
+        expect(analyzer.results.length).toBeGreaterThan(3);
+        check(analyzer.results, readCheckFromFile(__dirname + `/data/check/${test}_args.json`));
+    });
+    it("sample 20", () => {
+        const test = 20;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
+        expect(analyzer.results.length).toBeGreaterThan(3);
+        check(analyzer.results, readCheckFromFile(__dirname + `/data/check/${test}_args.json`));
     });
 });
