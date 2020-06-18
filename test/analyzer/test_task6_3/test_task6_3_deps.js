@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const analyzer_1 = require("../../../src/analyzer/analyzer");
 const fs_1 = require("fs");
+const unknown_1 = require("../../../src/analyzer/types/unknown");
 function readSrc(path) {
     return fs_1.readFileSync(path, "utf8");
 }
@@ -269,5 +270,43 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
             },
         ];
         checker(dep, convertToSet(check));
+    });
+    it("sample 7", () => {
+        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/7.js"), "http://js-training.seclab");
+        expect(analyzer.results.length).toBeGreaterThan(0);
+        const dep = analyzer.hars;
+        const check = [
+            {
+                url: "http://js-training.seclab/ODVA/_vti_bin/OID.SharePoint.FormBuilder/submissions.svc/",
+                postData: {
+                    text: '{"formId":"83e3b0f2-1aea-4e88-a9f7-70c399316d2e","formState":"UNKNOWN","fieldValues":"UNKNOWN","reCaptchaResponse":"UNKNOWN","files":"UNKNOWN"}',
+                    mimeType: "application/json",
+                },
+                headers: [
+                    {
+                        name: "Host",
+                        value: "js-training.seclab",
+                    },
+                    {
+                        name: "content-type",
+                        value: "application/json",
+                    },
+                    {
+                        name: "X-RequestDigest",
+                        value: unknown_1.UNKNOWN,
+                    },
+                    {
+                        name: "Content-Length",
+                        value: "143",
+                    },
+                ],
+                httpVersion: "HTTP/1.1",
+                bodySize: 143,
+                queryString: [],
+                method: "POST",
+            },
+        ];
+        expect(makeSimpleHar(dep[0])).toEqual(convertToSet(check)[0]);
+        // checker(dep, convertToSet(check));
     });
 });

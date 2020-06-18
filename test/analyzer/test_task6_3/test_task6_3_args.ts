@@ -133,4 +133,25 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
             ],
         } as SinkCall);
     });
+
+    it("sample 7", () => {
+        const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/7.js"));
+        expect(analyzer.results.length).toBeGreaterThan(0);
+        expect(analyzer.results[0]).toEqual({
+            funcName: "fetch",
+            args: [
+                "/ODVA/_vti_bin/OID.SharePoint.FormBuilder/submissions.svc/",
+                {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "content-type": "application/json",
+                        "X-RequestDigest": UNKNOWN,
+                    },
+                    body:
+                        '{"formId":"83e3b0f2-1aea-4e88-a9f7-70c399316d2e","formState":"UNKNOWN","fieldValues":"UNKNOWN","reCaptchaResponse":"UNKNOWN","files":"UNKNOWN"}',
+                },
+            ],
+        } as SinkCall);
+    });
 });
