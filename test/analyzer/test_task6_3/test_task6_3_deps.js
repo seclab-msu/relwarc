@@ -8,15 +8,6 @@ function readSrc(path) {
 }
 function readCheckFromFile(path) {
     const check = JSON.parse(readSrc(path));
-    // , function(k,v) {
-    //         if (v === "UNKNOWN") {
-    //             return UNKNOWN;
-    //         }
-    //         if (v === "FROM_FUNCTION_CALL") {
-    //             return UNKNOWN;
-    //         }
-    //         return v;
-    //     });
     return check;
 }
 function makeSimpleHar(dep) {
@@ -306,13 +297,13 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
         const check = readCheckFromFile(__dirname + `/data/check/${test}_hars.json`);
         checker(dep, convertToSet(check));
     });
-    xit("sample 19", () => {
+    xit("sample 19 (coming soon)", () => {
         const test = 19;
         const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(12);
         const dep = analyzer.hars;
         const check = readCheckFromFile(__dirname + `/data/check/${test}_hars.json`);
-        expect(makeSimpleHar(dep[2])).toEqual(convertToSet(check)[2]);
+        // expect(makeSimpleHar(dep[2])).toEqual(convertToSet(check)[2]);
         // checker(dep, convertToSet(check));
     });
     it("sample 20", () => {
@@ -355,7 +346,6 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                 },
             },
         ];
-        // expect(makeSimpleHar(dep[0])).toEqual(convertToSet(check)[0]);
         checker(dep, convertToSet(check));
     });
 });

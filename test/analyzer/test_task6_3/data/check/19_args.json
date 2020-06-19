@@ -1,0 +1,308 @@
+[
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "get",
+                "url": "http://www.smzdm.com/user/login/jsonp_check",
+                "data": "user_login=UNKNOWN&user_pass=UNKNOWN&rememberme=UNKNOWN0&is_third=UNKNOWN&is_pop=UNKNOWN&captcha=UNKNOWN",
+                "dataType": "jsonp",
+                "jsonp": "callback",
+                "success": "UNKNOWN",
+                "error": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "get",
+                "url": "UNKNOWN/user/info/jsonp_get_current",
+                "data": "pid=UNKNOWN&type=UNKNOWN&prob=1",
+                "dataType": "jsonp",
+                "jsonp": "callback",
+                "success": "UNKNOWN",
+                "error": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/user_prob_info",
+                "data": {},
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "dataType": "jsonp",
+                "jsonp": "callback",
+                "url": "http://new.www.bq.com/safe_pass_auth",
+                "data": "safepass=UNKNOWN",
+                "timeout": 5000,
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "url": "/ajax_probation_apply",
+                "type": "post",
+                "data": {
+                    "p_id": "UNKNOWN",
+                    "code": "UNKNOWN",
+                    "plan": "UNKNOWN",
+                    "safepass": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "url": "/probation_business/ajax_apply",
+                "data": "UNKNOWN",
+                "type": "post",
+                "cache": false,
+                "dataType": "json",
+                "timeout": 3000,
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "url": "/ajax_collect",
+                "type": "post",
+                "data": "article_id=UNKNOWN&channel=7",
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "url": "/ajax_love",
+                "type": "post",
+                "data": "article_id=UNKNOWN&channel=7",
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "url": "UNKNOWN",
+                "type": "GET",
+                "dataType": "html",
+                "cache": false,
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_delete_report",
+                "data": {
+                    "report_id": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/json_more",
+                "data": {
+                    "current_page": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_probation_plan",
+                "data": {
+                    "probation_id": "UNKNOWN",
+                    "evaluation_plan": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_probation_confirm",
+                "data": {
+                    "probation_id": "UNKNOWN",
+                    "name": "UNKNOWN",
+                    "address": "UNKNOWN",
+                    "zipcode": "UNKNOWN",
+                    "telephone": "UNKNOWN",
+                    "partake": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "GET",
+                "url": "/ajax_get_apply_all_user",
+                "data": {
+                    "page": "UNKNOWN",
+                    "probation_id": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "GET",
+                "url": "/ajax_get_apply_success_user",
+                "data": {
+                    "page": "UNKNOWN",
+                    "probation_id": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "url": "/ajax_probation_apply",
+                "type": "post",
+                "data": {
+                    "p_id": "UNKNOWN",
+                    "code": "UNKNOWN",
+                    "plan": "UNKNOWN",
+                    "safepass": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_probation_confirm",
+                "data": {
+                    "probation_id": "UNKNOWN",
+                    "name": "UNKNOWN",
+                    "address": "UNKNOWN",
+                    "zipcode": "UNKNOWN",
+                    "telephone": "UNKNOWN",
+                    "partake": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_probation_confirm",
+                "data": {
+                    "probation_id": "UNKNOWN",
+                    "name": "",
+                    "address": "",
+                    "zipcode": "",
+                    "telephone": "",
+                    "partake": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_probation_confirm",
+                "data": {
+                    "probation_id": "UNKNOWN",
+                    "name": "UNKNOWN",
+                    "address": "UNKNOWN",
+                    "zipcode": "UNKNOWN",
+                    "telephone": "UNKNOWN",
+                    "partake": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "funcName": "$.ajax",
+        "args": [
+            {
+                "type": "POST",
+                "url": "/ajax_probation_confirm",
+                "data": {
+                    "probation_id": "UNKNOWN",
+                    "name": "",
+                    "address": "",
+                    "zipcode": "",
+                    "telephone": "",
+                    "partake": "UNKNOWN"
+                },
+                "dataType": "json",
+                "success": "UNKNOWN"
+            }
+        ]
+    }
+]

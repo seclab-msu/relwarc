@@ -166,7 +166,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         expect(analyzer.results.length).toBeGreaterThan(3);
         check(analyzer.results, readCheckFromFile(__dirname + `/data/check/${test}_args.json`));
     });
-    xit("sample 19", () => {
+    xit("sample 19 (coming soon)", () => {
         const test = 19;
         const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(3);
@@ -177,5 +177,23 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(3);
         check(analyzer.results, readCheckFromFile(__dirname + `/data/check/${test}_args.json`));
+    });
+    it("sample 21", () => {
+        const test = 21;
+        const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
+        expect(analyzer.results.length).toBeGreaterThan(0);
+        expect(analyzer.results[0]).toEqual({
+            funcName: "fetch",
+            args: [
+                "https://report.seznamzpravy.cz.test.js-training.seclab/report/custom",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: '{"$type":"runner:error","message":"UNKNOWN","stack":"UNKNOWN"}',
+                },
+            ],
+        });
     });
 });
