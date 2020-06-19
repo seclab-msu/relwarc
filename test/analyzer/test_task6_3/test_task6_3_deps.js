@@ -145,14 +145,14 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
         ];
         checker(dep, convertToSet(check));
     });
-    xit("sample 4", () => {
+    it("sample 4", () => {
         const analyzer = makeAndRunSimple(readSrc(__dirname + "/data/4.js"), "http://js-training.seclab/js-dep/func-args/samples/computed/4.html");
         expect(analyzer.results.length).toBeGreaterThan(0);
         const dep = analyzer.hars;
         const check = [
             {
                 httpVersion: "HTTP/1.1",
-                bodySize: 31,
+                bodySize: 106,
                 method: "POST",
                 headers: [
                     {
@@ -164,7 +164,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                         name: "Content-Type",
                     },
                     {
-                        value: "31",
+                        value: "106",
                         name: "Content-Length",
                     },
                 ],
@@ -178,11 +178,11 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
                             name: "action",
                         },
                         {
-                            value: "UNKNOWN",
+                            value: "http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
                             name: "url",
                         },
                     ],
-                    text: "action=wikiPageView&url=UNKNOWN",
+                    text: "action=wikiPageView&url=http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
                 },
             },
         ];

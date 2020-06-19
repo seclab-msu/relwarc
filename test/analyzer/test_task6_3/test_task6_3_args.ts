@@ -26,7 +26,7 @@ function readCheckFromFile(path) {
 
 function check(argsFromAnalyzer, argsFromChecker) {
     for (let i = 0; i < argsFromChecker.length; i++) {
-        expect(argsFromAnalyzer).toContain(argsFromChecker[i]);
+        expect(argsFromAnalyzer).toContain(argsFromChecker[i] as SinkCall);
     }
 }
 
@@ -112,7 +112,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
         } as SinkCall);
     });
 
-    xit("sample 4", () => {
+    it("sample 4", () => {
         const test = 4;
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + `/data/${test}.js`),

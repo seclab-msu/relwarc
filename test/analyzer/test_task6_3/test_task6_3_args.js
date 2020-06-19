@@ -89,7 +89,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
             args: ["/Umbraco/EuroNCAP/Widgets/GetTweets/17131"],
         });
     });
-    xit("sample 4", () => {
+    it("sample 4", () => {
         const test = 4;
         const analyzer = makeAndRunSimple(readSrc(__dirname + `/data/${test}.js`), `http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html`);
         expect(analyzer.results.length).toBeGreaterThan(0);
