@@ -6,8 +6,8 @@ type FromDataData = { [key: string]: Value };
 export class FormDataModel {
     private readonly data: FromDataData;
 
-    constructor() {
-        this.data = {};
+    constructor(data?: FromDataData) {
+        this.data = data || {};
     }
 
     append(k: Value, v: Value): void {
