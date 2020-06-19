@@ -169,7 +169,17 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    /* DEP number 11 is skipped so far*/
+    it("DEP number 11 (template strings)", function() {
+        const source = fs.readFileSync(__dirname + "/../data/11.js").toString();
+        const analyzer = makeAndRunSimple(source);
+        expect(analyzer.results).toContain({
+            "funcName": "$.ajax",
+            "args": [{
+                type: "GET",
+                url: "/application/kl3j5h/interface/32nhj4/handle?qh44j3=1&surveiller=po89uo"
+            }]
+        } as SinkCall);
+    });
     
     it("DEP number 12 (params for request taken from global config, which is literal object)", function() {
         const analyzer = new Analyzer();
