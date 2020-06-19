@@ -30,7 +30,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 4 (function is called when an event \"onclick\" occurs)", function() {
+    it('DEP number 4 (function is called when an event "onclick" occurs)', function() {
         const analyzer = makeAndRunSimple(`function request4() {
             $.ajax({
                 url: '/application/Yai0au/interface/Eikei0/handle',
@@ -132,8 +132,7 @@ describe("Analyzer finding args of DEPs in combined stand", () => {
         } as SinkCall);
     });
 
-    it("DEP number 9 (url is concatination of local variable and global viriable," +
-        "which changed in other script)", function() {
+    it("DEP number 9 (url depends on global var, which is changed in other script)", () => {
         const analyzer = new Analyzer();
         analyzer.addScript(`var param9 = "";
 
