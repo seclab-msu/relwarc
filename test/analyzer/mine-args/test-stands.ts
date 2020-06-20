@@ -151,4 +151,28 @@ describe("Analyzer finding args of DEPs in stands", () => {
 		    ]
         } as SinkCall);
     });
+    it("baodautu.vn", () => {
+        const analyzer = new Analyzer();
+        fs.readdirSync(__dirname + "/../data/baodautu.vn").forEach(file => {
+          var sourceCode = fs.readFileSync(__dirname + '/../data/baodautu.vn/' + file).toString();
+          analyzer.addScript(sourceCode);
+        });
+        analyzer.analyze("http://example.com/");
+        expect(analyzer.results.length).toEqual(4);
+        expect(analyzer.results[2]).toEqual({
+            "funcName": "$.ajax",
+            "args": [
+                {
+                    "type": "POST",
+                    "url": "index.php?mod=home&act=like_comment",
+                    "data": {
+                        "comment_id": UNKNOWN
+                    },
+                    "context": UNKNOWN,
+                    "dataType": "html",
+                    "success": UNKNOWN
+                }
+            ]
+        } as SinkCall);
+    });
 });

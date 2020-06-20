@@ -184,4 +184,37 @@ describe("Analyzer mining HARs for DEPs in stands", () => {
 
         expect(postData).toBeDefined();
     });
+    it("baodautu.vn", () => {
+        const analyzer = new Analyzer();
+        fs.readdirSync(__dirname + "/../data/baodautu.vn").forEach(file => {
+          var sourceCode = fs.readFileSync(__dirname + '/../data/baodautu.vn/' + file).toString();
+          analyzer.addScript(sourceCode);
+        });
+        analyzer.analyze("http://example.com/");
+        expect(analyzer.hars.length).toEqual(2);
+
+        const dep = analyzer.hars[1];
+
+        expect(dep.url).toEqual("http://example.com/index.php?mod=home&act=like_comment");
+        expect(dep.method).toEqual("POST");
+        expect(dep.getHeader('host')).toEqual("example.com");
+        expect(dep.queryString).toEqual([
+            { name: 'mod', value: 'home' },
+            { name: 'act', value: 'like_comment' }
+        ]);
+        const expectedPostBody = "comment_id=UNKNOWN";
+        const expectedPostData = {
+            text: expectedPostBody,
+            params: [
+                { name: 'comment_id', value: UNKNOWN }
+            ],
+            mimeType: "application/x-www-form-urlencoded"
+        };
+        
+        expect(dep.bodySize).toEqual(expectedPostBody.length);
+
+        const postData = dep.getPostData();
+
+        expect(postData).toBeDefined();
+    });
 });
