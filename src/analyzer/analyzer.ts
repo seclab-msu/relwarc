@@ -1021,10 +1021,22 @@ export class Analyzer {
         this.stage = AnalysisPhase.DEPExtracting;
         if (funcInfo !== null) {
             this.formalArgs = funcInfo.args;
+            this.functionsStack.push(funcInfo.code);
+            if (isFunction(funcInfo.code.node)) {
+                this.argsStack.push(
+                    this.argNamesForFunctionNode(funcInfo.code.node)
+                );
+            }
         } else {
             this.formalArgs = [];
         }
         this.traverseASTForDEPExtraction(code);
+        if (funcInfo !== null) {
+            this.functionsStack.pop();
+        }
+        if (isFunction(funcInfo?.code.node)) {
+            this.argsStack.pop();
+        }
     }
 
     private extractDEPsWithCallChain(callConfig: CallConfig): void {
