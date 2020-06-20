@@ -1,5 +1,6 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
 import { makeAndRunSimple } from './common';
+import { UNKNOWN } from "../../../src/analyzer/types/unknown";
 import * as fs from 'fs';
 
 describe("Analyzer mining HARs for DEPs in stands", () => {
@@ -147,5 +148,40 @@ describe("Analyzer mining HARs for DEPs in stands", () => {
         expect(dep.getHeader('host')).toEqual("zeebiz.com.stands.fuchsia");
         expect(dep.queryString).toEqual([]);
         expect(dep.bodySize).toEqual(0);
+    });
+    it("superprof.es", () => {
+        const analyzer = new Analyzer();
+        fs.readdirSync(__dirname + "/../data/superprof.es").forEach(file => {
+          var sourceCode = fs.readFileSync(__dirname + '/../data/superprof.es/' + file).toString();
+          analyzer.addScript(sourceCode);
+        });
+        analyzer.analyze("http://example.com/");
+        expect(analyzer.hars.length).toEqual(19);
+
+        const dep = analyzer.hars[6];
+
+        expect(dep.url).toEqual("http://example.com/blog/wp-admin/admin-ajax.php");
+        expect(dep.method).toEqual("POST");
+        expect(dep.getHeader('host')).toEqual("example.com");
+        const expectedPostBody = null;
+        const expectedPostData = {
+            text: expectedPostBody,
+            params: [
+                { name: 'action', value: 'wpdLoadMoreComments' },
+                { name: 'offset', value: '1' },
+                { name: 'orderBy', value: 'comment_date_gmt' },
+                { name: 'order', value: 'desc' },
+                { name: 'lastParentId', value: UNKNOWN },
+                { name: 'wpdiscuz_last_visit', value: UNKNOWN },
+                { name: 'postId', value: "48839" },
+            ],
+            mimeType: "multipart/form-data"
+        };
+        
+        expect(dep.bodySize).toEqual(0);
+
+        const postData = dep.getPostData();
+
+        expect(postData).toBeDefined();
     });
 });

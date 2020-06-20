@@ -1,6 +1,7 @@
 import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
 import { makeAndRunSimple } from './common';
 import { UNKNOWN } from "../../../src/analyzer/types/unknown";
+import { FormDataModel } from "../../../src/analyzer/types/form-data";
 import * as fs from 'fs';
 
 describe("Analyzer finding args of DEPs in stands", () => {
@@ -117,6 +118,35 @@ describe("Analyzer finding args of DEPs in stands", () => {
 		            "dataType": "json",
 		            "async": false,
 		            "success": UNKNOWN
+		        }
+		    ]
+        } as SinkCall);
+    });
+    it("superprof.es", () => {
+        const analyzer = new Analyzer();
+        fs.readdirSync(__dirname + "/../data/superprof.es").forEach(file => {
+          var sourceCode = fs.readFileSync(__dirname + '/../data/superprof.es/' + file).toString();
+          analyzer.addScript(sourceCode);
+        });
+        analyzer.analyze("http://example.com/");
+        expect(analyzer.results.length).toEqual(39);
+        expect(analyzer.results[8]).toEqual({
+            "funcName": "$.ajax",
+		    "args": [
+		        {
+		            "type": "POST",
+		            "url": "/blog/wp-admin/admin-ajax.php",
+		            "data": new FormDataModel({
+	                    "action": "wpdLoadMoreComments",
+	                    "offset": 1,
+	                    "orderBy": "comment_date_gmt",
+	                    "order": "desc",
+	                    "lastParentId": UNKNOWN,
+	                    "wpdiscuz_last_visit": UNKNOWN,
+	                    "postId": 48839,
+		            }),
+		            "contentType": false,
+		            "processData": false
 		        }
 		    ]
         } as SinkCall);
