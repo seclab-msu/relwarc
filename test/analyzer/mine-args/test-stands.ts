@@ -175,4 +175,29 @@ describe("Analyzer finding args of DEPs in stands", () => {
             ]
         } as SinkCall);
     });
+    it("akademus.es", () => {
+        const analyzer = new Analyzer();
+        fs.readdirSync(__dirname + "/../data/akademus.es").forEach(file => {
+          var sourceCode = fs.readFileSync(__dirname + '/../data/akademus.es/' + file).toString();
+          analyzer.addScript(sourceCode);
+        });
+        analyzer.analyze("http://example.com/");
+        expect(analyzer.results.length).toEqual(48);
+        expect(analyzer.results[25]).toEqual({
+            "funcName": "$.ajax",
+            "args": [
+                {
+                    "url": "/api/user/forgot-password/",
+                    "jsonp": "callback",
+                    "dataType": "jsonp",
+                    "data": {
+                        "username": UNKNOWN,
+                        "format": "json"
+                    },
+                    "success": UNKNOWN,
+                    "error": UNKNOWN
+                }
+            ]
+        } as SinkCall);
+    });
 });

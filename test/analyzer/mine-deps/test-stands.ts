@@ -217,4 +217,25 @@ describe("Analyzer mining HARs for DEPs in stands", () => {
 
         expect(postData).toBeDefined();
     });
+    it("akademus.es", () => {
+        const analyzer = new Analyzer();
+        fs.readdirSync(__dirname + "/../data/akademus.es").forEach(file => {
+          var sourceCode = fs.readFileSync(__dirname + '/../data/akademus.es/' + file).toString();
+          analyzer.addScript(sourceCode);
+        });
+        analyzer.analyze("http://example.com/");
+        expect(analyzer.hars.length).toEqual(38);
+
+        const dep = analyzer.hars[17];
+
+        expect(dep.url).toEqual("http://example.com/api/user/forgot-password/?username=UNKNOWN&format=json&callback=jQuery111106567430573505544_1591529444128");
+        expect(dep.method).toEqual("GET");
+        expect(dep.getHeader('host')).toEqual("example.com");
+        expect(dep.queryString).toEqual([
+            { name: 'username', value: "UNKNOWN" },
+            { name: 'format', value: 'json' },
+            { name: 'callback', value: 'jQuery111106567430573505544_1591529444128' }
+        ]);
+        expect(dep.bodySize).toEqual(0);
+    });
 });
