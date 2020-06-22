@@ -11,19 +11,19 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/201
 
 // TODO: replace with type definitions for slimerjs
 interface ResourceResponse {
-    stage: string
+    stage: string;
 }
 
 // TODO: replace with type definitions for slimerjs
 interface Webpage {
-    open(url: string): Promise<string>,
+    open(url: string): Promise<string>;
     settings: {
         [userAgent: string]: string
-    },
-    onConsoleMessage: (msg: string) => void,
-    onResourceRequested: () => void,
+    };
+    onConsoleMessage: (msg: string) => void;
+    onResourceRequested: () => void;
     onResourceReceived: (response: ResourceResponse) => void;
-    onError: (message: string, stack: ErrorStackTraceFrame[]) => void
+    onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
 }
 
 export class HeadlessBot {
