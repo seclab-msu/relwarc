@@ -13,14 +13,15 @@ aform.relations = new Object;
 aform.relations = {}
 aform.payment = { parts_id: '', field_id: '', methods: {} };
 aform.recaptcha = new Object;
-
-var params = {
-	__mode : 'rebuild_aform',
-	aform_id : aform_id
-};
-jQuery.ajax({
-    url: aform.checker_url,
-    dataType: 'jsonp',
-    data: params,
-    success: reload_if_rebuild
-}); 
+function postAFormActiveChecker(aform_id) {
+	var params = {
+		__mode : 'rebuild_aform',
+		aform_id : aform_id
+	};
+	jQuery.ajax({
+	    url: aform.checker_url,
+	    dataType: 'jsonp',
+	    data: params,
+	    success: reload_if_rebuild
+	});
+}
