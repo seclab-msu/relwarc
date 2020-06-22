@@ -11,7 +11,7 @@ import {
     Function as FunctionASTNode,
     CallExpression, BinaryExpression, UnaryExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
-    Literal, ObjectExpression, Identifier,
+    Literal, ObjectExpression, Identifier, TemplateLiteral,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction
@@ -612,6 +612,17 @@ export class Analyzer {
         return this.valueFromASTNode(second);
     }
 
+    private processTemplateLiteral(node: TemplateLiteral): Value {
+        let templateString = '';
+        for (let i = 0; i < node.quasis.length; i++) {
+            templateString += node.quasis[i].value.cooked;
+            if (typeof node.expressions[i] !== 'undefined') {
+                templateString += this.valueFromASTNode(node.expressions[i]);
+            }
+        }
+        return templateString;
+    }
+
     private valueFromLiteral(node: Literal): Value {
         if (isNullLiteral(node)) {
             return null;
@@ -620,8 +631,7 @@ export class Analyzer {
             return new RegExp(node.pattern);
         }
         if (isTemplateLiteral(node)) {
-            // TODO: add support for template strings: #1123
-            return UNKNOWN;
+            return this.processTemplateLiteral(node);
         }
         return node.value;
     }
