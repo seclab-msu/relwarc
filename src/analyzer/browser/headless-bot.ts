@@ -29,7 +29,7 @@ interface Webpage {
 export class HeadlessBot {
     onWindowCreated: null | ((win: object, doc: object) => void);
 
-    private readonly webpage: Webpage;
+    readonly webpage: Webpage;
     private readonly printPageErrors: boolean;
 
     private pendingRequestCount: number;
