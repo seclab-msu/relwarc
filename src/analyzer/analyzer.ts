@@ -309,6 +309,10 @@ export class Analyzer {
         if (node.computed) {
             propName = this.valueFromASTNode(prop);
         } else {
+            if (!isIdentifier(prop)) {
+                console.error('Warning: non-computed prop is not identifier');
+                return;
+            }
             propName = prop.name;
         }
 
@@ -575,6 +579,10 @@ export class Analyzer {
             return UNKNOWN;
         }
         if (!node.computed) {
+            if (!isIdentifier(node.property)) {
+                console.error('Warning: non-computed prop is not identifier');
+                return UNKNOWN;
+            }
             return ob[node.property.name];
         }
         const propName = this.valueFromASTNode(node.property);
@@ -621,7 +629,7 @@ export class Analyzer {
     private processObjectExpression(node: ObjectExpression): Value {
         const result = {};
         for (const prop of node.properties) {
-            let key;
+            let key: string;
 
             if (isSpreadElement(prop)) {
                 // TODO: add support for object destructuring
@@ -636,7 +644,7 @@ export class Analyzer {
             if (isIdentifier(prop.key)) {
                 key = prop.key.name;
             } else {
-                key = prop.key.value;
+                key = String(this.valueFromASTNode(prop.key));
             }
             result[key] = this.valueFromASTNode(prop.value);
         }
