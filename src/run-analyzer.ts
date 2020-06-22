@@ -25,7 +25,11 @@ async function main(argc: number, argv: string[]): Promise<number> {
         }
     } else {
         // hars
-        console.log(JSON.stringify(analyzer.analyzer.hars, null, 4));
+        console.log(JSON.stringify(
+            analyzer.analyzer.hars.concat(analyzer.htmlDEPs),
+            null,
+            4
+        ));
     }
 
     return 0;

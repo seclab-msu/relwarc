@@ -25,7 +25,7 @@ export class HAR {
 
     private postData?: PostData;
 
-    constructor(url: string, baseURL: string) {
+    constructor(url: string, baseURL?: string) {
         const parsedURL = new URL(url, baseURL);
 
         this.method = 'GET';
