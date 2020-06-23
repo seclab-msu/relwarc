@@ -1,46 +1,5 @@
 "use strict";
 
-function hideIebsBlockContent() {
-    $("#overlay").fadeOut();
-}
-
-function showIebsBlockContentForElement(element) {
-    var $t = $(element);
-
-    if ($('.block-stripe-bar').length == 0) {
-        $t.prepend('<div id="overlay" style="display:none;position:absolute;background:#fff;z-index: 99999;"><div class="block-stripe-bar"><div align="center" ><div id="floatingBarsG"><div class="blockG" id="rotateG_01"></div><div class="blockG" id="rotateG_02"></div><div class="blockG" id="rotateG_03"></div><div class="blockG" id="rotateG_04"></div><div class="blockG" id="rotateG_05"></div><div class="blockG" id="rotateG_06"></div><div class="blockG" id="rotateG_07"></div><div class="blockG" id="rotateG_08"></div></div></div></div></div>');
-    }
-
-    $("#overlay").css({
-        opacity: 0.8,
-        //top: $t.offset().top,
-        width: $t.outerWidth(),
-        height: $t.outerHeight()
-    });
-
-    $("#img-load").css({
-        top: ($t.height() / 2),
-        left: ($t.width() / 2)
-    });
-
-    $("#overlay").fadeIn();
-}
-
-function each_area_pre_click(boton) {
-    var interes = $(boton).html();
-
-    $('#areas_selected').append('<div class="each_add_aptitude">' + interes + '<a onClick="erase_area_click(this);" href="javascript:void(0)" class="erase_area"> X</a><input type="hidden" name="perfil_data[intereses][]" value="' + interes + '"/></div>');
-    $(boton).remove();
-}
-
-function erase_area_click(boton) {
-    var habilidad = $(boton).siblings('input').val();
-    $(boton).parent('.each_add_aptitude').remove();
-    /*if (areas[habilidad]) {
-     $('#areas_precargadas').append('<a class="each_area_precargada" onClick="each_area_pre_click(this);">&nbsp' + habilidad + '</a>')
-     }*/
-    return false;
-}
 
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -51,27 +10,6 @@ function validateEmail(email) {
 var chartData = {};
 var chart_colors = ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'];
 
-function loadChart(canvas_id, title) {
-    var ctx = document.getElementById(canvas_id).getContext("2d");
-    window.myBar = new Chart(ctx, {
-        type: 'bar',
-        data: chartData,
-        options: {
-            responsive: true,
-            title: {
-                display: true,
-                text: title
-            },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero:true
-                    }
-                }]
-            }
-        }
-    });
-}
 /******************* Chart Functions *********************/
 
 /***************** DataTable Functions *******************/
@@ -122,282 +60,10 @@ function init_DataTables() {
         };
     }();
 
-
-    if($('#datatable_beneficios').length) {
-
-        $('#datatable_beneficios').dataTable({
-            "ajax": "/ajax-get-beneficios/",
-            "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros por página",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros página",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-
-            }
-        });
-
-    }
-
-    if($('#datatable_partners').length) {
-
-        $('#datatable_partners').dataTable({
-            "ajax": "/ajax-get-partners/",
-            "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros por página",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros página",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-
-            }
-        });
-
-    }
-    /*if($('#datatable_statics').length) {
-
-        $('#datatable_statics').dataTable({
-            "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros por página",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros página",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-
-            }
-        });
-
-    }*/
-
-    //datable del admin -- matriculas por curso --
-    if($('#datatable_matriculas_por_curso').length) {
-
-        $('#datatable_matriculas_por_curso').dataTable({
-            "ajax": "/ajax-get-matriculas-por-curso/",
-            "columns": [
-                { "data": "matriculas_freebie" },
-                { "data": "matriculas_compra_directa" },
-                { "data": "matriculas_suscripcion" },
-                { "data": "matriculas_totales" },
-                { "data": "CURSO" }
-                ],
-            "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros por página",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros página",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-
-            }
-        });
-
-    }
-    
-    if($('#datatable_estadisticas_profesores, .datatables').length) {
-        $('#datatable_estadisticas_profesores, .datatables').dataTable({
-            "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros página",
-                "sInfoFiltered": "",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "<<",
-                    "sLast": ">>",
-                    "sNext": ">",
-                    "sPrevious": "<"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-    }
-    
-    if($('#datatable_detalle_ingresos').length) {
-
-        $('#datatable_detalle_ingresos').dataTable({
-            "ajax": "/ajax-detalle-ingresos/",
-            "columns": [
-                { "data": "fecha" },
-                { "data": "usuario" },
-                { "data": "comision" },
-                { "data": "periodo" }
-            ],
-            "columnDefs": [
-                {
-                    "targets": [ 3 ],
-                    "visible": false,
-                    "searchable": true
-                }
-            ],
-            "language": {
-
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando 0 a 0 de 0 registros página",
-                "sInfoFiltered": "",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "<<",
-                    "sLast": ">>",
-                    "sNext": ">",
-                    "sPrevious": "<"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            },
-            "initComplete": function(settings, json) {
-                var table = $('#datatable_detalle_ingresos').DataTable();
-                table.column(3).search('current_period', true, false).draw();
-            }
-        });
-
-    }
-    
-    $('#datatable-keytable').DataTable({
-        keys: true
-    });
-
-    $('#datatable-responsive').DataTable();
-
-    $('#datatable-scroller').DataTable({
-        ajax: "js/datatables/json/scroller-demo.json",
-        deferRender: true,
-        scrollY: 380,
-        scrollCollapse: true,
-        scroller: true
-    });
-
-    $('#datatable-fixed-header').DataTable({
-        fixedHeader: true
-    });
-
-    var $datatable = $('#datatable-checkbox');
-
-    $datatable.dataTable({
-        'order': [[ 1, 'asc' ]],
-        'columnDefs': [
-            { orderable: false, targets: [0] }
-        ]
-    });
-    $datatable.on('draw.dt', function() {
-        $('checkbox input').iCheck({
-            checkboxClass: 'icheckbox_flat-green'
-        });
-    });
-
     TableManageButtons.init();
 
 };
 /***************** DataTable Functions *******************/
-function setProgreso(progreso) {
-    $.ajax({
-        url: "/api/setProgreso/",
-        dataType: "json",
-        data: {
-            curso_id: global_curso_id,
-            capitulo_id: capitulo_id,
-            progress: progreso,
-            format: "json"
-        },
-        success: function (data) {
-            if(debug_mode) {
-                console.log(data);
-            }
-        }
-    });
-}
 
 //Reporte facturacion profesores (Admin)
 function getFacturacionProfesores(from, to)
@@ -473,26 +139,6 @@ var Instant = function () {
         curso_id = global_curso_id;
     }
 
-    function buyPay() {
-        plan_stripe_id = '1';
-        curso_id = global_curso_id;
-        if (curso_precio != '') {
-            $('.curso_precio').html(curso_precio);
-        }
-        $("#payment_form_subscribe_container").show();
-        $("#plan_options").hide();
-        $(".buy_pay_subscribe").hide();
-        $(".buy_pay_playlist_content").hide();
-        $(".plan_footer").hide();
-        $(".buy_pay_content").show();
-        if($("#cupon_codigo").val() == '' && $("#saldo_disponible").val() != ''){
-            $('#apply-saldo').trigger('click');
-        }
-        if($("#cupon_codigo").val()){
-            $("#apply_cupon").trigger('click');
-        }
-        $("#ModalSubscribe").modal();
-    }
 
     //Compra con Subscripcion
     function buySubscribe() {
@@ -561,20 +207,6 @@ var Instant = function () {
     }
 
     //Compra directa de Playlist sin subscripcion
-    function buyPayPlaylist(precio) {
-        plan_stripe_id = '6';
-        playlist_id = global_playlist_id;
-        $("#payment_form_subscribe_container").show();
-        $("#plan_options").hide();
-        $(".plan_footer").hide();
-        $(".buy_pay_subscribe").hide();
-        $(".buy_pay_content").hide();
-        $(".buy_pay_playlist_content").show();
-        var texto = $(".buy_pay_playlist_content .modal-title").html().replace("[PRECIO]", precio);
-        $(".buy_pay_playlist_content .modal-title").html(texto);
-        $("#ModalSubscribe").modal();
-        applyCupon();
-    }
 
     function update_provincia() {
         if ($('#consulta_pais_id').val() != '1') {
@@ -1270,9 +902,6 @@ var Instant = function () {
                 var self = this;
                 checkLoggedIn(function(response){
                     if (response.success === true && response.message == true) {
-                        /*if (!$('#myModal').is(':visible')) {
-                            $("#ModalSubscribe").modal();
-                        }*/
 
                         //$("#cupon_codigo").val('');
 
@@ -1780,40 +1409,7 @@ var Instant = function () {
             }
 
             //Login into accounts
-            /*$('#form_login_instant').submit(function (e) {
-                e.preventDefault();
-                $.ajax({
-                    url: '/api/jwt',
-                    method: "POST",
-                    data: {
-                        username: $("#form_login_instant #username").val(),
-                        password: $("#form_login_instant #password").val()
-                    },
-                    success: function (response) {
-                        $.ajax({
-                            url: accounts_uri + '/api/user/login/',
-                            jsonp: "callback",
-                            dataType: "jsonp",
-                            data: {
-                                token: response.token,
-                                format: "json"
-                            },
-                            success: function (response) {
-                                if (response.success === true) {
-                                    var url = '/oauth/login/?continue=' + frontend_uri + '/inicio/';
-                                    window.location.href = url;
-                                } else {
-                                    $('#form_login_instant .errores_form').show();
-                                    $('#form_login_instant .errores_form').html(response.message);
-                                }
-                            },
-                            error: function (response) {
-                                console.log(response);
-                            }
-                        });
-                    }
-                });
-            });*/
+            
             //Login into accounts
             $('#form_login_instant').submit(function (e) {
                 e.preventDefault();
@@ -1874,42 +1470,7 @@ var Instant = function () {
             });
 
             //Sigin into accounts
-            /*$('#form_signup_instant').submit(function (e) {
-                e.preventDefault();
-
-                $.ajax({
-                    url: '/api/jwt',
-                    method: "POST",
-                    data: {
-                        username: $("#form_signup_instant #username").val()
-                    },
-                    success: function (response) {
-                        $.ajax({
-                            url: accounts_uri + '/api/user/signup/',
-                            jsonp: "callback",
-                            dataType: "jsonp",
-                            data: {
-                                token: response.token,
-                                format: "json"
-                            },
-                            success: function (response) {
-                                if (response.success === true) {
-                                    var url = '/oauth/login/?continue=' + window.location.href + '#' + clicked_element;
-                                    //var url = '/oauth/login/?continue=' + frontend_uri + '/complete-data/new-user/';
-                                    console.log(url);
-                                    window.location.href = url;
-                                } else {
-                                    $('#form_signup_instant .errores_form').show();
-                                    $('#form_signup_instant .errores_form').html(response.message);
-                                }
-                            },
-                            error: function (response) {
-                                console.log(response);
-                            }
-                        });
-                    }
-                });
-            });*/
+           
 
             $('.btn-facebook-signup').on('click', function(e){
                 e.preventDefault();
@@ -2097,114 +1658,6 @@ var Instant = function () {
             }
             
             //página
-            /*if($('#complete_data').length){
-
-                $("#complete_data").validate({
-
-                    submitHandler: function (form) {
-                        showIebsBlockContentForElement("#complete_data");
-
-                        $.ajax({
-                            url: '/api/jwt',
-                            method: "POST",
-                            data: {
-                                first_name: $("#complete_data_first_name").val(),
-                                last_name: $("#complete_data_last_name").val(),
-                                password: $("#complete_data_password").val(),
-                                password_again: $("#complete_data_password_again").val()
-                            },
-                            success: function (response) {
-                                var user_data_token = response.token;
-                                // UPDATE ACCOUNTS USER
-                                $.ajax({
-                                    url: accounts_uri + '/api/user/complete-data/',
-                                    jsonp: "callback",
-                                    dataType: "jsonp",
-                                    data: {
-                                        token: user_data_token
-                                    },
-                                    success: function (response) {
-                                        if (response.success === true) {
-                                            // UPDATE INSTANT USER
-                                            $.ajax({
-                                                url: '/api/user/complete-data/',
-                                                jsonp: "callback",
-                                                dataType: "jsonp",
-                                                data: {
-                                                    token: user_data_token,
-                                                    format: "json"
-                                                },
-                                                success: function (response) {
-                                                    if (response.success === true) {
-                                                        hideIebsBlockContent();
-                                                        window.location.href = frontend_uri + '/inicio/';
-                                                    } else {
-                                                        $("#complete_data .errores_form").show();
-                                                        $("#complete_data .errores_form").html(response.message);
-                                                    }
-                                                },
-                                                error: function (response) {
-                                                }
-                                            });
-                                        } else {
-                                            $("#complete_data .errores_form").show();
-                                            $("#complete_data .errores_form").html(response.message);
-                                        }
-                                    },
-                                    error: function (response) {
-                                        console.log(response);
-                                    }
-                                });
-                            }
-                        });
-                    },
-                    errorPlacement: function (error, element) {
-                        error.insertBefore(element);
-                    },
-                    onkeyup: false,
-                    onclick: false,
-                    rules: {
-                        "complete_data[first_name]": {
-                            required: true
-                        },
-                        "complete_data[last_name]": {
-                            required: true
-                        },
-                        "complete_data[password]": {
-                            required: true,
-                            minlength: 6
-                        },
-                        "complete_data[password_again]": {
-                            equalTo: "#complete_data_password"
-                        }
-                    },
-                    messages: {
-                        "complete_data[first_name]": {
-                            required: "Debe ingresar su nombre"
-                        },
-                        "complete_data[last_name]": {
-                            required: "Debe ingresar su apellido."
-                        },
-                        "complete_data[password]": {
-                            required: "Debe ingresar la contraseña.",
-                            minlength: "La contraseña debe contener al menos 6 caracteres"
-                        },
-                        "complete_data[password_again]": {
-                            equalTo: "Las contraseñas deben coincidir."
-                        }
-                    },
-                    errorElement: "span", highlight: function (element) {
-                        $(element).parent().removeClass("has-success").addClass("has-error");
-                        $(element).siblings("label").addClass("hide");
-                    },
-                    success: function (element) {
-                        //$(element).parent().removeClass("has-error").addClass("has-success");
-                        $(element).siblings("label").removeClass("hide");
-                    }
-                });
-            }*/
-
-            //página
             if($('#complete_data').length){
 
                 $("#complete_data").validate({
@@ -2307,58 +1760,6 @@ var Instant = function () {
                 });
             }
 
-            //Login into Facebook
-            if (typeof jwt_facebook_login_token !== 'undefined') {
-                /*$.ajax({
-                    url: accounts_uri + '/api/user/loginFacebook/',
-                    jsonp: "callback",
-                    dataType: "jsonp",
-                    data: {
-                        token: jwt_facebook_login_token,
-                        format: "json"
-                    },
-                    success: function (response) {
-                        if (response.success === true) {
-                            var url = window.location.href;
-                            if (url.indexOf('facebook-connect') > 0) {
-                                url = frontend_uri;
-                            }
-                            window.location.href = '/oauth/login/?continue=' + url ;
-                        } else {
-                            $('#form_login_instant .errores_form').show();
-                            $('#form_login_instant .errores_form').html(response.message);
-                        }
-                    },
-                    error: function (response) {
-                        console.log(response);
-                    }
-                });*/
-                /*$.ajax({
-                    url: accounts_uri + '/api/user/loginFacebook/',
-                    jsonp: "callback",
-                    dataType: "jsonp",
-                    data: {
-                        token: jwt_facebook_login_token,
-                        format: "json"
-                    },
-                    success: function (response) {
-                        if (response.success === true) {
-                            var url = window.location.href;
-                            if (url.indexOf('facebook-connect') > 0) {
-                                url = frontend_uri;
-                            }
-                            window.location.href = '/oauth/login/?continue=' + url ;
-                        } else {
-                            $('#form_login_instant .errores_form').show();
-                            $('#form_login_instant .errores_form').html(response.message);
-                        }
-                    },
-                    error: function (response) {
-                        console.log(response);
-                    }
-                });*/
-            }
-
             //Recuperar Contraseña desde accounts
             $('#form_forgot_password_instant').submit(function (e) {
                 e.preventDefault();
@@ -2394,126 +1795,9 @@ var Instant = function () {
                     }
                 });
             });
-            /*$('#form_forgot_password_instant').submit(function (e) {
-                e.preventDefault();
-                if ($("#form_forgot_password_instant #username").val() === "") {
-                    $('#ModalRecover .errores_form').show();
-                    $('#ModalRecover .errores_form').html('Debe ingresar su email');
-                    return false;
-                }
-                $.ajax({
-                    url: '/api/jwt',
-                    method: "POST",
-                    data: {
-                        username: $("#form_forgot_password_instant #username").val()
-                    },
-                    success: function (response) {
-                        $.ajax({
-                            url: accounts_uri + '/api/user/forgot-password/',
-                            jsonp: "callback",
-                            dataType: "jsonp",
-                            data: {
-                                token: response.token,
-                                format: "json"
-                            },
-                            success: function (response) {
-                                if (response.success === true) {
-                                    $('#ModalRecover').modal('hide');
-                                    new PNotify({
-                                        title: 'Restablece tu contraseña',
-                                        text: 'Se ha enviado un email a tu casilla de correo',
-                                        type: 'success',
-                                        styling: 'bootstrap3'
-                                    });
-                                } else {
-                                    $('#ModalRecover .errores_form').show();
-                                    $('#ModalRecover .errores_form').html(response.message);
-                                }
-                            },
-                            error: function (response) {
-                                console.log(response);
-                            }
-                        });
-                    }
-                });
-            });*/
+            
 
 
-            //Ingresar nuevamente la contraseña y repetir contraseña (actualiza en Accounts)
-            if($('#recover_password').length){
-
-                $("#recover_password").validate({
-
-                    submitHandler: function (form) {
-                        showIebsBlockContentForElement("#recover_password");
-                        $.ajax({
-                            url: '/api/recover-password/',
-                            method: "POST",
-                            data: {
-                                password: $("#recover_password_password").val(),
-                                password_again: $("#recover_password_password_again").val()
-                            },
-                            dataType: 'json',
-                            success: function (response) {
-                                if (response.success === true) {
-                                    hideIebsBlockContent();
-                                    window.location.href = frontend_uri + '/inicio/';
-                                } else {
-                                    hideIebsBlockContent("#recover_password");
-                                    $("#recover_password .errores_form").show();
-                                    $("#recover_password .errores_form").html(response.message);
-                                }
-                            },
-                            error: function (response) {
-                                console.log(response);
-                            }
-                        });
-                    },
-                    errorPlacement: function (error, element) {
-                        error.insertBefore(element);
-                    },
-                    onkeyup: false,
-                    onclick: false,
-                    rules: {
-                        "complete_data[first_name]": {
-                            required: true
-                        },
-                        "complete_data[last_name]": {
-                            required: true
-                        },
-                        "complete_data[password]": {
-                            required: true,
-                            minlength: 6
-                        },
-                        "complete_data[password_again]": {
-                            equalTo: "#complete_data_password"
-                        }
-                    },
-                    messages: {
-                        "complete_data[first_name]": {
-                            required: "Debe ingresar su nombre"
-                        },
-                        "complete_data[last_name]": {
-                            required: "Debe ingresar su apellido."
-                        },
-                        "complete_data[password]": {
-                            required: "Debe ingresar la contraseña.",
-                            minlength: "La contraseña debe contener al menos 6 caracteres"
-                        },
-                        "complete_data[password_again]": {
-                            equalTo: "Las contraseñas deben coincidir."
-                        }
-                    },
-                    errorElement: "span", highlight: function (element) {
-                        $(element).parent().removeClass("has-success").addClass("has-error");
-                        $(element).siblings("label").addClass("hide");
-                    },
-                    success: function (element) {
-                        //$(element).parent().removeClass("has-error").addClass("has-success");
-                        $(element).siblings("label").removeClass("hide");
-                    }
-                });
-            }
 
             if($('#form_aplicar_cupon').length){
 
@@ -2646,89 +1930,9 @@ var Instant = function () {
                 }
             }
 
-            if($('#datepicker_fecha').length) {
-                $('#datepicker_fecha').daterangepicker({
-                singleDatePicker: true,
-                    calender_style: "picker_3",
-                    "locale": {
-                        "format": "YYYY-MM-DD",
-                        "separator": " - ",
-                        "applyLabel": "Apply",
-                        "cancelLabel": "Cancel",
-                        "fromLabel": "From",
-                        "toLabel": "To",
-                        "customRangeLabel": "Custom",
-                        "daysOfWeek": [
-                            "Do",
-                            "Lu",
-                            "Ma",
-                            "Mi",
-                            "Ju",
-                            "Vi",
-                            "Sa"
-                        ],
-                        "monthNames": [
-                            "Enero",
-                            "Febrero",
-                            "Marzo",
-                            "Abril",
-                            "Mayo",
-                            "Junio",
-                            "Julio",
-                            "Agusto",
-                            "Septiembre",
-                            "Octubre",
-                            "Noviembre",
-                            "Diciembre"
-                        ],
-                        "firstDay": 1
-                    }
-                }, function (start, end, label) {
-                    $('#real_datepicker_fecha').val(start.format('YYYY-MM-DD'));
-                });
-            }
+            
 
-            if ($('#f_nacimiento').length) {
-                $('#f_nacimiento').daterangepicker({
-                    singleDatePicker: true,
-                    calender_style: "picker_3",
-                    "locale": {
-                        "format": "YYYY-DD-MM",
-                        "separator": " - ",
-                        "applyLabel": "Apply",
-                        "cancelLabel": "Cancel",
-                        "fromLabel": "From",
-                        "toLabel": "To",
-                        "customRangeLabel": "Custom",
-                        "daysOfWeek": [
-                            "Do",
-                            "Lu",
-                            "Ma",
-                            "Mi",
-                            "Ju",
-                            "Vi",
-                            "Sa"
-                        ],
-                        "monthNames": [
-                            "Enero",
-                            "Febrero",
-                            "Marzo",
-                            "Abril",
-                            "Mayo",
-                            "Junio",
-                            "Julio",
-                            "Agusto",
-                            "Septiembre",
-                            "Octubre",
-                            "Noviembre",
-                            "Diciembre"
-                        ],
-                        "firstDay": 1
-                    }
-                }, function (start, end, label) {
-                    console.log(start.toISOString(), end.toISOString(), label);
-                });
-            }
+            
 
 
             $('#add-wishlist').click(function (e) {
@@ -2832,23 +2036,6 @@ var Instant = function () {
                 changeTexts(this);
             });
 
-            //Cuando el contenido de un capitulo es texto o video distinto a Wistia seteamos en 100%
-            /*if($('#contenedor_texto').length || $('#contenedor_video_porcentaje_fijo').length) {
-
-                $.ajax({
-                    url: "/api/setTextStat/",
-                    dataType: "json",
-                    data: {
-                        curso_id: global_curso_id,
-                        capitulo_id: capitulo_id,
-                        format: "json"
-                    },
-                    success: function (data) {
-                        console.log(data);
-                    }
-                });
-
-            }*/
             //Cuando el contenido de un capitulo es texto o video distinto a Vimeo seteamos en 100%
             if($('#contenedor_texto').length || $('#contenedor_video_porcentaje_fijo').length && !$('#contenedor_video_porcentaje_fijo').hasClass('vimeo-video')) {
 
@@ -3036,261 +2223,11 @@ var Instant = function () {
                 return this;
             };
 
-            $('#payment-form-subscribe').submit(function (e) {
-                e.preventDefault();
-
-                var cardType = $.payment.cardType($('.cc-number').val());
-
-                $('.cc-number').toggleInputError(!$.payment.validateCardNumber($('.cc-number').val()));
-                $('.cc-exp').toggleInputError(!$.payment.validateCardExpiry($('.cc-exp').payment('cardExpiryVal')));
-                $('.cc-cvc').toggleInputError(!$.payment.validateCardCVC($('.cc-cvc').val(), cardType));
-                $('.cc-brand').text(cardType);
-
-                $('.validation').removeClass('text-danger text-success');
-                $('.validation').addClass($('.has-error').length ? 'text-danger' : 'text-success');
-
-                var valid = $.payment.validateCardNumber($('.cc-number').val()) && $.payment.validateCardExpiry($('.cc-exp').payment('cardExpiryVal')) && $.payment.validateCardCVC($('.cc-cvc').val(), cardType);
-                //Si es 1 (Curso) o 6 (Playist) se setea antes
-                if (plan_stripe_id == undefined || (plan_stripe_id != "1" && plan_stripe_id != "6")) {
-                    if ($('#choose_plan_id').val() == 0) {
-                        $('.plan_footer').addClass('has-error');
-                        $('.validation').addClass('text-danger');
-                        $('.validation').removeClass('text-success');
-                        valid = false;
-                    }
-                    plan_stripe_id = $('#choose_plan_id').val();
-                }
-
-                if (valid) {
-                    if(current_uri.indexOf('/landing/founders/') !== -1) {
-                        /*if ($(this).find('#cupon_codigo').val().toLowerCase() != 'founders50' && $(this).find('#cupon_codigo').val().toLowerCase() != 'founders-50' && $(this).find('#cupon_codigo').val().toLowerCase() != 'founders-124') {
-                            $(this).find('#cupon_codigo').val('');
-                        }*/
-                    }
-                    var btn = $('#payment-form-subscribe').find('.submit');
-                    var btn_text = (btn.val() || btn.html());
-                    btn.prop('disabled', true);
-                    btn.html('VALIDANDO <img width="16" src="/frontend/assets/img/loading_instant.gif"/>');
-                    // Request a token from Stripe:
-                    Stripe.card.createToken($('#payment-form-subscribe'), function (status, response) {
-                        var form = $('#payment-form-subscribe');
-
-                        if (response.error) {
-                            //debugger
-                            $.post( "/webhook/stp-data/",response);
-                            //debugger
-                            var str = response.error.message;
-                            if(response.error.message == "The card was declined."){
-                                var resp = "La tarjeta fué rechazada.";
-                            }
-                            if(response.error.message == "The card has expired."){
-                                var resp = "La tarjeta ha caducado.";
-                            }
-                            if(response.error.message == "The card's security code is incorrect."){
-                                var resp = "El código de seguridad de la tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "The card number is incorrect."){
-                                var resp = "El número de tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "The card's zip code failed validation."){
-                                var resp = "Falló la validación del código postal de la tarjeta.";
-                            }
-                            if(response.error.message == "The card's security code is invalid."){
-                                var resp = "El código de seguridad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "The card's expiration month is invalid."){
-                                var resp = "El mes de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "The card's expiration year is invalid."){
-                                var resp = "El año de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "The card number is not a valid credit card number."){
-                                var resp = "El número de tarjeta no es un número de tarjeta válido.";
-                            }
-                            if(response.error.message == "There is no card on a customer that is being charged."){
-                                var resp = "El cliente al que se está cobrando no tiene tarjeta";
-                            }
-                            if(response.error.message == "An error occurred while processing the card."){
-                                var resp = "Ocurrió un error procesando la tarjeta.";
-                            }
-                            if(response.error.message == "An error occurred while processing your card. Try again in a little bit"){
-                                var resp = "Ocurrió un error procesando la tarjeta. Vuelve a intentar en uno momento.";
-                            }
-                            if(response.error.message == "Your card was declined. Your request was in live mode, but used a known test card."){
-                                var resp = "La tarjeta fué rechazada. Está intentando pagar con una tarjeta de prueba.";
-                            }
-                            if(response.error.message == "Your card was declined."){
-                                var resp = "La tarjeta fué rechazada.";
-                            }
-                            if(response.error.message == "Your card has expired."){
-                                var resp = "La tarjeta ha caducado.";
-                            }
-                            if(response.error.message == "Your card's security code is incorrect."){
-                                var resp = "El código de seguridad de la tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "Your card number is incorrect."){
-                                var resp = "El número de tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "Your card's zip code failed validation."){
-                                var resp = "Falló la validación del código postal de la tarjeta.";
-                            }
-                            if(response.error.message == "Your card's security code is invalid."){
-                                var resp = "El código de seguridad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "Your card's expiration month is invalid."){
-                                var resp = "El mes de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "Your card's expiration year is invalid."){
-                                var resp = "El año de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "Your card number is not a valid credit card number."){
-                                var resp = "El número de tarjeta no es un número de tarjeta válido.";
-                            }                           
-                            
-
-                            form.find('.payment-errors').text(resp);
-                            form.find('.submit').prop('disabled', false);
-                            btn.prop('disabled', false);
-                            btn.html(btn_text);
-                        } else {
-                            var token = response.id;
-                            form.append($('<input type="hidden" name="stripeToken">').val(token));
-                            form.append($('<input type="hidden" name="plan_stripe_id">').val(plan_stripe_id));
-                            if (curso_id !== undefined) {
-                                form.append($('<input type="hidden" name="curso_id">').val(curso_id));
-                            } else if (playlist_id !== undefined){
-                                form.append($('<input type="hidden" name="playlist_id">').val(playlist_id));
-                            }
-                            form.get(0).submit();
-                        }
-                    });
-
-                    // Prevent the form from being submitted:
-                    return false;
-                }
-            });
 
 
 
             /* Stripe Compra Regalo */
-            function compraRegaloStripe(form, callback){
-                var cardType = $.payment.cardType($('.cc-number').val());
-                var valid_email = validateEmail($('input[name="stripe_email"]', form).val());
-                $('input[name="stripe_email"]', form).toggleInputError(!valid_email);
-                $('.cc-number', form).toggleInputError(!$.payment.validateCardNumber($('.cc-number', form).val()));
-                $('.cc-exp', form).toggleInputError(!$.payment.validateCardExpiry($('.cc-exp', form).payment('cardExpiryVal')));
-                $('.cc-cvc', form).toggleInputError(!$.payment.validateCardCVC($('.cc-cvc', form).val(), cardType));
-                $('.cc-brand', form).text(cardType);
-
-                $('.validation', form).removeClass('text-danger text-success');
-                $('.validation', form).addClass($('.has-error', form).length ? 'text-danger' : 'text-success');
-
-                var valid = $.payment.validateCardNumber($('.cc-number', form).val()) && $.payment.validateCardExpiry($('.cc-exp', form).payment('cardExpiryVal')) && $.payment.validateCardCVC($('.cc-cvc', form).val(), cardType) && valid_email;
-                //Si es 1 (Curso) o 6 (Playist) se setea antes
-                if (plan_stripe_id == undefined || (plan_stripe_id != "1" && plan_stripe_id != "6")) {
-                    if ($('#choose_plan_id', form).val() == 0) {
-                        $('.plan_footer', form).addClass('has-error');
-                        $('.validation', form).addClass('text-danger');
-                        $('.validation', form).removeClass('text-success');
-                        valid = false;
-                    }
-                }
-                plan_stripe_id = $('#choose_plan_id_gift', form).val();
-
-                if (valid) {
-                    var btn = $(form).find('.submit');
-                    btn.prop('disabled', true);
-                    btn.html('VALIDANDO <img width="16" src="/frontend/assets/img/loading_instant.gif"/>');
-                    // Request a token from Stripe:
-                    Stripe.card.createToken($(form), function (status, response) {
-
-                        if (response.error) {
-                            //debugger
-                            $.post( "/webhook/stp-data/",response);
-                            //debugger
-                            var str = response.error.message;
-                            if(response.error.message == "The card was declined."){
-                                var resp = "La tarjeta fué rechazada.";
-                            }
-                            if(response.error.message == "The card has expired."){
-                                var resp = "La tarjeta ha caducado.";
-                            }
-                            if(response.error.message == "The card's security code is incorrect."){
-                                var resp = "El código de seguridad de la tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "The card number is incorrect."){
-                                var resp = "El número de tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "The card's zip code failed validation."){
-                                var resp = "Falló la validación del código postal de la tarjeta.";
-                            }
-                            if(response.error.message == "The card's security code is invalid."){
-                                var resp = "El código de seguridad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "The card's expiration month is invalid."){
-                                var resp = "El mes de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "The card's expiration year is invalid."){
-                                var resp = "El año de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "The card number is not a valid credit card number."){
-                                var resp = "El número de tarjeta no es un número de tarjeta válido.";
-                            }
-                            if(response.error.message == "There is no card on a customer that is being charged."){
-                                var resp = "El cliente al que se está cobrando no tiene tarjeta";
-                            }
-                            if(response.error.message == "An error occurred while processing the card."){
-                                var resp = "Ocurrió un error procesando la tarjeta.";
-                            }
-                            if(response.error.message == "An error occurred while processing your card. Try again in a little bit"){
-                                var resp = "Ocurrió un error procesando la tarjeta. Vuelve a intentar en uno momento.";
-                            }
-                            if(response.error.message == "Your card was declined. Your request was in live mode, but used a known test card."){
-                                var resp = "La tarjeta fué rechazada. Está intentando pagar con una tarjeta de prueba.";
-                            }
-                            if(response.error.message == "Your card was declined."){
-                                var resp = "La tarjeta fué rechazada.";
-                            }
-                            if(response.error.message == "Your card has expired."){
-                                var resp = "La tarjeta ha caducado.";
-                            }
-                            if(response.error.message == "Your card's security code is incorrect."){
-                                var resp = "El código de seguridad de la tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "Your card number is incorrect."){
-                                var resp = "El número de tarjeta es incorrecto.";
-                            }
-                            if(response.error.message == "Your card's zip code failed validation."){
-                                var resp = "Falló la validación del código postal de la tarjeta.";
-                            }
-                            if(response.error.message == "Your card's security code is invalid."){
-                                var resp = "El código de seguridad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "Your card's expiration month is invalid."){
-                                var resp = "El mes de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "Your card's expiration year is invalid."){
-                                var resp = "El año de caducidad de la tarjeta no es válido.";
-                            }
-                            if(response.error.message == "Your card number is not a valid credit card number."){
-                                var resp = "El número de tarjeta no es un número de tarjeta válido.";
-                            }
-
-                            form.find('.payment-errors').text(resp);
-                            form.find('.submit').prop('disabled', false);
-                            btn.prop('disabled', false);
-                            btn.html('Realizar pago');
-                            callback(false);
-                        } else {
-                            var token = response.id;
-                            callback({'stripe_token': token, 'plan_stripe_id': plan_stripe_id});
-
-                        }
-                    });
-
-                    return false;
-                }
-            };
+           
 
             $("#step1_back_regala_formacion").click(function(e){
                 e.preventDefault();
@@ -3586,18 +2523,6 @@ var Instant = function () {
             });
         },
         getWistiaStats: function () {
-            /*if(get_wistia_stats == true) {
-
-                /*$.ajax({
-                    url: '/api/get-wistia-stats-by-user/',
-                    method: "POST",
-                    data: {},
-                    success: function (response) {
-                        console.log(response);
-                    }
-                });
-
-            }*/
         },
         initRegalaPlan: function (){
 
@@ -3877,112 +2802,6 @@ var Instant = function () {
             }
 
 
-            if($('#chart_compras_directas').length) {
-
-                $.ajax({
-                    url: '/ajax_get_stats/compras-directas',
-                    method: 'POST',
-                    success: function (d) {
-                        var data = [];
-                        var label = [];
-                        $( d ).each(function( i, e ) {
-                            data.push(e['COUNT']);
-                            label.push(e['MONTH']);
-                        });
-
-                        chartData = {
-                            labels: label,
-                            datasets: [
-                                {
-                                    label: 'compras directas',
-                                    data: data,
-                                    backgroundColor: chart_colors,
-                                    borderColor: chart_colors
-                                }
-                            ]
-                        };
-                        loadChart("chart_compras_directas", "Registros con origen distinto a Akademus");
-                    }
-                });
-
-            }
-            
-            if($('#chart_matriculas').length) {
-
-
-                $.ajax({
-                    url: '/ajax_get_stats/matriculas',
-                    method: 'POST',
-                    success: function (d) {
-                        var data = [];
-                        var label = [];
-                        $( d ).each(function( i, e ) {
-                            data.push(e['COUNT']);
-                            label.push(e['MONTH']);
-                        });
-
-                        chartData = {
-                            labels: label,
-                            datasets: [
-                                {
-                                    label: 'nº de matrículas',
-                                    data: data,
-                                    backgroundColor: chart_colors,
-                                    borderColor: chart_colors
-                                }
-                            ]
-                        };
-                        loadChart("chart_matriculas", "Matrículas por Mes");
-                    }
-                });
-
-                /*$.ajax({
-                    url: '/ajax_get_stats/matriculas',
-                    method: 'POST',
-                    success: function (d) {
-
-                        var dataset = [];
-                        var colors = {"matricula_freebie": "#dbf2f2", "matricula_directa": "#ebe0ff", "matricula_suscripcion": "#ffecd9"};
-                        $.each(d, function( i, e ) {
-                            dataset.push({
-                                label: i,
-                                backgroundColor: colors[i],
-                                fill: false,
-                                data: e
-                            });
-                        });
-                        // console.log(" ## MATRICULAS ##");
-                        console.log(dataset);
-                        // console.log(" ## MATRICULAS ##");
-                        var ctx = document.getElementById("chart_matriculas");
-                        chartData = new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-                                datasets: dataset
-                            },
-                            options: {
-                                scales: {
-                                    yAxes: [{
-                                        stackable: true,
-                                        ticks: {
-                                            min: 0,
-                                            max: 100,
-                                            stepSize: 50
-                                        },
-                                    }],
-                                    xAxes: [{
-                                    }]
-                                }
-                            }
-                        });
-
-
-
-                    }
-                });*/
-
-            }
         }
 
     };
@@ -3991,53 +2810,8 @@ var Instant = function () {
 
 }();
 
-function modal_registro_texts(clicked_element){
-    var registro = $("#ModalRegistro");
-    if(typeof name_landing != 'undefined' && typeof clicked_element != 'undefined') {
-        if(name_landing == 'promoRegistro') {
-            switch (clicked_element) {
-                case 'buy_subscribe_standard':
-                    registro.find('.modal-title').html('Suscríbete al Plan Estándar por 199€ / año');
-                    break;
-                case 'buy_subscribe_premium':
-                    registro.find('.modal-title').html('Suscríbete al Plan Premium ahora por 199€ / año');
-                    break;
-                case 'subscribe_free':
-                    registro.find('.modal-title').html('Suscríbete gratis y empieza a aprender');
-                    break;
-            }
-        }else if(name_landing == 'landing_blackfriday' || name_landing == 'landing_cyberweek' || name_landing == 'landing_rebajas'){
-            switch (clicked_element) {
-                case 'buy_subscribe_standard':
-                    registro.find('.modal-title').html('Suscríbete al Plan Estándar por 9,95 €/mes o 99,5 €/año  (ahorras 2 meses)');
-                    break;
-                case 'buy_subscribe_premium':
-                    registro.find('.modal-title').html('Suscríbete al Plan Premium por 12,45 €/mes o 124,50 €/año (ahorras 2 meses)');
-                    break;
-            }
-        } else if(name_landing == 'landing_live_plan'){
-            switch (clicked_element) {
-                case 'buy_subscribe_live':
-                    registro.find('.modal-title').html('Aprende lo que necesites');
-                    break;
-            }
-        }
-    }
-}
 
-function show_compra_step(clicked_element){
-    if(typeof clicked_element != 'undefined'){
-        $("#ModalRegistro .form_signup_instant input[name='next']").remove();
-        if(clicked_element != 'subscribe_free') {
-            $(".compra_step").removeClass('hide');
-            $(".progressbar li").css('width', '33.33%');
-        }else{
-            $(".compra_step").addClass('hide');
-            $(".progressbar li").css('width', '50%');
-            $("#ModalRegistro .form_signup_instant").append('<input type="hidden" id="next" name="next" value="' + frontend_uri + '">');
-        }
-    }
-}
+
 
 $(document).ready(function () {
     Instant.init();
