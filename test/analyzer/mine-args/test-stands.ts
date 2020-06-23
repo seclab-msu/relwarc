@@ -8,8 +8,7 @@ describe("Analyzer finding args of DEPs in stands", () => {
 	it("aldine.edu.in", () => {
 		const sourceCode = fs.readFileSync(__dirname + "/../data/aldine.edu.in.js").toString();
         const analyzer = makeAndRunSimple(sourceCode);
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
+        expect(analyzer.results).toContain({
             "funcName": "$.ajax",
 		    "args": [
 		        {
@@ -129,8 +128,7 @@ describe("Analyzer finding args of DEPs in stands", () => {
           analyzer.addScript(sourceCode);
         });
         analyzer.analyze("http://example.com/");
-        expect(analyzer.results.length).toEqual(39);
-        expect(analyzer.results[8]).toEqual({
+        expect(analyzer.results).toContain({
             "funcName": "$.ajax",
 		    "args": [
 		        {
@@ -158,8 +156,7 @@ describe("Analyzer finding args of DEPs in stands", () => {
           analyzer.addScript(sourceCode);
         });
         analyzer.analyze("http://example.com/");
-        expect(analyzer.results.length).toEqual(4);
-        expect(analyzer.results[2]).toEqual({
+        expect(analyzer.results).toContain({
             "funcName": "$.ajax",
             "args": [
                 {
@@ -182,8 +179,7 @@ describe("Analyzer finding args of DEPs in stands", () => {
           analyzer.addScript(sourceCode);
         });
         analyzer.analyze("http://example.com/");
-        expect(analyzer.results.length).toEqual(48);
-        expect(analyzer.results[25]).toEqual({
+        expect(analyzer.results).toContain({
             "funcName": "$.ajax",
             "args": [
                 {

@@ -27,4 +27,4 @@ $(".sepeteekle").click(function() {
             }
         } 
     });
-}
+});

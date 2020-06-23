@@ -1,7 +1,40 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
 import { makeAndRunSimple } from './common';
+import { HAR } from "../../../src/analyzer/hars";
 import { UNKNOWN } from "../../../src/analyzer/types/unknown";
 import * as fs from 'fs';
+
+function makeHar(harIn: HAR): any {
+    interface KeyValue {
+        name: string;
+        value: string;
+    }
+
+    interface HARForCheck {
+        url: string;
+        method: string;
+        httpVersion: string;
+        headers: KeyValue[];
+        queryString: KeyValue[];
+        bodySize: number;
+        postData?: any;
+    }
+
+    const harOut: HARForCheck = {
+        url: harIn.url,
+        method: harIn.method,
+        httpVersion: harIn.httpVersion,
+        headers: harIn.headers,
+        queryString: harIn.queryString,
+        bodySize: harIn.bodySize,
+        postData: harIn.getPostData() ? harIn.getPostData() : null,
+    };
+    if (harOut.postData == null) {
+        delete harOut.postData;
+    }
+
+    return harOut;
+}
 
 describe("Analyzer mining HARs for DEPs in stands", () => {
 	it("aldine.edu.in", () => {
@@ -156,33 +189,33 @@ describe("Analyzer mining HARs for DEPs in stands", () => {
           analyzer.addScript(sourceCode);
         });
         analyzer.analyze("http://example.com/");
-        expect(analyzer.hars.length).toEqual(19);
-
-        const dep = analyzer.hars[6];
-
-        expect(dep.url).toEqual("http://example.com/blog/wp-admin/admin-ajax.php");
-        expect(dep.method).toEqual("POST");
-        expect(dep.getHeader('host')).toEqual("example.com");
-        const expectedPostBody = null;
-        const expectedPostData = {
-            text: expectedPostBody,
-            params: [
-                { name: 'action', value: 'wpdLoadMoreComments' },
-                { name: 'offset', value: '1' },
-                { name: 'orderBy', value: 'comment_date_gmt' },
-                { name: 'order', value: 'desc' },
-                { name: 'lastParentId', value: UNKNOWN },
-                { name: 'wpdiscuz_last_visit', value: UNKNOWN },
-                { name: 'postId', value: "48839" },
+        let deps: any[] = [];
+        analyzer.hars.forEach((dep) => deps.push(makeHar(dep)));
+        expect(deps).toContain({
+            url: "http://example.com/blog/wp-admin/admin-ajax.php",
+            method: "POST",
+            httpVersion: "HTTP/1.1",
+            headers: [
+                { name: "Host", value: "example.com" },
+                { name: "Content-Type", value: "multipart/form-data"},
+                { name: "Content-Length", value: "0" }
             ],
-            mimeType: "multipart/form-data"
-        };
-        
-        expect(dep.bodySize).toEqual(0);
-
-        const postData = dep.getPostData();
-
-        expect(postData).toBeDefined();
+            queryString: [],
+            bodySize: 0,
+            postData: {
+                text: null,
+                mimeType: "multipart/form-data",
+                params: [ 
+                    { name: "action", value: "wpdLoadMoreComments" },
+                    { name: "offset", value: 1 },
+                    { name: "orderBy", value: "comment_date_gmt" },
+                    { name: "order", value: "desc" },
+                    { name: "lastParentId", value: UNKNOWN },
+                    { name: "wpdiscuz_last_visit", value: UNKNOWN },
+                    { name: "postId", value: 48839 }
+                ]
+            }
+        });
     });
     it("baodautu.vn", () => {
         const analyzer = new Analyzer();
@@ -191,31 +224,30 @@ describe("Analyzer mining HARs for DEPs in stands", () => {
           analyzer.addScript(sourceCode);
         });
         analyzer.analyze("http://example.com/");
-        expect(analyzer.hars.length).toEqual(2);
-
-        const dep = analyzer.hars[1];
-
-        expect(dep.url).toEqual("http://example.com/index.php?mod=home&act=like_comment");
-        expect(dep.method).toEqual("POST");
-        expect(dep.getHeader('host')).toEqual("example.com");
-        expect(dep.queryString).toEqual([
-            { name: 'mod', value: 'home' },
-            { name: 'act', value: 'like_comment' }
-        ]);
-        const expectedPostBody = "comment_id=UNKNOWN";
-        const expectedPostData = {
-            text: expectedPostBody,
-            params: [
-                { name: 'comment_id', value: UNKNOWN }
+        let deps: any[] = [];
+        analyzer.hars.forEach((dep) => deps.push(makeHar(dep)));
+        expect(deps).toContain({
+            url: "http://example.com/index.php?mod=home&act=like_comment",
+            method: "POST",
+            httpVersion: "HTTP/1.1",
+            headers: [
+                { name: "Host", value: "example.com" },
+                { name: "Content-Type", value: "application/x-www-form-urlencoded"},
+                { name: "Content-Length", value: "18" }
             ],
-            mimeType: "application/x-www-form-urlencoded"
-        };
-        
-        expect(dep.bodySize).toEqual(expectedPostBody.length);
-
-        const postData = dep.getPostData();
-
-        expect(postData).toBeDefined();
+            queryString: [
+                { name: 'mod', value: 'home' },
+                { name: 'act', value: 'like_comment' }
+            ],
+            bodySize: 18,
+            postData: {
+                text: "comment_id=UNKNOWN",
+                mimeType: "application/x-www-form-urlencoded",
+                params: [ 
+                    { name: "comment_id", value: "UNKNOWN" },
+                ]
+            }
+        });
     });
     it("akademus.es", () => {
         const analyzer = new Analyzer();
@@ -224,18 +256,21 @@ describe("Analyzer mining HARs for DEPs in stands", () => {
           analyzer.addScript(sourceCode);
         });
         analyzer.analyze("http://example.com/");
-        expect(analyzer.hars.length).toEqual(38);
-
-        const dep = analyzer.hars[17];
-
-        expect(dep.url).toEqual("http://example.com/api/user/forgot-password/?username=UNKNOWN&format=json&callback=jQuery111106567430573505544_1591529444128");
-        expect(dep.method).toEqual("GET");
-        expect(dep.getHeader('host')).toEqual("example.com");
-        expect(dep.queryString).toEqual([
-            { name: 'username', value: "UNKNOWN" },
-            { name: 'format', value: 'json' },
-            { name: 'callback', value: 'jQuery111106567430573505544_1591529444128' }
-        ]);
-        expect(dep.bodySize).toEqual(0);
+        let deps: any[] = [];
+        analyzer.hars.forEach((dep) => deps.push(makeHar(dep)));
+        expect(deps).toContain({
+            url: "http://example.com/api/user/forgot-password/?username=UNKNOWN&format=json&callback=jQuery111106567430573505544_1591529444128",
+            method: "GET",
+            httpVersion: "HTTP/1.1",
+            headers: [
+                { name: "Host", value: "example.com" }
+            ],
+            queryString: [
+                { name: 'username', value: "UNKNOWN" },
+                { name: 'format', value: 'json' },
+                { name: 'callback', value: 'jQuery111106567430573505544_1591529444128' }
+            ],
+            bodySize: 0,
+        });
     });
 });
