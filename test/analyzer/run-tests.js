@@ -3,27 +3,58 @@ const fs = require('fs');
 const Jasmine = require('jasmine');
 const Reporter = require('jasmine-terminal-reporter');
 
-let stdout, stderr, exit;
+const PAGE_SPEC_FILES = 'page/test*.js';
+const defaultSpecFiles = [
+    'test*.js',
+    'mine-args/test*.js',
+    'mine-deps/test*.js'
+];
+
+
+let stdout, stderr, exit,
+    isSlimer, args,
+    specFiles;
 
 try {
     // if this runs OK, we are in SlimerJS
     ({stdout, stderr} = require('system'));
     exit = slimer.exit;
+    args = process.argv.slice(1);
+    isSlimer = true;
 } catch {
     // we are in NodeJS
     ({stdout, stderr} = process);
     exit = process.exit;
+    args = process.argv.slice(2);
+    isSlimer = false;
 }
 
 const jasmine = new Jasmine();
 
+if (isSlimer) {
+    defaultSpecFiles.push(PAGE_SPEC_FILES);
+}
+
+for (const arg of args) {
+    if (arg === '--ensure-slimer') {
+        if (!isSlimer) {
+            console.error(
+                'Error: --ensure-slimer is given, but tests are not running ' +
+                'on SlimerJS!'
+            );
+            exit(1);
+        }
+    } else {
+        specFiles = specFiles || [];
+        specFiles.push(arg);
+    }
+}
+
+specFiles = specFiles || defaultSpecFiles;
+
 jasmine.loadConfig({
     spec_dir: 'test/analyzer',
-    spec_files: [
-        'test*.js',
-        'mine-args/test*.js',
-        'mine-deps/test*.js'
-    ],
+    spec_files: specFiles
 });
 
 jasmine.configureDefaultReporter({
