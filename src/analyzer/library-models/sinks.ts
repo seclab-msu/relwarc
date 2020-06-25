@@ -1,8 +1,8 @@
 import { HAR } from '../har';
 import { hasattr } from '../utils/common';
 
-import { default as fetchSinks } from './fetch/sinks';
-import { default as jQuerySinks } from './jquery/sinks';
+import fetchSinks from './fetch/sinks';
+import jQuerySinks from './jquery/sinks';
 
 type Sink = (name: string, args, baseURL: string) => (HAR | null);
 

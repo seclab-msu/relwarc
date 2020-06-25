@@ -1,7 +1,7 @@
 import { hasattr } from '../utils/common';
 
-import { default as fetchSignatures } from './fetch/signatures';
-import { default as jQuerySignatures } from './jquery/signatures';
+import fetchSignatures from './fetch/signatures';
+import jQuerySignatures from './jquery/signatures';
 
 
 interface BaseSinkSignature {
