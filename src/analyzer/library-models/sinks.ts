@@ -1,6 +1,7 @@
 import { HAR } from '../har';
 import { hasattr } from '../utils/common';
 
+import { default as fetchSinks } from './fetch/sinks';
 import { default as jQuerySinks } from './jquery/sinks';
 
 type Sink = (name: string, args, baseURL: string) => (HAR | null);
@@ -26,7 +27,8 @@ const freeStandingSinks: Record<string, Sink> = {};
 const methodSinks: Record<string, Sink> = {};
 
 const sinkList: SinkDescr[] = ([] as SinkDescr[])
-    .concat(jQuerySinks);
+    .concat(jQuerySinks)
+    .concat(fetchSinks);
 
 for (const sinkDescr of sinkList) {
     if (sinkDescr.type === 'freeStanding') {

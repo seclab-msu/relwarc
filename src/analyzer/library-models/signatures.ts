@@ -1,6 +1,8 @@
 import { hasattr } from '../utils/common';
 
+import { default as fetchSignatures } from './fetch/signatures';
 import { default as jQuerySignatures } from './jquery/signatures';
+
 
 interface BaseSinkSignature {
     type: string;
@@ -23,7 +25,8 @@ export type SinkSignature = FreeStandingSinkSignature | BoundSinkSignature;
 
 
 const signatureList = ([] as SinkSignature[])
-    .concat(jQuerySignatures);
+    .concat(jQuerySignatures)
+    .concat(fetchSignatures);
 
 export const signatures = {
     freeStanding: [] as string[],
