@@ -1,0 +1,44 @@
+[
+    {
+        "funcName": "$.get",
+        "args": [
+            "/servers/public/index.php?c=store&a=getproductlicense",
+            {
+                "pc_name": "UNKNOWN",
+                "device_name": "UNKNOWN",
+                "prefix_licence_name": "UNKNOWN",
+                "pro_id": "UNKNOWN",
+                "currency": "EUR",
+                "action_type": "UNKNOWN",
+                "site_id": "UNKNOWN"
+            },
+            "UNKNOWN",
+            "json"
+        ]
+    },
+    {
+        "funcName": "$.get",
+        "args": [
+            "/servers/public/index.php?c=product&a=getproductinfo",
+            {
+                "site_id": "UNKNOWN",
+                "pro_id": "UNKNOWN"
+            },
+            "UNKNOWN",
+            "json"
+        ]
+    },
+    {
+        "funcName": "$.getJSON",
+        "args": ["http://www.telize.com/geoip?callback=?", "UNKNOWN"]
+    },
+    {
+        "funcName": "$.post",
+        "args": [
+            "/servers/public/index.php?c=store&a=newsubmitpost",
+            "UNKNOWN",
+            "UNKNOWN",
+            "json"
+        ]
+    }
+]
