@@ -5,6 +5,7 @@ import { hasattr } from '../utils/common';
 import fetchSignatures from './fetch/signatures';
 import jQuerySignatures from './jquery/signatures';
 import angularSignatures from './angular/signatures';
+import axiosSignatures from './axios/signatures';
 
 
 interface BaseSinkSignature {
@@ -30,7 +31,8 @@ export type SinkSignature = FreeStandingSinkSignature | BoundSinkSignature;
 const signatureList = ([] as SinkSignature[])
     .concat(jQuerySignatures)
     .concat(angularSignatures)
-    .concat(fetchSignatures);
+    .concat(fetchSignatures)
+    .concat(axiosSignatures);
 
 const signatures = {
     freeStanding: [] as string[],
