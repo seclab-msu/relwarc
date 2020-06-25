@@ -128,7 +128,7 @@ export function headersFromMap(headersMap: Record<string, string>): KeyValue[] {
     return result;
 }
 
-function hasHeader(headers: KeyValue[], name: string): boolean {
+export function hasHeader(headers: KeyValue[], name: string): boolean {
     const n = name.toLowerCase();
     for (const h of headers) {
         if (h.name.toLowerCase() === n) {

@@ -3,6 +3,7 @@ import { hasattr } from '../utils/common';
 
 import fetchSinks from './fetch/sinks';
 import jQuerySinks from './jquery/sinks';
+import angularSinks from './angular/sinks';
 
 type Sink = (name: string, args, baseURL: string) => (HAR | null);
 
@@ -28,6 +29,7 @@ const methodSinks: Record<string, Sink> = {};
 
 const sinkList: SinkDescr[] = ([] as SinkDescr[])
     .concat(jQuerySinks)
+    .concat(angularSinks)
     .concat(fetchSinks);
 
 for (const sinkDescr of sinkList) {
