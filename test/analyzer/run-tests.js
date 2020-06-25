@@ -29,7 +29,9 @@ try {
     isSlimer = false;
 }
 
-const jasmine = new Jasmine();
+const jasmine = new Jasmine({
+    projectBaseDir: __dirname
+});
 
 if (isSlimer) {
     defaultSpecFiles.push(PAGE_SPEC_FILES);
@@ -53,7 +55,6 @@ for (const arg of args) {
 specFiles = specFiles || defaultSpecFiles;
 
 jasmine.loadConfig({
-    spec_dir: 'test/analyzer',
     spec_files: specFiles
 });
 
