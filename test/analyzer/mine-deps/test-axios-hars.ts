@@ -1,5 +1,5 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
-import { HAR } from "../../../src/analyzer/hars";
+import { HAR } from "../../../src/analyzer/har";
 
 
 function makeAndRunSimple(script: string, url = "http://test.com/test"): Analyzer {

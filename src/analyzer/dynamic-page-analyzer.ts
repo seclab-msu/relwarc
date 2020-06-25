@@ -2,7 +2,7 @@ import { Analyzer } from './analyzer';
 import { HeadlessBot } from './browser/headless-bot';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
-import { HAR } from './hars';
+import { HAR } from './har';
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];

@@ -32,41 +32,20 @@ import { Value } from './types/generic';
 
 import { hasattr } from './utils/common';
 
-import { HAR, makeHAR } from './hars';
+import { HAR } from './har';
+import { makeHAR } from './library-models/sinks';
 
+import {
+    matchFreeStandingCallSignature,
+    matchMethodCallSignature
+} from './library-models/signatures';
 
 const MAX_CALL_CHAIN = 5;
-
-const jQueryAjaxFunctions = [
-    'ajax',
-    'get',
-    'post',
-    'load',
-    'getJSON',
-    'getScript'
-];
-
-const signatures = {
-    freeStanding: ['fetch', '$http', 'axios'],
-    bound: {
-        'window': ['fetch'],
-        'this': ['fetch'],
-        '$': jQueryAjaxFunctions,
-        'jQuery': jQueryAjaxFunctions,
-        '$http': ['get', 'post', 'put', 'jsonp'],
-        'axios': ['get', 'post', 'put']
-    },
-    boundToCall: {
-        '$': ['load'],
-        'jQuery': ['load']
-    }
-};
 
 const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
 
 
 type VarScope = { [varName: string]: Value };
-type ObjectSignatureSet = { [obName: string]: string[] };
 
 enum CallConfigType {
     Function,
@@ -96,50 +75,6 @@ export interface SinkCall {
 enum AnalysisPhase {
     VarGathering,
     DEPExtracting
-}
-
-function matchMethodCallSignature(
-    ob: ASTNode,
-    prop: Identifier
-): string | null {
-    let obName: string,
-        objectIsCall = false;
-
-    if (ob.type === 'Identifier') {
-        obName = ob.name;
-    } else if (
-        ob.type === 'MemberExpression' &&
-        ob.property.type === 'Identifier'
-    ) {
-        // handle case a.b.x.$http.post(...)
-        obName = ob.property.name;
-    } else if (
-        ob.type === 'CallExpression' &&
-        ob.callee.type === 'Identifier'
-    ) {
-        // handle case $(...).load(...)
-        obName = ob.callee.name;
-        objectIsCall = true;
-    } else {
-        return null;
-    }
-
-    let obSignatures: ObjectSignatureSet;
-
-    if (!objectIsCall) {
-        obSignatures = signatures.bound;
-    } else {
-        obSignatures = signatures.boundToCall;
-    }
-
-    if (!hasattr(obSignatures, obName)) {
-        return null;
-    }
-
-    if (obSignatures[obName].includes(prop.name)) {
-        return obName;
-    }
-    return null;
 }
 
 
@@ -948,7 +883,7 @@ export class Analyzer {
             }
         }
 
-        if (~signatures.freeStanding.indexOf(calleeName)) {
+        if (matchFreeStandingCallSignature(calleeName)) {
             this.extractDEPFromArgs(calleeName, node.arguments);
         }
     }

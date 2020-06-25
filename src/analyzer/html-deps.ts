@@ -1,4 +1,4 @@
-import { HAR } from './hars';
+import { HAR } from './har';
 import { getWrappedWindow } from './utils/window';
 
 type SupportedFormInput =

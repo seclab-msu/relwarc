@@ -1,5 +1,5 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
-import { HAR } from "../../../src/analyzer/hars.js";
+import { HAR } from "../../../src/analyzer/har.js";
 import { readFileSync } from "fs";
 import {
     UNKNOWN,

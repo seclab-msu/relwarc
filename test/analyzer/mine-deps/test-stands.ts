@@ -1,6 +1,6 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
 import { makeAndRunSimple } from './common';
-import { HAR } from "../../../src/analyzer/hars";
+import { HAR } from "../../../src/analyzer/har";
 import { UNKNOWN } from "../../../src/analyzer/types/unknown";
 import * as fs from 'fs';
 
