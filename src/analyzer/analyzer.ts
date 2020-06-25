@@ -32,41 +32,17 @@ import { Value } from './types/generic';
 
 import { hasattr } from './utils/common';
 
-import { HAR, makeHAR } from './hars';
+import { HAR } from './har';
+import { makeHAR } from './library-models/sinks';
 
+import { signatures, ObjectSignatureSet } from './library-models/signatures';
 
 const MAX_CALL_CHAIN = 5;
-
-const jQueryAjaxFunctions = [
-    'ajax',
-    'get',
-    'post',
-    'load',
-    'getJSON',
-    'getScript'
-];
-
-const signatures = {
-    freeStanding: ['fetch', '$http', 'axios'],
-    bound: {
-        'window': ['fetch'],
-        'this': ['fetch'],
-        '$': jQueryAjaxFunctions,
-        'jQuery': jQueryAjaxFunctions,
-        '$http': ['get', 'post', 'put', 'jsonp'],
-        'axios': ['get', 'post', 'put']
-    },
-    boundToCall: {
-        '$': ['load'],
-        'jQuery': ['load']
-    }
-};
 
 const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
 
 
 type VarScope = { [varName: string]: Value };
-type ObjectSignatureSet = { [obName: string]: string[] };
 
 enum CallConfigType {
     Function,

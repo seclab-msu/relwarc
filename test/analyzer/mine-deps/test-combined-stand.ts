@@ -1,5 +1,5 @@
 import { Analyzer } from "../../../src/analyzer/analyzer";
-import { HAR } from "../../../src/analyzer/hars";
+import { HAR } from "../../../src/analyzer/har";
 import * as fs from 'fs';
 
 
