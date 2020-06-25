@@ -35,7 +35,10 @@ import { hasattr } from './utils/common';
 import { HAR } from './har';
 import { makeHAR } from './library-models/sinks';
 
-import { signatures, ObjectSignatureSet } from './library-models/signatures';
+import {
+    matchFreeStandingCallSignature,
+    matchMethodCallSignature
+} from './library-models/signatures';
 
 const MAX_CALL_CHAIN = 5;
 
@@ -72,50 +75,6 @@ export interface SinkCall {
 enum AnalysisPhase {
     VarGathering,
     DEPExtracting
-}
-
-function matchMethodCallSignature(
-    ob: ASTNode,
-    prop: Identifier
-): string | null {
-    let obName: string,
-        objectIsCall = false;
-
-    if (ob.type === 'Identifier') {
-        obName = ob.name;
-    } else if (
-        ob.type === 'MemberExpression' &&
-        ob.property.type === 'Identifier'
-    ) {
-        // handle case a.b.x.$http.post(...)
-        obName = ob.property.name;
-    } else if (
-        ob.type === 'CallExpression' &&
-        ob.callee.type === 'Identifier'
-    ) {
-        // handle case $(...).load(...)
-        obName = ob.callee.name;
-        objectIsCall = true;
-    } else {
-        return null;
-    }
-
-    let obSignatures: ObjectSignatureSet;
-
-    if (!objectIsCall) {
-        obSignatures = signatures.bound;
-    } else {
-        obSignatures = signatures.boundToCall;
-    }
-
-    if (!hasattr(obSignatures, obName)) {
-        return null;
-    }
-
-    if (obSignatures[obName].includes(prop.name)) {
-        return obName;
-    }
-    return null;
 }
 
 
@@ -924,7 +883,7 @@ export class Analyzer {
             }
         }
 
-        if (~signatures.freeStanding.indexOf(calleeName)) {
+        if (matchFreeStandingCallSignature(calleeName)) {
             this.extractDEPFromArgs(calleeName, node.arguments);
         }
     }
