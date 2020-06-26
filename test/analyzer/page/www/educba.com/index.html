@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+	<body>				
+		<form method="post" style="background:rgba(0,0,0,0.4) ;padding: 20px 0px 0px 20px;border-radius: 5px;" >
+		    <div class="form-group" >
+		        <div class="row" >                            
+		        <div class="col-md-10 " id="sel_position" >
+		            <select class="form-control" name="sel_posi" id="sel_posi" placeholder="Validate Select" style="border-radius:5px; " required>
+		                <option value="">Select Position</option>
+		            </select>
+		        </div>                                                                
+		        <div class="col-md-2">
+		        <button type="button" id="btn_submit" class="btn-success" style="padding: 10px 25px 10px 25px; border-radius: 5px; font-size: 18px;" >APPLY</button>
+		        </div>
+		        
+		        </div>
+		    </div>
+		</form>	
+		<script src="jquery.min.js"></script>
+		<script src="jquery.countdown2n.js"></script>
+		<script>
+		jQuery(document).ready(function () {
+			ts = (new Date()).getTime() + 48685000;
+			newYear = false;
+			jQuery('#countdownmenu').countdown({
+			timestamp	: ts,
+			callback	: function(days, hours, minutes, seconds){
+			}
+			});		
+			//ajax for dropdown
+			$.ajax({
+					url  : '/educba.com/sel_dropdown.php',
+					//data: { 'email': email },
+					async: true,
+					success : function(resp)
+					{
+						$("#sel_position").html("");
+						$("#sel_position").html(resp);
+					}
+				});		
+			});
+		</script>
+    </body>
+</html>
