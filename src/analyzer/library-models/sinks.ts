@@ -5,6 +5,7 @@ import fetchSinks from './fetch/sinks';
 import jQuerySinks from './jquery/sinks';
 import angularSinks from './angular/sinks';
 import axiosSinks from './axios/sinks';
+import xmlHttpRequestSinks from './xmlhttprequest/sinks';
 
 type Sink = (name: string, args, baseURL: string) => (HAR | null);
 
@@ -32,6 +33,7 @@ const sinkList: SinkDescr[] = ([] as SinkDescr[])
     .concat(jQuerySinks)
     .concat(angularSinks)
     .concat(fetchSinks)
+    .concat(xmlHttpRequestSinks)
     .concat(axiosSinks);
 
 for (const sinkDescr of sinkList) {

@@ -31,14 +31,22 @@ import { FunctionValue } from './types/function';
 import { Value } from './types/generic';
 
 import { hasattr } from './utils/common';
+import { allAreExpressions, nodeKey } from './utils/ast';
 
 import { HAR } from './har';
 import { makeHAR } from './library-models/sinks';
 
 import {
     matchFreeStandingCallSignature,
-    matchMethodCallSignature
+    matchMethodCallSignature,
+    callSequenceMethodNames
 } from './library-models/signatures';
+
+import {
+    CallSequence,
+    TrackedCallSequence,
+    wrapSeqInObjectExpressions
+} from './call-sequence';
 
 const MAX_CALL_CHAIN = 5;
 
@@ -109,6 +117,8 @@ export class Analyzer {
 
     private resultsAlready: Set<string>;
 
+    private trackedCallSequences: Map<string, TrackedCallSequence>;
+
     constructor() {
         this.parsedScripts = [];
         this.results = [];
@@ -138,6 +148,8 @@ export class Analyzer {
         this.mergedProgram = null;
 
         this.resultsAlready = new Set();
+
+        this.trackedCallSequences = new Map();
     }
 
     addScript(source: string): void {
@@ -359,7 +371,7 @@ export class Analyzer {
         if (!hasattr(String.prototype, methodName)) {
             return UNKNOWN;
         }
-        const args = argNodes.map(n => this.valueFromASTNode(n));
+        const args = this.valuesForArgs(argNodes);
 
         if (!args.every(v => !isUnknown(v))) {
             return UNKNOWN;
@@ -653,6 +665,10 @@ export class Analyzer {
         return UNKNOWN;
     }
 
+    private valuesForArgs(args: ASTNode[]): Value[] {
+        return args.map(arg => this.valueFromASTNode(arg));
+    }
+
     private getFunctionForCallSite(path: NodePath): NodePath {
         path = path.scope.path;
         while (path?.scope?.parent && path.node && !isFunction(path.node)) {
@@ -846,7 +862,7 @@ export class Analyzer {
         methNode: ASTNode,
         argNodes: ASTNode[]
     ): void {
-        const args = argNodes.map(v => this.valueFromASTNode(v));
+        const args = this.valuesForArgs(argNodes);
 
         if (!isUnknown(args[0])) {
             fd.append(args[0], args[1]);
@@ -888,6 +904,63 @@ export class Analyzer {
         }
     }
 
+    private startTrackingCallSequence(
+        seq: CallSequence,
+        ob: ASTNode,
+        funcName: string,
+        args: ASTNode[]
+    ): void {
+        if (!allAreExpressions(args)) {
+            return;
+        }
+        const key = nodeKey(ob);
+        this.trackedCallSequences.set(key, {
+            sequence: seq,
+            calls: [{ name: funcName, args }]
+        });
+    }
+
+    private tryContinueCallSequence(
+        ob: ASTNode,
+        funcName: string,
+        args: ASTNode[]
+    ): boolean {
+        if (!callSequenceMethodNames.has(funcName)) {
+            return false;
+        }
+
+        const key = nodeKey(ob);
+        const trackedSeq = this.trackedCallSequences.get(key);
+
+        if (!trackedSeq) {
+            return false;
+        }
+
+        const { sequence, calls } = trackedSeq;
+
+        const isFinal = funcName === sequence.final;
+
+        if (!isFinal && !sequence.intermediate.includes(funcName)) {
+            return false;
+        }
+
+        if (!allAreExpressions(args)) {
+            return false;
+        }
+
+        calls.push({ name: funcName, args });
+
+        if (isFinal) {
+            this.trackedCallSequences.delete(key);
+            this.extractDEPFromArgs(
+                sequence.name + '.' + funcName,
+                // hack
+                wrapSeqInObjectExpressions(calls)
+            );
+        }
+        return true;
+    }
+
     private extractDEPsMethodCall(
         callee: MemberExpression,
         args: ASTNode[]
@@ -899,6 +972,12 @@ export class Analyzer {
             return;
         }
 
+        const isCallSeqPart = this.tryContinueCallSequence(ob, prop.name, args);
+
+        if (isCallSeqPart) {
+            return;
+        }
+
         if (ob.type === 'Identifier') {
             const isFormDataOp = this.tryFormDataOp(ob, prop, args);
             if (isFormDataOp) {
@@ -906,11 +985,18 @@ export class Analyzer {
             }
         }
 
-        const obName = matchMethodCallSignature(ob, prop);
+        const obDescr = matchMethodCallSignature(ob, prop);
 
-        if (obName === null) {
+        if (obDescr === null) {
             return;
         }
+
+        if (obDescr instanceof CallSequence) {
+            this.startTrackingCallSequence(obDescr, ob, prop.name, args);
+            return;
+        }
+
+        const obName: string = obDescr;
 
         this.extractDEPFromArgs(obName + '.' + prop.name, args);
     }
@@ -934,6 +1020,7 @@ export class Analyzer {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
+                    this.trackedCallSequences.clear();
                 }
                 if (
                     this.functionsStack.length > 0 &&
@@ -974,6 +1061,7 @@ export class Analyzer {
 
         this.functionsStack.length = 0;
         this.stage = AnalysisPhase.DEPExtracting;
+        this.trackedCallSequences.clear();
         if (funcInfo !== null) {
             this.formalArgs = funcInfo.args;
             this.functionsStack.push(funcInfo.code);
