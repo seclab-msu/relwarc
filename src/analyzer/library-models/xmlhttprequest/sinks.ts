@@ -1,4 +1,5 @@
 import { HAR, hasHeader } from '../../har';
+import { isUnknown } from '../../types/unknown';
 
 import type { SinkDescr } from '../sinks';
 
@@ -12,6 +13,9 @@ function makeHARXHR(name: string, args, baseURL: string): HAR | null {
         switch (name) {
         case 'open':
             const [method, url] = callArgs;
+            if (isUnknown(url)) {
+                return null;
+            }
             result = new HAR(url, baseURL);
             result.method = method;
             break;
