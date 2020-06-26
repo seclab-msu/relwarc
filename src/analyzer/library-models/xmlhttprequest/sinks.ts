@@ -1,9 +1,13 @@
-import { HAR } from '../../har';
+import { HAR, hasHeader } from '../../har';
 
 import type { SinkDescr } from '../sinks';
 
+const DEFAULT_CONTENT_TYPE = 'text/plain';
+
 function makeHARXHR(name: string, args, baseURL: string): HAR | null {
-    let result: HAR | null = null;
+    let result: HAR | null = null,
+        body: string | null = null;
+
     for (const { name, args: callArgs } of args) {
         switch (name) {
         case 'open':
@@ -18,7 +22,7 @@ function makeHARXHR(name: string, args, baseURL: string): HAR | null {
             if (callArgs.length === 0 || callArgs[0] === null) {
                 continue;
             }
-            result.setPostData(String(callArgs[0]));
+            body = String(callArgs[0]);
             break;
         case 'setRequestHeader':
             if (result === null) {
@@ -32,6 +36,22 @@ function makeHARXHR(name: string, args, baseURL: string): HAR | null {
                 value: callArgs[1]
             });
         }
+    }
+
+    if (result === null) {
+        console.error('Warning: unexpected XMLHttpRequest args without open');
+        return result;
+    }
+
+    if (body !== null) {
+        if (!hasHeader(result.headers, 'Content-Type')) {
+            result.headers.push({
+                'name': 'Content-Type',
+                'value': DEFAULT_CONTENT_TYPE
+            });
+        }
+
+        result.setPostData(body);
     }
     return result;
 }
