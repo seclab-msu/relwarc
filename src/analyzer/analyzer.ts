@@ -25,6 +25,8 @@ import {
     isUnknownOrUnknownString
 } from './types/unknown';
 
+import { DynamicAnalyzer } from './dynamic/analyzer';
+
 import { FROM_ARG, extractFormalArgs } from './types/formalarg';
 import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
@@ -92,6 +94,8 @@ export class Analyzer {
     readonly scripts: Set<string>;
     readonly hars: HAR[];
 
+    private readonly dynamic: DynamicAnalyzer | null;
+
     private readonly globalDefinitions: VarScope;
     private readonly argsStack: string[][];
     private readonly formalArgValues: VarScope;
@@ -119,10 +123,16 @@ export class Analyzer {
 
     private trackedCallSequences: Map<string, TrackedCallSequence>;
 
-    constructor() {
+    constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
         this.scripts = new Set();
+
+        this.dynamic = dynamicAnalyzer;
+
+        if (dynamicAnalyzer !== null) {
+            dynamicAnalyzer.newScriptCallback = this.addScript.bind(this);
+        }
 
         this.globalDefinitions = { undefined };
         this.argsStack = [];
