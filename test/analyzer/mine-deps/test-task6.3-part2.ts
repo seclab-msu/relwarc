@@ -52,7 +52,7 @@ function makeAndRunSimple(script: string, url='http://example.com/'): Analyzer {
     return analyzer;
 }
 
-describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
+describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 2", () => {
     
     it("task6.3 8-th test", () => {
         const script = fs.readFileSync(`${__dirname}/../data/6_3task_tests/8.js`, "utf-8");

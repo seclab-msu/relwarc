@@ -24,7 +24,7 @@ const removeEmpty = (obj) => {
     return obj;
 };
 
-describe("Analyzer finding args of DEP sinks", () => {
+describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
     it("smoke test", function() {
         makeAndRunSimple('console.log("Hello World!");');
     });
