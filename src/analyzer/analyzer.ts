@@ -34,6 +34,7 @@ import { Value } from './types/generic';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
+import { STRING_METHODS } from './utils/analyzer';
 
 import { HAR } from './har';
 import { makeHAR } from './library-models/sinks';
@@ -378,7 +379,7 @@ export class Analyzer {
         methodName: string,
         argNodes: ASTNode[]
     ): Value {
-        if (!hasattr(String.prototype, methodName)) {
+        if (!hasattr(STRING_METHODS, methodName)) {
             return UNKNOWN;
         }
         const args = this.valuesForArgs(argNodes);
@@ -387,8 +388,7 @@ export class Analyzer {
             return UNKNOWN;
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const method: Function = String.prototype[methodName];
+        const method = STRING_METHODS[methodName];
 
         return method.apply(val, args);
     }
