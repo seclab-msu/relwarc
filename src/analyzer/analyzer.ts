@@ -25,13 +25,16 @@ import {
     isUnknownOrUnknownString
 } from './types/unknown';
 
+import { DynamicAnalyzer } from './dynamic/analyzer';
+
 import { FROM_ARG, extractFormalArgs } from './types/formalarg';
 import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
-import { Value } from './types/generic';
+import { Value, NontrivialValue } from './types/generic';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
+import { STRING_METHODS } from './utils/analyzer';
 
 import { HAR } from './har';
 import { makeHAR } from './library-models/sinks';
@@ -50,7 +53,16 @@ import {
 
 const MAX_CALL_CHAIN = 5;
 
-const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
+const SPECIAL_PROP_NAMES = [
+    'constructor',
+    'prototype',
+    '__proto__',
+    '__defineGetter__',
+    '__defineSetter__',
+    'hasOwnProperty',
+    '__lookupGetter__',
+    '__lookupSetter__'
+];
 
 
 type VarScope = { [varName: string]: Value };
@@ -85,12 +97,13 @@ enum AnalysisPhase {
     DEPExtracting
 }
 
-
 export class Analyzer {
     readonly parsedScripts: AST[];
     readonly results: SinkCall[];
     readonly scripts: Set<string>;
     readonly hars: HAR[];
+
+    private readonly dynamic: DynamicAnalyzer | null;
 
     private readonly globalDefinitions: VarScope;
     private readonly argsStack: string[][];
@@ -119,10 +132,16 @@ export class Analyzer {
 
     private trackedCallSequences: Map<string, TrackedCallSequence>;
 
-    constructor() {
+    constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
         this.scripts = new Set();
+
+        this.dynamic = dynamicAnalyzer;
+
+        if (dynamicAnalyzer !== null) {
+            dynamicAnalyzer.newScriptCallback = this.addScript.bind(this);
+        }
 
         this.globalDefinitions = { undefined };
         this.argsStack = [];
@@ -249,6 +268,14 @@ export class Analyzer {
         return true;
     }
 
+    private shouldGetObjectProperty(name: string): boolean {
+        // TODO: see shouldSetObjectProperty
+        if (SPECIAL_PROP_NAMES.includes(name)) {
+            return false;
+        }
+        return true;
+    }
+
     private setObjectProperty(node: MemberExpression, value): void {
         const prop = node.property;
         let propName;
@@ -285,6 +312,13 @@ export class Analyzer {
         ) {
             ob[propName] = value;
         }
+    }
+
+    private getObjectProperty(ob: NontrivialValue, propName: string): Value {
+        if (!this.shouldGetObjectProperty(propName)) {
+            return;
+        }
+        return ob[propName];
     }
 
     private setVariable(path: NodePath): void {
@@ -368,7 +402,7 @@ export class Analyzer {
         methodName: string,
         argNodes: ASTNode[]
     ): Value {
-        if (!hasattr(String.prototype, methodName)) {
+        if (!hasattr(STRING_METHODS, methodName)) {
             return UNKNOWN;
         }
         const args = this.valuesForArgs(argNodes);
@@ -377,8 +411,7 @@ export class Analyzer {
             return UNKNOWN;
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        const method: Function = String.prototype[methodName];
+        const method = STRING_METHODS[methodName];
 
         return method.apply(val, args);
     }
@@ -530,14 +563,13 @@ export class Analyzer {
                 console.error('Warning: non-computed prop is not identifier');
                 return UNKNOWN;
             }
-            return ob[node.property.name];
+            return this.getObjectProperty(ob, node.property.name);
         }
         const propName = this.valueFromASTNode(node.property);
         if (!propName || isUnknown(propName)) {
             return UNKNOWN;
         }
-        // @ts-ignore
-        return ob[propName];
+        return this.getObjectProperty(ob, String(propName));
     }
 
     private processConditionalExpression(node: ConditionalExpression): Value {

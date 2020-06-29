@@ -11,11 +11,10 @@ export class DynamicPageAnalyzer {
     readonly bot: HeadlessBot;
 
     constructor() {
-        const analyzer = new Analyzer();
         const bot = new HeadlessBot(false, false);
         const dynamicAnalyzer = new DynamicAnalyzer();
+        const analyzer = new Analyzer(dynamicAnalyzer);
 
-        dynamicAnalyzer.newScriptCallback = analyzer.addScript.bind(analyzer);
         bot.onWindowCreated = dynamicAnalyzer.addWindow.bind(dynamicAnalyzer);
 
         this.analyzer = analyzer;
