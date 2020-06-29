@@ -30,7 +30,7 @@ import { DynamicAnalyzer } from './dynamic/analyzer';
 import { FROM_ARG, extractFormalArgs } from './types/formalarg';
 import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
-import { Value } from './types/generic';
+import { Value, NontrivialValue } from './types/generic';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -53,7 +53,16 @@ import {
 
 const MAX_CALL_CHAIN = 5;
 
-const SPECIAL_PROP_NAMES = ['prototype', '__proto__'];
+const SPECIAL_PROP_NAMES = [
+    'constructor',
+    'prototype',
+    '__proto__',
+    '__defineGetter__',
+    '__defineSetter__',
+    'hasOwnProperty',
+    '__lookupGetter__',
+    '__lookupSetter__'
+];
 
 
 type VarScope = { [varName: string]: Value };
@@ -87,7 +96,6 @@ enum AnalysisPhase {
     VarGathering,
     DEPExtracting
 }
-
 
 export class Analyzer {
     readonly parsedScripts: AST[];
@@ -260,6 +268,14 @@ export class Analyzer {
         return true;
     }
 
+    private shouldGetObjectProperty(name: string): boolean {
+        // TODO: see shouldSetObjectProperty
+        if (SPECIAL_PROP_NAMES.includes(name)) {
+            return false;
+        }
+        return true;
+    }
+
     private setObjectProperty(node: MemberExpression, value): void {
         const prop = node.property;
         let propName;
@@ -296,6 +312,13 @@ export class Analyzer {
         ) {
             ob[propName] = value;
         }
+    }
+
+    private getObjectProperty(ob: NontrivialValue, propName: string): Value {
+        if (!this.shouldGetObjectProperty(propName)) {
+            return;
+        }
+        return ob[propName];
     }
 
     private setVariable(path: NodePath): void {
@@ -540,14 +563,13 @@ export class Analyzer {
                 console.error('Warning: non-computed prop is not identifier');
                 return UNKNOWN;
             }
-            return ob[node.property.name];
+            return this.getObjectProperty(ob, node.property.name);
         }
         const propName = this.valueFromASTNode(node.property);
         if (!propName || isUnknown(propName)) {
             return UNKNOWN;
         }
-        // @ts-ignore
-        return ob[propName];
+        return this.getObjectProperty(ob, String(propName));
     }
 
     private processConditionalExpression(node: ConditionalExpression): Value {
