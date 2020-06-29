@@ -1,0 +1,394 @@
+[
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://api1.blavity.com/v1/articles/type/video/21/0"
+      ]
+    },
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://api1.blavity.com/v1/articles/type/video/UNKNOWN/UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://api1.blavity.com/v1/articles/status/UNKNOWN/UNKNOWN/UNKNOWN/UNKNOWN",
+        {
+          "headers": {
+            "Author": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://api1.blavity.com/v1/category/100"
+      ]
+    },
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://api1.blavity.com/v1/tags/500"
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "DELETE",
+          "url": "https://api1.blavity.com/v1/articles/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "DELETE",
+          "url": "https://api1.blavity.com/v1/removeBlankArticles/",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http.get",
+      "args": [
+        "https://api1.blavity.com/v1/UNKNOWNUNKNOWN"
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/getUserInfo",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/lockArticles/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/UnLockArticles/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/changeUserOfPost/UNKNOWN/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/addUsers",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "transformRequest": "UNKNOWN",
+          "data": {
+            "user": "UNKNOWN",
+            "host": "UNKNOWN://UNKNOWN:UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "PUT",
+          "url": "https://api1.blavity.com/v1/updateUsers/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "transformRequest": "UNKNOWN",
+          "data": {
+            "user": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "PUT",
+          "url": "https://api1.blavity.com/v1/updateProfile",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "transformRequest": "UNKNOWN",
+          "data": {
+            "user": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "PUT",
+          "url": "https://api1.blavity.com/v1/changePassword",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "transformRequest": "UNKNOWN",
+          "data": {
+            "user": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/getUserRole",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/post/schedule",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/recentPost/UNKNOWN/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/article-history/UNKNOWN/UNKNOWN/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/user/authorList",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/series/add",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "transformRequest": "UNKNOWN",
+          "data": {
+            "series": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "get",
+          "url": "https://api1.blavity.com/v1/series/list/UNKNOWN/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "get",
+          "url": "https://api1.blavity.com/v1//article-series/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/post-editors-comments/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "transformRequest": "UNKNOWN",
+          "data": {
+            "comment": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "PUT",
+          "url": "https://api1.blavity.com/v1/autoSchedule/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/blankarticles",
+          "headers": {
+            "Content-Type": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "GET",
+          "url": "https://api1.blavity.com/v1/videos/top/UNKNOWN/UNKNOWN",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api.blavity.io/subscribers/blavity?list=blavityDaily",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "data": {
+            "email": "UNKNOWN",
+            "name": "UNKNOWN"
+          }
+        }
+      ]
+    },
+    {
+      "funcName": "$http",
+      "args": [
+        {
+          "method": "POST",
+          "url": "https://api1.blavity.com/v1/articles1/new/",
+          "headers": {
+            "Content-Type": "UNKNOWN",
+            "token": "UNKNOWN"
+          },
+          "data": {}
+        }
+      ]
+    }
+]

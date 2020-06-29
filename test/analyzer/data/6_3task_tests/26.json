@@ -1,0 +1,59 @@
+[
+    {
+       "method" : "GET",
+       "url" : "https://fabfitfun.com/magazine/wp-json/wp/v2/posts?page=UNKNOWN&per_page=UNKNOWN&offset=UNKNOWN",
+       "queryString" : [
+          {
+             "value" : "UNKNOWN",
+             "name" : "page"
+          },
+          {
+             "name" : "per_page",
+             "value" : "UNKNOWN"
+          },
+          {
+             "name" : "offset",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "bodySize" : 0,
+       "httpVersion" : "HTTP/1.1",
+       "headers" : [
+          {
+             "value" : "fabfitfun.com",
+             "name" : "Host"
+          }
+       ]
+    },
+    {
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "fabfitfun.com"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "bodySize" : 0,
+       "url" : "https://fabfitfun.com/magazine/wp-json/wp/v2/posts?page=UNKNOWN&per_page=UNKNOWN&offset=UNKNOWN&categories_exclude=UNKNOWN",
+       "queryString" : [
+          {
+             "value" : "UNKNOWN",
+             "name" : "page"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "per_page"
+          },
+          {
+             "name" : "offset",
+             "value" : "UNKNOWN"
+          },
+          {
+             "name" : "categories_exclude",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "method" : "GET"
+    }
+]
+ 

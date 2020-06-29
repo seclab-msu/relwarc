@@ -71,7 +71,7 @@ function checker(depsFromAnalyzer, depsFromChecker) {
     }
 }
 
-describe("Analyzer mining HARs for JS DEPs (from task 6.3)", () => {
+describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
     it("sample 1", () => {
         const analyzer = makeAndRunSimple(
             readSrc(__dirname + "/../data/1.js"),

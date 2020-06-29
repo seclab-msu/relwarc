@@ -40,7 +40,7 @@ function makeAndRunSimple(
     return analyzer;
 }
 
-describe("Analyzer finding args of DEP sinks (from task 6.3)", () => {
+describe("Analyzer finding args of DEP sinks (from task 6.3) - part 1", () => {
     it("sample 1", () => {
         const test = 1;
         const analyzer = makeAndRunSimple(
