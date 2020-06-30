@@ -14,35 +14,30 @@ function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://test.co
     return analyzer;
 }
 
-function makeHar(harIn: HAR): any {
-    interface KeyValue {
-        name: string;
-        value: string;
-    }
-
+function makeHarInterface(harIn: HAR): any {
     interface HARForCheck {
         url: string;
         method: string;
         httpVersion: string;
-        headers: KeyValue[];
-        queryString: KeyValue[];
+        headers: any;
+        queryString: any;
         bodySize: number;
         postData?: any;
     }
-
     const harOut: HARForCheck = {
         url: harIn.url,
         method: harIn.method,
         httpVersion: harIn.httpVersion,
-        headers: harIn.headers,
-        queryString: harIn.queryString,
+        headers: new Set(harIn.headers),
+        queryString: new Set(harIn.queryString),
         bodySize: harIn.bodySize,
         postData: harIn.getPostData() ? harIn.getPostData() : null,
     };
     if (harOut.postData == null) {
         delete harOut.postData;
+    } else if (typeof harOut.postData.params !== 'undefined'){
+        harOut.postData.params = new Set(harOut.postData.params);
     }
-
     return harOut;
 }
 
@@ -51,7 +46,7 @@ export function runSingleTest(scripts: string[], obj: any, isHAR: boolean) {
     if (isHAR === true) {
         expect(analyzer.hars.length).toBeGreaterThanOrEqual(1);
         let hars: any[] = [];
-        analyzer.hars.forEach((har) => hars.push(makeHar(har)));
+        analyzer.hars.forEach((har) => hars.push(makeHarInterface(har)));
         expect(hars).toContain(obj);
     } else {
         expect(analyzer.results.length).toBeGreaterThanOrEqual(1);
