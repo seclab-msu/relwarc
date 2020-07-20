@@ -4,18 +4,11 @@ import { FormDataModel } from '../../types/form-data';
 
 import type { SinkDescr } from '../sinks';
 
-function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
+
+function parseArgs(funcName, args) {
     let settings: Record<string, any> = {},
         url,
-        method,
         data;
-
-    if (funcName === 'load' && typeof args[0] !== 'string') {
-        // jQuery until 3.0 also had event-handling function .load
-        // See https://api.jquery.com/load/
-        // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
-        return null;
-    }
 
     if (typeof args[0] === 'object') {
         settings = args[0];
@@ -32,14 +25,11 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
     } else {
         throw new Error('Bad jQuery AJAX args: ' + funcName + ' ' + args);
     }
+    return [url, settings, data];
+}
 
-    if (!url || isUnknown(url)) {
-        return null;
-    }
-
-    const har = new HAR(url, baseURL);
-
-    data = data || settings.data;
+function setMethod(funcName, settings) {
+    let method;
     if (~['get', 'post'].indexOf(funcName)) {
         method = funcName.toUpperCase();
     } else if (funcName === 'getJSON') {
@@ -49,17 +39,30 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
     }
 
     method = method.toString().toUpperCase();
+    return method;
+}
 
-    har.method = method;
-
-    let isMultipart = false;
-
-    if (data instanceof FormDataModel) {
-        isMultipart = true;
+function setCt(har, explicitCt, isMultipart, qs) {
+    if (explicitCt) {
+        har.headers.push({
+            'name': 'Content-Type',
+            'value': explicitCt
+        });
+    } else if (isMultipart) {
+        har.headers.push({
+            'name': 'Content-Type',
+            'value': 'multipart/form-data'
+        });
+    } else if (qs) {
+        har.headers.push({
+            'name': 'Content-Type',
+            'value': 'application/x-www-form-urlencoded'
+        });
     }
+}
 
+function setQs(isMultipart, data) {
     let qs;
-
     if (!isMultipart) {
         qs = data || '';
 
@@ -73,6 +76,55 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
     } else {
         qs = '';
     }
+    return qs;
+}
+
+function setData(har, isMultipart, data, qs) {
+    if (isMultipart) {
+        const forcedPostData: KeyValue[] = [];
+        for (const [name, value] of Object.entries(data.getData())) {
+            // TODO: dirty type conversion to string in value
+            // reconsider type of value in KeyValue (change to Value?)
+            // @ts-ignore
+            forcedPostData.push({ name, value });
+        }
+        har.setPostData(qs, false, forcedPostData);
+    } else {
+        har.setPostData(qs);
+    }
+}
+
+function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
+    let [url, settings, data] = parseArgs(funcName, args);
+
+    if (funcName === 'load' && typeof args[0] !== 'string') {
+        // jQuery until 3.0 also had event-handling function .load
+        // See https://api.jquery.com/load/
+        // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
+        return null;
+    }
+
+    if (!url || isUnknown(url)) {
+        return null;
+    }
+
+    const har = new HAR(url, baseURL);
+
+    data = data || settings.data;
+
+    const method = setMethod(funcName, settings);
+    har.method = method;
+
+    let isMultipart = false;
+
+    if (data instanceof FormDataModel) {
+        isMultipart = true;
+    }
+
+    let qs = setQs(isMultipart, data);
+    if (qs === null) {
+        return null;
+    }
 
     const explicitCt = settings.contentType;
 
@@ -85,34 +137,8 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
         har.url = replaceQuery(har.url, qs);
         har.reparseURL();
     } else {
-        if (explicitCt) {
-            har.headers.push({
-                'name': 'Content-Type',
-                'value': explicitCt
-            });
-        } else if (isMultipart) {
-            har.headers.push({
-                'name': 'Content-Type',
-                'value': 'multipart/form-data'
-            });
-        } else if (qs) {
-            har.headers.push({
-                'name': 'Content-Type',
-                'value': 'application/x-www-form-urlencoded'
-            });
-        }
-        if (isMultipart) {
-            const forcedPostData: KeyValue[] = [];
-            for (const [name, value] of Object.entries(data.getData())) {
-                // TODO: dirty type conversion to string in value
-                // reconsider type of value in KeyValue (change to Value?)
-                // @ts-ignore
-                forcedPostData.push({ name, value });
-            }
-            har.setPostData(qs, false, forcedPostData);
-        } else {
-            har.setPostData(qs);
-        }
+        setCt(har, explicitCt, isMultipart, qs);
+        setData(har, isMultipart, data, qs);
     }
     return har;
 }

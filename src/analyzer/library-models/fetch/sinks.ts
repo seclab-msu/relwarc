@@ -3,7 +3,7 @@ import { isUnknown } from '../../types/unknown';
 
 import type { SinkDescr } from '../sinks';
 
-export function makeHARFetch(name:string , args, baseURL: string): HAR | null {
+export function makeHARFetch(name:string, args, baseURL: string): HAR | null {
     const url = args[0];
 
     if (!url || isUnknown(url)) {
@@ -14,7 +14,7 @@ export function makeHARFetch(name:string , args, baseURL: string): HAR | null {
 
     if (args.length > 1 || typeof args[1] === 'object') {
         const settings = args[1];
-        har.method = settings.method || "GET";
+        har.method = settings.method || 'GET';
         har.headers.push(...headersFromMap(settings.headers || {}));
         if (settings.body) {
             if (isUnknown(settings.body)) {
@@ -36,7 +36,7 @@ const sinks: SinkDescr[] = [
         type: 'method',
         objectName: 'window',
         sink: makeHARFetch
-    }/*, TODO: reconsider whether it should be supported
+    }/* , TODO: reconsider whether it should be supported
     {
         type: 'method',
         objectName: 'this',
