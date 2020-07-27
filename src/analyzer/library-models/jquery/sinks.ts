@@ -28,7 +28,7 @@ function parseArgs(funcName, args) {
     return [url, settings, data];
 }
 
-function setMethod(funcName, settings) {
+function getMethod(funcName, settings) {
     let method;
     if (~['get', 'post'].indexOf(funcName)) {
         method = funcName.toUpperCase();
@@ -61,7 +61,7 @@ function setCt(har, explicitCt, isMultipart, qs) {
     }
 }
 
-function setQs(isMultipart, data) {
+function getQs(isMultipart, data) {
     let qs;
     if (!isMultipart) {
         qs = data || '';
@@ -112,7 +112,7 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
 
     data = data || settings.data;
 
-    const method = setMethod(funcName, settings);
+    const method = getMethod(funcName, settings);
     har.method = method;
 
     let isMultipart = false;
@@ -121,7 +121,7 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
         isMultipart = true;
     }
 
-    let qs = setQs(isMultipart, data);
+    let qs = getQs(isMultipart, data);
     if (qs === null) {
         return null;
     }
