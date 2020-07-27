@@ -8,12 +8,11 @@ import {
 
 import type { SinkDescr } from '../sinks';
 
-let url,
-    settings: Record<string, any> = {},
-    method,
-    postData;
-
 function parseArgs(funcName: string, args) {
+    let url,
+        settings: Record<string, any> = {},
+        method,
+        postData;
     if (funcName === 'axios') {
         if (typeof args[0] === 'object') {
             settings = args[0];
@@ -34,9 +33,10 @@ function parseArgs(funcName: string, args) {
             settings = args[1] || {};
         }
     }
+    return [settings, postData, method, url];
 }
 
-function checkHeaders(headers) {
+function checkHeaders(headers, postData) {
     let ct,
         ctSet = false;
     if (headers['content-type']) {
@@ -58,16 +58,17 @@ function checkHeaders(headers) {
         postData = JSON.stringify(postData);
     }
     if (ct && !ctSet) {
-        return {
+        return [{
             'name': 'Content-Type',
             'value': ct
-        };
+        }, postData];
     }
-    return null;
+    return [null, postData];
 }
 
 function makeHARAxios(funcName: string, args, baseURL: string): HAR | null {
-    parseArgs(funcName, args);
+    let [settings, postData, method, url] = parseArgs(funcName, args),
+        cType;
 
     if (!url || isUnknown(url) || isUnknown(postData)) {
         return null;
@@ -87,7 +88,7 @@ function makeHARAxios(funcName: string, args, baseURL: string): HAR | null {
     har.headers.push(...headersFromMap(headers));
 
     if (har.method !== 'GET') {
-        const cType = checkHeaders(headers);
+        [cType, postData] = checkHeaders(headers, postData);
         if (cType) {
             har.headers.push(cType);
         }
