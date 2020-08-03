@@ -7,6 +7,7 @@ import {
     hasHeader
 } from '../../har';
 
+import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 
 function parseArgs(name, args) {
@@ -36,7 +37,11 @@ function parseArgs(name, args) {
     return [settings, postData, method, url];
 }
 
-function makeHARAngular(name: string, args, baseURL: string): HAR | null {
+function makeHARAngular(
+    name: string,
+    args: Value[],
+    baseURL: string
+): HAR | null {
     let [settings, postData, method, url] = parseArgs(name, args);
 
     if (!url || isUnknown(url) || isUnknown(postData)) {

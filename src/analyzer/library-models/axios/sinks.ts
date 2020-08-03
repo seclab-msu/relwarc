@@ -6,11 +6,12 @@ import {
     headersFromMap,
 } from '../../har';
 
+import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 
 function parseArgs(funcName: string, args) {
     let url,
-        settings: Record<string, any> = {},
+        settings: Record<string, Value> = {},
         method,
         postData;
     if (funcName === 'axios') {
@@ -66,7 +67,11 @@ function checkHeaders(headers, postData) {
     return [null, postData];
 }
 
-function makeHARAxios(funcName: string, args, baseURL: string): HAR | null {
+function makeHARAxios(
+    funcName: string,
+    args: Value[],
+    baseURL: string
+): HAR | null {
     let [settings, postData, method, url] = parseArgs(funcName, args),
         cType;
 

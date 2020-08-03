@@ -1,7 +1,13 @@
 import { HAR, hasHeader } from '../../har';
 import { isUnknown } from '../../types/unknown';
 
+import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
+
+interface XHRCalls {
+    name: string;
+    args: Value[];
+}
 
 const DEFAULT_CONTENT_TYPE = 'text/plain';
 
@@ -24,19 +30,21 @@ function addBody(result, body) {
     return result;
 }
 
-function makeHARXHR(name: string, args, baseURL: string): HAR | null {
+function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
     let result: HAR | null = null,
         body: string | null = null;
 
-    for (const { name, args: callArgs } of args) {
+    const xhrCallSequence = (args as unknown) as XHRCalls[];
+
+    for (const { name, args: callArgs } of xhrCallSequence) {
         switch (name) {
         case 'open': {
             const [method, url] = callArgs;
             if (isUnknown(url)) {
                 return null;
             }
-            result = new HAR(url, baseURL);
-            result.method = method;
+            result = new HAR(String(url), baseURL);
+            result.method = String(method);
             break;
         }
         case 'send': {
@@ -58,7 +66,7 @@ function makeHARXHR(name: string, args, baseURL: string): HAR | null {
             }
             result.headers.push({
                 name: callArgs[0],
-                value: callArgs[1]
+                value: String(callArgs[1])
             });
         }
         }

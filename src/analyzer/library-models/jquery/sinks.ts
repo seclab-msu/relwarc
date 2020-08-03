@@ -2,11 +2,11 @@ import { HAR, queryStringFromObject, replaceQuery, KeyValue } from '../../har';
 import { isUnknown, UNKNOWN_FUNCTION } from '../../types/unknown';
 import { FormDataModel } from '../../types/form-data';
 
+import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 
-
 function parseArgs(funcName, args) {
-    let settings: Record<string, any> = {},
+    let settings: Record<string, Value> = {},
         url,
         data;
 
@@ -94,7 +94,11 @@ function setData(har, isMultipart, data, qs) {
     }
 }
 
-function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
+function makeHARJQuery(
+    funcName: string,
+    args: Value[],
+    baseURL: string
+): HAR|null {
     let [url, settings, data] = parseArgs(funcName, args);
 
     if (funcName === 'load' && typeof args[0] !== 'string') {
@@ -116,7 +120,6 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
     har.method = method;
 
     let isMultipart = false;
-
     if (data instanceof FormDataModel) {
         isMultipart = true;
     }
@@ -127,7 +130,6 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
     }
 
     const explicitCt = settings.contentType;
-
     if (settings.dataType === 'jsonp') {
         const callbackParamName = settings.jsonp || 'callback';
         qs += (qs ? '&': '') + callbackParamName + '=jQuery111106567430573505544_1591529444128';
