@@ -1,98 +1,153 @@
-import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
-import { makeAndRunSimple } from './common';
+import { SinkCall } from "../../../src/analyzer/analyzer";
+import { runSingleTest, makeAndRunSimple } from "../run-tests-helper";
 
 
 describe("Analyzer finding args of DEP sinks", () => {
     it("smoke test", function() {
-        makeAndRunSimple('console.log("Hello World!");');
+        const scripts = [
+            'console.log("Hello World!");'
+        ];
+        makeAndRunSimple(
+            scripts,
+            false,
+            "http://test.com/test"
+        );
     });
 
     it("finds nothing for code without DEPS", () => {
-        const analyzer = makeAndRunSimple('console.log("Hello World!");');
+        const scripts = [
+            'console.log("Hello World!");'
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            false,
+            "http://test.com/test"
+        );
         expect(analyzer.results.length).toEqual(0);     
     });
 
     it("handles fetch /", () => {
-        const analyzer = makeAndRunSimple('fetch("/");');
-        
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            "funcName": "fetch",
-            "args": ["/"]
-        } as SinkCall);
+        const scripts = [
+            'fetch("/");'
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "fetch",
+                "args": ["/"]
+            } as SinkCall,
+            false
+        );
     });
 
     it("handles $.ajax /", () => {
-        const analyzer = makeAndRunSimple('$.ajax("/");');
-        
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            "funcName": "$.ajax",
-            "args": ["/"]
-        } as SinkCall);
+        const scripts = [
+            '$.ajax("/");'
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "$.ajax",
+                "args": ["/"]
+            } as SinkCall,
+            false
+        );
     });
 
     it("supports call with settings object", () => {
-        const analyzer = makeAndRunSimple(`$.ajax({
-            method: "POST",
-            url: "http://test.site/action",
-            data: {
-                a: 1,
-                "b": "xx"
-            }
-        });`);
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            "funcName": "$.ajax",
-            "args": [{
+        const scripts = [
+            `$.ajax({
                 method: "POST",
                 url: "http://test.site/action",
                 data: {
                     a: 1,
-                    b: "xx"
+                    "b": "xx"
                 }
-            }]
-        } as SinkCall);
+            });`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "$.ajax",
+                "args": [
+                    {
+                        method: "POST",
+                        url: "http://test.site/action",
+                        data: {
+                            a: 1,
+                            b: "xx"
+                        }
+                    }
+                ]
+            } as SinkCall,
+            false
+        );
     });
 
     it("supports several args", () => {
-        const analyzer = makeAndRunSimple(`$.ajax("/test", {
-            method: "POST",
-            url: "http://test.site/action"
-        });`);
-        expect(analyzer.results.length).toEqual(1);
-        // @ts-ignore
-        expect(analyzer.results[0].args).toEqual([
-            "/test",
-            {
+        const scripts = [
+            `$.ajax("/test", {
                 method: "POST",
                 url: "http://test.site/action"
-            }
-        ]);
+            });`
+        ];
+        runSingleTest(
+            scripts,
+            {   
+                "funcName": "$.ajax",
+                "args": [
+                    "/test",
+                    {
+                        method: "POST",
+                        url: "http://test.site/action"
+                    }
+                ]
+            } as SinkCall,
+            false
+        );
     });
 
     it("supports integer addition", () => {
-        const analyzer = makeAndRunSimple(`$.ajax({
-            url: "/",
-            data: { a: 5 + 4 }
-        });`);
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0].args[0]).toEqual({
-            url: '/',
-            data: { a: 9 }
-        });
+        const scripts = [
+            `$.ajax({
+                url: "/",
+                data: { a: 5 + 4 }
+            });`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "$.ajax",
+                "args": [
+                    {
+                        url: '/',
+                        data: { a: 9 }
+                    }
+                ]
+            } as SinkCall,
+            false
+        );
     });
 
     it("supports location.href", () => {
         const url = 'http://tst.io/testin?param=1337';
-        const sourceCode = `$.ajax({
-            data: { "myurl": location.href }
-        });`;
-        const analyzer = makeAndRunSimple(sourceCode, url);
-        
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0].args[0]).toEqual({
-            data: { "myurl": url }
-        });
+        const scripts = [ 
+            `$.ajax({
+                data: { "myurl": location.href }
+            });`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "$.ajax",
+                "args": [
+                    {
+                        data: { "myurl": url }
+                    }
+                ]
+            } as SinkCall,
+            false,
+            url
+        );
     });
 });

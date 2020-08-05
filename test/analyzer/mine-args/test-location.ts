@@ -1,71 +1,101 @@
-import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
-import { makeAndRunSimple } from './common';
+import { SinkCall } from "../../../src/analyzer/analyzer";
+import { runSingleTest, makeAndRunSimple } from "../run-tests-helper";
 
 
 describe("Analyzing code that uses location object", () => {
     it("does not fail on assigning", function() {
-        makeAndRunSimple('location = "/test";');
-        makeAndRunSimple('document.location = "/test";');
-        makeAndRunSimple('window.location = "/test";');
+        const scripts = [
+            `location = "/test";`,
+            `document.location = "/test";`,
+            `window.location = "/test";`
+        ];
+        makeAndRunSimple(
+            scripts,
+            false
+        );
     });
 
     it("does not fail on assigning location property", function() {
-        makeAndRunSimple('location.href = "/test";');
-        makeAndRunSimple('document.location.href = "/test";');
+        const scripts = [
+            `location.href = "/test";`,
+            `document.location.href = "/test";`
+        ];
+        makeAndRunSimple(
+            scripts,
+            false
+        );
     });
 
     it("does not fail when prop is set on copy", function() {
-        makeAndRunSimple(`
-            let x = location;
-            x.href = "/test";
-        `);
+        const scripts = [
+            `let x = location;
+            x.href = "/test";`
+        ];
+        makeAndRunSimple(
+            scripts,
+            false
+        );
     });
 
     it("does not fail when prop is set on copy after assigning", function() {
-        makeAndRunSimple(`
-            let x = location;
+        const scripts = [
+            `let x = location;
             location = "/test";
-            x.href = "/otherloc";
-        `);
+            x.href = "/otherloc";`
+        ];
+        makeAndRunSimple(
+            scripts,
+            false
+        );
     });
 
     it("assigning location does not terminate analysis", function() {
-        const analyzer = makeAndRunSimple(`
-            if (true) {
+        const scripts = [
+            `if (true) {
                 location = "/testingtest";
             }
-            fetch("/api/info.jsp");
-        `);
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            'funcName': 'fetch',
-            'args': ['/api/info.jsp']
-        } as SinkCall);
+            fetch("/api/info.jsp");`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": 'fetch',
+                "args": ['/api/info.jsp']
+            } as SinkCall,
+            false
+        );
     });
 
     it("handles location.pathname usage", function() {
-        const analyzer = makeAndRunSimple(`
-            let path = location.pathname;
+        const scripts = [
+            `let path = location.pathname;
             let secondDir = path.split("/")[2];
-            fetch("/root/" + secondDir + "/testin.jsp");
-        `, 'http://test.com/dir1/dir2/dir3/page.html');
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            'funcName': 'fetch',
-            'args': ['/root/dir2/testin.jsp']
-        } as SinkCall);
+            fetch("/root/" + secondDir + "/testin.jsp");`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": 'fetch',
+                "args": ['/root/dir2/testin.jsp']
+            } as SinkCall,
+            false,
+            "http://test.com/dir1/dir2/dir3/page.html");
     });
 
     // TODO: this does not work for now
     xit("handles location.pathname usage with immediate split", function() {
-        const analyzer = makeAndRunSimple(`
-            let secondDir = location.pathname.split("/")[2];
-            fetch("/root/" + secondDir + "/testin.jsp");
-        `, 'http://test.com/dir1/dir2/dir3/page.html');
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            'funcName': 'fetch',
-            'args': ['/root/dir2/testin.jsp']
-        } as SinkCall);
+        const scripts = [
+            `let secondDir = location.pathname.split("/")[2];
+            fetch("/root/" + secondDir + "/testin.jsp");`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": 'fetch',
+                "args": ['/root/dir2/testin.jsp']
+            } as SinkCall,
+            false,
+            "http://test.com/dir1/dir2/dir3/page.html"
+        );
     });
 });

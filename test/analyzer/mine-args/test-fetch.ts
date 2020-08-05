@@ -1,26 +1,34 @@
 import { SinkCall } from "../../../src/analyzer/analyzer";
-import { makeAndRunSimple } from './common';
+import { runSingleTest } from "../run-tests-helper";
 
 
 describe("Analyzer finding args of fetch() calls", () => {
     it("works with window.fetch()", () => {
-        const analyzer = makeAndRunSimple('window.fetch("/testing/test");');
-
-        expect(analyzer.results.length).toBeGreaterThanOrEqual(1);
-        expect(analyzer.results).toContain({
-            "funcName": "window.fetch",
-            "args": ["/testing/test"]
-        } as SinkCall);
+        const scripts = [
+            `window.fetch("/testing/test");`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "window.fetch",
+                "args": ["/testing/test"]
+            } as SinkCall,
+            false
+        );
     });
 
     // TODO: does not currently work, reconsider whether it should be added
     xit("works with this.fetch()", () => {
-        const analyzer = makeAndRunSimple('this.fetch("/testing/test");');
-
-        expect(analyzer.results.length).toBeGreaterThanOrEqual(1);
-        expect(analyzer.results).toContain({
-            "funcName": "this.fetch",
-            "args": ["/testing/test"]
-        } as SinkCall);
+        const scripts = [
+            `this.fetch("/testing/test");`
+        ];
+        runSingleTest(
+            scripts,
+            {
+                "funcName": "this.fetch",
+                "args": ["/testing/test"]
+            } as SinkCall,
+            false
+        );
     });
 });

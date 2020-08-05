@@ -1,9 +1,9 @@
 import { runSingleTest } from "../run-tests-helper"
-import * as fs from 'fs';
+import * as fs from "fs";
 
 describe("Analyzer finding HARs of DEPs in combined stand", () => {
     it("DEP number 3 har (just ajax request)", function() {
-        const scripts  = [
+        const scripts = [
             `$.ajax({
                 url: '/application/jie8Ye/interface/aesi9X/handle',
                 data: {
@@ -32,11 +32,12 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 bodySize: 0,
                 method: "GET"   
             },
-            true);
+            true
+        );
     });
 
     it('DEP number 4 har (function is called when an event "onclick" occurs)', function() {
-        const scripts  = [
+        const scripts = [
             `function request4() {
                 $.ajax({
                     url: '/application/Yai0au/interface/Eikei0/handle',
@@ -72,7 +73,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 5 har (addEventListener function)", function() {
-        const scripts  = [
+        const scripts = [
             `function request5() {
                 $.ajax({
                     url: '/application/aeP2je/interface/aiH7io/handle',
@@ -109,7 +110,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 6 har (ajax request with string literals)", function() {
-        const scripts  = [
+        const scripts = [
             `function request6() {
                 $.ajax({
                     url: '/application/aet0Mu/interface/MooS8u/handle',
@@ -145,7 +146,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
     
     it("DEP number 7 har (concat global variable and string literal in request)", function() {
-        const scripts  = [
+        const scripts = [
             `var api = "/application/iuT6ei/";
 
             function request7() {
@@ -191,7 +192,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 8 har (params for ajax request are local variables)", function() {
-        const scripts  = [
+        const scripts = [
             `function request8() {
                 var url = "/application/gf32d2/interface/vcj442/handle";
                 var param = "lkvo24=1";
@@ -228,7 +229,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
  
     it("DEP number 9 (url depends on global var, which is changed in other script)", () => {
-        const scripts  = [
+        const scripts = [
             `var param9 = "";
 
             function request9() {
@@ -271,7 +272,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 10 har (overlapping scopes of variables)", function() {
-        const scripts  = [
+        const scripts = [
             fs.readFileSync(__dirname + "/../data/10.js").toString()
         ];
         runSingleTest(
@@ -304,7 +305,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 11 har (template strings)", function() {
-        const scripts  = [
+        const scripts = [
             fs.readFileSync(__dirname + "/../data/11.js").toString()
         ];
         runSingleTest(
@@ -336,7 +337,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 12 har (params for request taken from global config, which is literal object)", function() {
-        const scripts  = [
+        const scripts = [
             `function request12() {
                 var request_args = {
                     "nba67x": configUn1.ssx46
@@ -379,7 +380,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
     
     it("DEP number 13 har (params for request taken from global config, which is new Object)", function() {
-        const scripts  = [
+        const scripts = [
             `function request13() {
                 $.ajax({
                     type: "GET",
@@ -419,7 +420,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 14 har (params for request taken from local config, which is new Object)", function() {
-        const scripts  = [
+        const scripts = [
             `function request14() {
                 var request = new Object();
                 request.country = "country";
@@ -463,7 +464,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 16 har (IIFE and call-chain inside)", function() {
-        const scripts  = [
+        const scripts = [
             `(function () {
                 var entity = 91,
                     hand = 2,
@@ -527,7 +528,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     }); 
 
     it("DEP number 17 har (multipart request)", function() {
-        const scripts  = [
+        const scripts = [
             `function request17() {
                 var data = new FormData();
                 data.append('ffdj3v', '1');
@@ -589,7 +590,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 18 har (parse location for request params)", function() {
-        const scripts  = [
+        const scripts = [
             `function request18() {
                 var baseUrl = document.location.origin;
                 var path = window.location.pathname;
@@ -625,7 +626,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
     });
 
     it("DEP number 19 har (new JS features)", function() {
-        const scripts  = [
+        const scripts = [
             `request19 = () => {
                 const url = '/application/to0Hei/interface/maM2uc/handle';
                 let data = '2';
