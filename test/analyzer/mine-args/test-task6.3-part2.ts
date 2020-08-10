@@ -115,26 +115,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    /*it("task6.3 22-th test", () => {
-        const script = fs.readFileSync(`${__dirname}/../data/6_3task_tests/22.js`, "utf-8");
-        const url = 'http://js-training.seclab/js-dep/func-args/samples/computed/22.html';
-        const analyzer = makeAndRunSimple(script, url);
-        const check = JSON.parse(fs.readFileSync(`${__dirname}/../data/6_3task_tests/args22.json`, "utf-8"), function(k,v) {
-            if (v === "UNKNOWN") {
-                if (k === "Content-Type") {
-                    return undefined;
-                }
-                return UNKNOWN;
-            }
-            return v;
-        });
-       
-        expect(analyzer.results.length).toBeGreaterThanOrEqual(30);
-        const results = removeEmpty(analyzer.results);
-        for (let i = 0; i < 30; i++) {
-            expect(results).toContain(check[i]);
-        }
-
+    it("task6.3 22-th test", () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/22.js').toString()
         ];
@@ -144,7 +125,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
             false,
             'http://js-training.seclab/js-dep/func-args/samples/computed/22.html'
         );
-    });*/
+    });
 
     it("task6.3 26-th test", () => {
         const scripts = [

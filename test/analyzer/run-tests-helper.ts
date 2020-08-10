@@ -33,6 +33,9 @@ function makeHarInterface(harIn: HAR): any {
 function getArgsFromFile(path: string): any {
     const check = JSON.parse(fs.readFileSync(path).toString(), function (k, v) {
         if (v === "UNKNOWN") {
+            if (k === "Content-Type") {
+                return undefined;
+            }
             return UNKNOWN;
         }
         if (v === "FROM_FUNCTION_CALL") {
@@ -42,6 +45,17 @@ function getArgsFromFile(path: string): any {
     });
     return check;
 }
+
+function removeEmpty(obj) {
+    Object.keys(obj).forEach(key => {
+      if (obj[key] && typeof obj[key] === 'object') {
+          removeEmpty(obj[key]);
+      } else if (obj[key] === undefined) {
+        delete obj[key];
+      }
+    });
+    return obj;
+};
 
 export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://test.com/test'): Analyzer {
     const analyzer = new Analyzer();
@@ -83,9 +97,10 @@ export function runSingleTest(scripts: string[], checkingObj: any, isHAR: boolea
     } else {
         if (typeof checkingObj === 'string') {
             const argsFromFile = getArgsFromFile(checkingObj);
+            const results = removeEmpty(analyzer.results);
             for (let i = 0; i < argsFromFile.length; i++) {
                 if (argsFromFile[i] !== undefined) {
-                    expect(analyzer.results).toContain(argsFromFile[i] as SinkCall);
+                    expect(results).toContain(argsFromFile[i] as SinkCall);
                 }
             }
         } else {
