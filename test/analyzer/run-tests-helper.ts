@@ -1,33 +1,16 @@
 import { Analyzer, SinkCall } from "../../src/analyzer/analyzer";
-import { HAR } from "../../src/analyzer/har";
 import { UNKNOWN } from "../../src/analyzer/types/unknown";
 import * as fs from "fs";
 
-function makeHarInterface(harIn: HAR): any {
-    interface HARForCheck {
-        url: string;
-        method: string;
-        httpVersion: string;
-        headers: any;
-        queryString: any;
-        bodySize: number;
-        postData?: any;
-    }
-    const harOut: HARForCheck = {
-        url: harIn.url,
-        method: harIn.method,
-        httpVersion: harIn.httpVersion,
-        headers: new Set(harIn.headers),
-        queryString: new Set(harIn.queryString),
-        bodySize: harIn.bodySize,
-        postData: harIn.getPostData() ? harIn.getPostData() : null,
-    };
-    if (harOut.postData == null) {
-        delete harOut.postData;
-    } else if (typeof harOut.postData.params !== 'undefined'){
-        harOut.postData.params = new Set(harOut.postData.params);
-    }
-    return harOut;
+function makeSets(hars: any) {
+    hars.forEach(har => {
+        har.headers = new Set(har.headers);
+        har.queryString = new Set(har.queryString);
+        if (har.postData && har.postData.params) {
+            har.postData.params = new Set(har.postData.params);
+        }
+    });
+    return hars;
 }
 
 function getArgsFromFile(path: string): any {
@@ -73,25 +56,23 @@ export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://
 export function runSingleTest(scripts: string[], checkingObj: any, isHAR: boolean, url='http://test.com/test') {
     const analyzer = makeAndRunSimple(scripts, isHAR, url);
     if (isHAR === true) {
-        let convertedHars: any[] = [];
-        analyzer.hars.forEach((har) => {
-            convertedHars.push(makeHarInterface(har));
-        });
+        let convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
+        convertedHars = makeSets(convertedHars);
         if (typeof checkingObj === 'string') {
-            const harsForCheck = JSON.parse(fs.readFileSync(checkingObj).toString());
-            harsForCheck.forEach((har) => {
-                har.headers = new Set(har.headers);
-                har.queryString = new Set(har.queryString);
-                if (har.postData && har.postData.params) {
-                    har.postData.params = new Set(har.postData.params);
-                }
-            });
+            let harsForCheck = JSON.parse(fs.readFileSync(checkingObj).toString());
+            harsForCheck = makeSets(harsForCheck);
             for (let i = 0; i < harsForCheck.length; i++) {
                 if (harsForCheck[i] !== undefined) {
                     expect(convertedHars).toContain(harsForCheck[i]);
                 }
             }
         } else {
+            checkingObj = JSON.parse(JSON.stringify(checkingObj));
+            checkingObj.headers = new Set(Object.values(checkingObj.headers))
+            checkingObj.queryString = new Set(Object.values(checkingObj.queryString))
+            if (checkingObj.postData && checkingObj.postData.params) {
+                checkingObj.postData.params = new Set(Object.values(checkingObj.postData.params));
+            }
             expect(convertedHars).toContain(checkingObj);
         }
     } else {

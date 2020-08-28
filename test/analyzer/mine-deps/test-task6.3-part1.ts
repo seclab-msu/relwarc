@@ -13,18 +13,18 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://js-training.seclab/jp/eltex/xsp/ajax/custom/AjaxSuggestBean.json?q=UNKNOWN",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "q",
                         value: "UNKNOWN",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "js-training.seclab",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET",
             },
@@ -43,18 +43,18 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 method: "GET",
                 url: "http://js-training.seclab/doing/actions.php?n=x85",
                 httpVersion: "HTTP/1.1",
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "js-training.seclab",
                     },
-                ]),
-                queryString: new Set([
+                ],
+                queryString: [
                     {
                         name: "n",
                         value: "x85",
                     },
-                ]),
+                ],
                 bodySize: 0,
             },
             true,
@@ -66,7 +66,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 method: "PUT",
                 url: "http://js-training.seclab/doing/actions.php",
                 httpVersion: "HTTP/1.1",
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "js-training.seclab",
@@ -79,8 +79,8 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         name: "Content-Length",
                         value: "5",
                     },
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 5,
                 postData: {
                     text: "xn=85",
@@ -101,13 +101,13 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 method: "GET",
                 httpVersion: "HTTP/1.1",
                 bodySize: 0,
-                queryString: new Set([]),
-                headers: new Set([
+                queryString: [],
+                headers: [
                     {
                         value: "js-training.seclab",
                         name: "Host",
                     },
-                ]),
+                ],
                 url:
                     "http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131",
             },
@@ -126,7 +126,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 httpVersion: "HTTP/1.1",
                 bodySize: 106,
                 method: "POST",
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "js-training.seclab",
@@ -139,12 +139,12 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         value: "106",
                         name: "Content-Length",
                     },
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 url: "http://js-training.seclab/stats/",
                 postData: {
                     mimeType: "application/x-www-form-urlencoded",
-                    params: new Set([
+                    params: [
                         {
                             value: "wikiPageView",
                             name: "action",
@@ -154,7 +154,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                                 "http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
                             name: "url",
                         },
-                    ]),
+                    ],
                     text:
                         "action=wikiPageView&url=http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
                 },
@@ -178,7 +178,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 },
                 httpVersion: "HTTP/1.1",
                 method: "POST",
-                headers: new Set([
+                headers: [
                     {
                         value: "www.aninews.in",
                         name: "Host",
@@ -191,9 +191,9 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         value: "42",
                         name: "Content-Length",
                     },
-                ]),
+                ],
                 bodySize: 42,
-                queryString: new Set([]),
+                queryString: [],
             },
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/5.html'
@@ -210,15 +210,15 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 bodySize: 0,
                 url:
                     "https://www.site24x7.com/benchmarks/app?vertical=UNKNOWN&daySeparator=UNKNOWN",
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "www.site24x7.com",
                     },
-                ]),
+                ],
                 httpVersion: "HTTP/1.1",
                 method: "GET",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "vertical",
                         value: "UNKNOWN",
@@ -227,7 +227,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         value: "UNKNOWN",
                         name: "daySeparator",
                     },
-                ]),
+                ],
             },
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/6.html'
@@ -248,7 +248,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         '{"formId":"83e3b0f2-1aea-4e88-a9f7-70c399316d2e","formState":"UNKNOWN","fieldValues":"UNKNOWN","reCaptchaResponse":"UNKNOWN","files":"UNKNOWN"}',
                     mimeType: "application/json",
                 },
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "js-training.seclab",
@@ -265,10 +265,10 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         name: "Content-Length",
                         value: "143",
                     },
-                ]),
+                ],
                 httpVersion: "HTTP/1.1",
                 bodySize: 143,
-                queryString: new Set([]),
+                queryString: [],
                 method: "POST",
             },
             true,
@@ -326,7 +326,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                 url:
                     "https://report.seznamzpravy.cz.test.js-training.seclab/report/custom",
                 httpVersion: "HTTP/1.1",
-                headers: new Set([
+                headers: [
                     {
                         value: "report.seznamzpravy.cz.test.js-training.seclab",
                         name: "Host",
@@ -339,9 +339,9 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
                         name: "Content-Length",
                         value: "62",
                     },
-                ]),
+                ],
                 method: "POST",
-                queryString: new Set([]),
+                queryString: [],
                 postData: {
                     mimeType: "application/json",
                     text:

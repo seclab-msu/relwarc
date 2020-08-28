@@ -10,13 +10,13 @@ describe("Analyzer mining HARs from fetch() calls", () => {
             {
                 httpVersion: "HTTP/1.1",
                 url: "http://example.com/testing/tst",
-                queryString: new Set([]),
-                headers: new Set([
+                queryString: [],
+                headers: [
                     {
                         value: "example.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"
             },

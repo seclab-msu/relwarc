@@ -17,18 +17,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/jie8Ye/interface/aesi9X/handle?Po3oom=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "Po3oom",
                         value: "1",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -53,18 +53,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/Yai0au/interface/Eikei0/handle?Me1ii7=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "Me1ii7",
                         value: "1",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -90,18 +90,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/aeP2je/interface/aiH7io/handle?ieW5ie=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "ieW5ie",
                         value: "1",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -126,18 +126,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/aet0Mu/interface/MooS8u/handle?veiw4I=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "veiw4I",
                         value: "1",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -159,18 +159,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/iuT6ei/interface/Eek0Mu/handle",
-                queryString: new Set([]),
+                queryString: [],
                 postData: { 
                     text: 'eeNgi6=1', 
                     mimeType: 'application/x-www-form-urlencoded',
-                    params: new Set([
+                    params: [
                         { 
                             name: 'eeNgi6', 
                             value: '1' 
                         }
-                    ])
+                    ]
                 },
-                headers: new Set([
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
@@ -183,7 +183,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: 'Content-Length', 
                         value: '8' 
                     }
-                ]),
+                ],
                 bodySize: 8,
                 method: "POST"   
             },
@@ -209,18 +209,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/gf32d2/interface/vcj442/handle?lkvo24=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "lkvo24",
                         value: "1"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -248,7 +248,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/n3m1k2/interface/zgjj56/handle?lk90pj=1&control=asde11",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "lk90pj",
                         value: "1"
@@ -257,13 +257,13 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: "control",
                         value: "asde11"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -281,7 +281,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/p0065n/interface/zbtghr/handle?hg3f2d=4&id=12",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "hg3f2d",
                         value: "4"
@@ -290,13 +290,13 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: "id",
                         value: "12"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -314,13 +314,13 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 url: "http://test.com/application/kl3j5h/interface/32nhj4/handle?qh44j3=1&surveiller=po89uo",
                 method: "GET",
                 httpVersion: "HTTP/1.1",
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "test.com"
                     }
-                ]),
-                queryString: new Set([
+                ],
+                queryString: [
                     {
                         name: "qh44j3",
                         value: "1"
@@ -329,7 +329,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: "surveiller",
                         value: "po89uo"
                     }
-                ]),
+                ],
                 bodySize: 0  
             },
             true
@@ -361,18 +361,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/thq019/interface/nhqmz8/handle?nba67x=2",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "nba67x",
                         value: "2"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -400,18 +400,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/lm3b22/interface/b1nqjc/handle?a09bku=5",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "a09bku",
                         value: "5"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -436,7 +436,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/nh3k21/interface/hd73h4/handle?country=country&lang=language&phgoo9=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "country",
                         value: "country"
@@ -449,13 +449,13 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: "phgoo9",
                         value: "1"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -496,7 +496,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/lfi32b/interface/bjfu93/handle?nv7=91&qng1f3=2&id=1&windowpane=35129",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "nv7",
                         value: "91"
@@ -513,13 +513,13 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: "windowpane",
                         value: "35129"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -549,11 +549,11 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/j4b2yh/interface/9fdh32/handle",
-                queryString: new Set([]),
+                queryString: [],
                 postData: { 
                     text: null, 
                     mimeType: 'multipart/form-data',
-                    params: new Set([
+                    params: [
                         {
                             name: 'ffdj3v', 
                             value: '1' 
@@ -566,9 +566,9 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                             name: 'tag', 
                             value: 'rand' 
                         }
-                    ])
+                    ]
                 },
-                headers: new Set([
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
@@ -581,7 +581,7 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                         name: 'Content-Length', 
                         value: '0' 
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "POST"   
             },
@@ -606,18 +606,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/test/interface/Ua9xek/handle?abi1Lu=1",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "abi1Lu",
                         value: "1"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -648,18 +648,18 @@ describe("Analyzer finding HARs of DEPs in combined stand", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/application/to0Hei/interface/maM2uc/handle?Pue6Ee=2",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "Pue6Ee",
                         value: "2"
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     }
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },

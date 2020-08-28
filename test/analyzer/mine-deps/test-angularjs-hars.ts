@@ -14,7 +14,7 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl?id=12&param=delete",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "id",
                         value: "12",
@@ -23,13 +23,13 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                         name: "param",
                         value: "delete",
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -54,7 +54,7 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -67,8 +67,8 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '35' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 35,
                 postData: {
                   text: '{"name":"testparam","value":"test"}',
@@ -97,7 +97,7 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -110,8 +110,8 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '35' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 35,
                 postData: {
                   text: '{"name":"testparam","value":"test"}',
@@ -135,18 +135,18 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl?param=123",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "param",
                         value: "123",
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"
             },
@@ -170,7 +170,7 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -183,8 +183,8 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '34' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 34,
                 postData: {
                   text: '{"name":"username","value":"Name"}',
@@ -212,7 +212,7 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -225,8 +225,8 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '34' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 34,
                 postData: {
                   text: '{"name":"username","value":"Name"}',
@@ -250,18 +250,18 @@ describe("Tests for AngularJS library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/someUrl?param=123",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "param",
                         value: "123",
                     }
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"
             },

@@ -15,7 +15,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             {
                 method: "POST",
                 url: "http://example.com/123",
-                headers: new Set([
+                headers: [
                     {
                         name: "Host",
                         value: "example.com"
@@ -28,8 +28,8 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                         name: "Content-Length",
                         value: "4"
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 4,
                 postData: {
                     text: "DATA",
@@ -55,13 +55,13 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             {
                 method: 'GET',
                 url: "http://test.site/testxhr/get",
-                headers: new Set([
+                headers: [
                     {
                         name: 'Host',
                         value: 'test.site'
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 0,
                 httpVersion: 'HTTP/1.1'
             },
@@ -82,13 +82,13 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             {
                 method: 'GET',
                 url: "http://example.com/test?a=5&param=xx",
-                headers: new Set([
+                headers: [
                     {
                         name: 'Host',
                         value: 'example.com'
                     }
-                ]),
-                queryString: new Set([
+                ],
+                queryString: [
                     {
                         name: 'a',
                         value: '5'
@@ -97,7 +97,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                         name: 'param',
                         value: 'xx'
                     }
-                ]),
+                ],
                 bodySize: 0,
                 httpVersion: 'HTTP/1.1'
             },
@@ -120,7 +120,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             {
                 method: 'POST',
                 url: "http://example.com/test",
-                headers: new Set([
+                headers: [
                     {
                         name: 'Host',
                         value: 'example.com'
@@ -133,13 +133,13 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                         name: 'Content-Length',
                         value: '21'
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 21,
                 postData: {
                     text: 'param=val&param2=val2',
                     mimeType: 'application/x-www-form-urlencoded',
-                    params: new Set([
+                    params: [
                         {
                             name: 'param',
                             value: 'val'
@@ -148,7 +148,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                             name: 'param2',
                             value: 'val2'
                         }
-                    ])
+                    ]
                 },
                 httpVersion: 'HTTP/1.1'
             },

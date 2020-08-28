@@ -11,18 +11,18 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user?id=12",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "id",
                         value: "12",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -43,18 +43,18 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user?id=12",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "id",
                         value: "12",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -79,7 +79,7 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user/12345",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -92,8 +92,8 @@ describe("Tests for Axios library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '44' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 44,
                 postData: {
                   text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',
@@ -122,7 +122,7 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user/12345",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -135,8 +135,8 @@ describe("Tests for Axios library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '44' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 44,
                 postData: {
                   text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',
@@ -158,18 +158,18 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user?id=12",
-                queryString: new Set([
+                queryString: [
                     {
                         name: "id",
                         value: "12",
                     },
-                ]),
-                headers: new Set([
+                ],
+                headers: [
                     {
                         value: "test.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"   
             },
@@ -193,7 +193,7 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user/12345",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -206,7 +206,7 @@ describe("Tests for Axios library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '44' 
                     }
-                ]),
+                ],
                 queryString: new Set([]),
                 bodySize: 44,
                 postData: {
@@ -235,7 +235,7 @@ describe("Tests for Axios library's DEPs hars", () => {
                 httpVersion: "HTTP/1.1",
                 url:
                     "http://test.com/user/12345",
-                headers: new Set([
+                headers: [
                     { 
                         name: 'Host', 
                         value: 'test.com' 
@@ -248,8 +248,8 @@ describe("Tests for Axios library's DEPs hars", () => {
                         name: 'Content-Length', 
                         value: '44' 
                     }
-                ]),
-                queryString: new Set([]),
+                ],
+                queryString: [],
                 bodySize: 44,
                 postData: {
                   text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',

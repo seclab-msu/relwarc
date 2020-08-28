@@ -10,7 +10,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 2", () => {
         runSingleTest(
             scripts,
             {
-                queryString : new Set([
+                queryString : [
                    {
                       value : "134769",
                       name : "id"
@@ -19,15 +19,15 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 2", () => {
                       name : "disable_layout",
                       value : "1"
                    }
-                ]),
+                ],
                 bodySize : 0,
                 url : "http://js-training.seclab/news/news/view?id=134769&disable_layout=1",
-                headers : new Set([
+                headers : [
                    {
                       name : "Host",
                       value : "js-training.seclab"
                    }
-                ]),
+                ],
                 method : "GET",
                 httpVersion : "HTTP/1.1"
             },
@@ -103,19 +103,19 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 2", () => {
         runSingleTest(
             scripts,
             {
-                queryString : new Set([
+                queryString : [
                     {
                         value : "",
                         name : "UNKNOWN"
                     }
-                ]),
+                ],
                 method : "GET",
-                headers : new Set([
+                headers : [
                     {
                         value : "js-training.seclab",
                         name : "Host"
                     }
-                ]),
+                ],
                 bodySize : 0,
                 url : "http://js-training.seclab/api/channel/playlists?UNKNOWN",
                 httpVersion : "HTTP/1.1"
@@ -137,7 +137,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 2", () => {
         );
     });
 
-    /*it("task6.3 22-th test", () => {
+    it("task6.3 22-th test", () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/22.js').toString()
         ];
@@ -147,7 +147,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 2", () => {
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/22.html'
         );
-    });*/
+    });
 
     it("task6.3 26-th test", () => {
         const scripts = [

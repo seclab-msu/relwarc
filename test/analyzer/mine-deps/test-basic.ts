@@ -21,13 +21,13 @@ describe("Analyzer mining HARs for JS DEPs", () => {
             {
                 httpVersion: "HTTP/1.1",
                 url: "http://example.com/",
-                queryString: new Set([]),
-                headers: new Set([
+                queryString: [],
+                headers: [
                     {
                         value: "example.com",
                         name: "Host",
                     },
-                ]),
+                ],
                 bodySize: 0,
                 method: "GET"
             },
@@ -52,8 +52,8 @@ describe("Analyzer mining HARs for JS DEPs", () => {
             {
                 httpVersion: "HTTP/1.1",
                 url: "http://test.site/action",
-                queryString: new Set([]),
-                headers: new Set([
+                queryString: [],
+                headers: [
                     {
                         value: "test.site",
                         name: "Host",
@@ -66,15 +66,15 @@ describe("Analyzer mining HARs for JS DEPs", () => {
                         name: 'Content-Length', 
                         value: '8' 
                     }
-                ]),
+                ],
                 bodySize: 8,
                 method: "POST",
                 postData: {
                     text: "a=1&b=xx",
-                    params: new Set([
+                    params: [
                         { name: 'a', value: '1' },
                         { name: 'b', value: 'xx' }
-                    ]),
+                    ],
                     mimeType: "application/x-www-form-urlencoded"
                 }
             },
