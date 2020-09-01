@@ -1,24 +1,24 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest } from '../run-tests-helper';
 
-describe("Tests for Axios library's DEPs args", () => {
-    it("axios get request as function (without method)", function() {
+describe('Tests for Axios library\'s DEPs args', () => {
+    it('axios get request as function (without method)', function () {
         const scripts = [
             `axios('/user?id=12');`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "axios",
-                "args": [
-                    '/user?id=12'      
+                'funcName': 'axios',
+                'args': [
+                    '/user?id=12'
                 ]
             } as SinkCall,
             false
         );
     });
 
-    it("axios get request as function", function() {
+    it('axios get request as function', function () {
         const scripts = [
             `axios({
                 method: 'get',
@@ -28,8 +28,8 @@ describe("Tests for Axios library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "axios",
-                "args": [
+                'funcName': 'axios',
+                'args': [
                     {
                         method: 'get',
                         url: '/user?id=12'
@@ -40,7 +40,7 @@ describe("Tests for Axios library's DEPs args", () => {
         );
     });
 
-    it("axios post request as function", function() {
+    it('axios post request as function', function () {
         const scripts = [
             `axios({
                 method: 'post',
@@ -54,8 +54,8 @@ describe("Tests for Axios library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "axios",
-                "args": [
+                'funcName': 'axios',
+                'args': [
                     {
                         method: 'post',
                         url: '/user/12345',
@@ -70,7 +70,7 @@ describe("Tests for Axios library's DEPs args", () => {
         );
     });
 
-    it("axios put request as function", function() {
+    it('axios put request as function', function () {
         const scripts = [
             `axios({
                 method: 'put',
@@ -84,14 +84,14 @@ describe("Tests for Axios library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "axios",
-                "args": [
+                'funcName': 'axios',
+                'args': [
                     {
                         method: 'put',
                         url: '/user/12345',
                         data: {
-                          firstName: 'Fred',
-                          lastName: 'Flintstone'
+                            firstName: 'Fred',
+                            lastName: 'Flintstone'
                         }
                     }
                 ]
@@ -100,23 +100,23 @@ describe("Tests for Axios library's DEPs args", () => {
         );
     });
 
-    it("axios get request as object's method", function() {
+    it('axios get request as object\'s method', function () {
         const scripts = [
             `axios.get('/user?id=12')`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "axios.get",
-                "args": [
-                    "/user?id=12"
+                'funcName': 'axios.get',
+                'args': [
+                    '/user?id=12'
                 ]
             } as SinkCall,
             false
         );
     });
 
-    it("axios post request as object's method", function() {
+    it('axios post request as object\'s method', function () {
         const scripts = [
             `axios.post(
                 '/user/12345',
@@ -129,12 +129,12 @@ describe("Tests for Axios library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "axios.post",
-                "args": [
+                'funcName': 'axios.post',
+                'args': [
                     '/user/12345',
                     {
-                      firstName: 'Fred',
-                      lastName: 'Flintstone'
+                        firstName: 'Fred',
+                        lastName: 'Flintstone'
                     }
                 ]
             } as SinkCall,
@@ -142,7 +142,7 @@ describe("Tests for Axios library's DEPs args", () => {
         );
     });
 
-    it("axios put request as object's method", function() {
+    it('axios put request as object\'s method', function () {
         const scripts = [
             `axios.put(
                 '/user/12345',
@@ -155,12 +155,12 @@ describe("Tests for Axios library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "axios.put",
-                "args": [
+                'funcName': 'axios.put',
+                'args': [
                     '/user/12345',
                     {
-                      firstName: 'Fred',
-                      lastName: 'Flintstone'
+                        firstName: 'Fred',
+                        lastName: 'Flintstone'
                     }
                 ]
             } as SinkCall,

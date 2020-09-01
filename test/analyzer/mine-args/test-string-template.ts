@@ -1,8 +1,8 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest } from '../run-tests-helper';
 
-describe("Analyzer finding args of requests which used `template strings` as args", () => {
-    it("Template string without variables inside", function() {
+describe('Analyzer finding args of requests which used `template strings` as args', () => {
+    it('Template string without variables inside', function () {
         const scripts = [
             `var a = \`/randomurl?name=asd\`;
             $.ajax({ url: a});`
@@ -10,10 +10,10 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        url: "/randomurl?name=asd",
+                        url: '/randomurl?name=asd',
                     }
                 ]
             } as SinkCall,
@@ -21,19 +21,19 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         );
     });
 
-    it("Template string without constant part", function() {
+    it('Template string without constant part', function () {
         const scripts = [
-            `var url = "/randomtest/asdf?param=123";
+            `var url = '/randomtest/asdf?param=123';
             var a = \`\${url}\`;
             $.ajax({ url: a});`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        url: "/randomtest/asdf?param=123",
+                        url: '/randomtest/asdf?param=123',
                     }
                 ]
             } as SinkCall,
@@ -41,20 +41,19 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         );
     });
 
-    it("Template string with variable at the beginning", function() {
+    it('Template string with variable at the beginning', function () {
         const scripts = [
-            `var url = "/tests";
+            `var url = '/tests';
             var a = \`\${url}/anxj22?id=123\`;
             $.ajax({ url: a});`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                    
-                        url: "/tests/anxj22?id=123",
+                        url: '/tests/anxj22?id=123',
                     }
                 ]
             } as SinkCall,
@@ -62,19 +61,19 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         );
     });
 
-    it("Template string with variable in the middle", function() {
+    it('Template string with variable in the middle', function () {
         const scripts = [
-            `var url = "/tests";
+            `var url = '/tests';
             var a = \`/anxj22\${url}?id=123\`;
             $.ajax({ url: a});`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        url: "/anxj22/tests?id=123",
+                        url: '/anxj22/tests?id=123',
                     }
                 ]
             } as SinkCall,
@@ -82,7 +81,7 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         );
     });
 
-    it("Template string with variable in the end", function() {
+    it('Template string with variable in the end', function () {
         const scripts = [
             `var param = 123;
             var a = \`/test/anxj22?id=\${param}\`;
@@ -91,10 +90,10 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        url: "/test/anxj22?id=123",
+                        url: '/test/anxj22?id=123',
                     }
                 ]
             } as SinkCall,
@@ -102,20 +101,20 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         );
     });
 
-    it("Template string with two variables inside", function() {
+    it('Template string with two variables inside', function () {
         const scripts = [
             `var param = 123;
-            var urlPart = "anxj22";
+            var urlPart = 'anxj22';
             var a = \`/test/\${urlPart}?id=\${param}\`;
             $.ajax({ url: a});`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        url: "/test/anxj22?id=123",
+                        url: '/test/anxj22?id=123',
                     }
                 ]
             } as SinkCall,
@@ -123,21 +122,21 @@ describe("Analyzer finding args of requests which used `template strings` as arg
         );
     });
 
-    it("Template string with a lot of variables variables inside", function() {
+    it('Template string with a lot of variables variables inside', function () {
         const scripts = [
             `var param = 123;
-            var urlPart = "anxj22";
-            var urlpart2 = "/asdf";
+            var urlPart = 'anxj22';
+            var urlpart2 = '/asdf';
             var a = \`\${urlpart2}/test/\${urlPart}?id=\${param}&test=1234\`;
             $.ajax({ url: a});`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        url: "/asdf/test/anxj22?id=123&test=1234",
+                        url: '/asdf/test/anxj22?id=123&test=1234',
                     }
                 ]
             } as SinkCall,

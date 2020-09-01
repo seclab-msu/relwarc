@@ -1,36 +1,36 @@
-import { runSingleTest } from "../run-tests-helper";
+import { runSingleTest } from '../run-tests-helper';
 
-describe("Tests for Axios library's DEPs hars", () => {
-    it("axios get request as function (without method)", function() {
+describe('Tests for Axios library\'s DEPs hars', () => {
+    it('axios get request as function (without method)', function () {
         const scripts = [
             `axios('/user?id=12');`
         ];
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user?id=12",
+                    'http://test.com/user?id=12',
                 queryString: [
                     {
-                        name: "id",
-                        value: "12",
+                        name: 'id',
+                        value: '12',
                     },
                 ],
                 headers: [
                     {
-                        value: "test.com",
-                        name: "Host",
+                        value: 'test.com',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET"   
+                method: 'GET'
             },
             true
         );
     });
 
-    it("axios get request as function", function() {
+    it('axios get request as function', function () {
         const scripts = [
             `axios({
                 method: 'get',
@@ -40,29 +40,29 @@ describe("Tests for Axios library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user?id=12",
+                    'http://test.com/user?id=12',
                 queryString: [
                     {
-                        name: "id",
-                        value: "12",
+                        name: 'id',
+                        value: '12',
                     },
                 ],
                 headers: [
                     {
-                        value: "test.com",
-                        name: "Host",
+                        value: 'test.com',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET"   
+                method: 'GET'
             },
             true
         );
     });
 
-    it("axios post request as function", function() {
+    it('axios post request as function', function () {
         const scripts = [
             `axios({
                 method: 'post',
@@ -76,36 +76,36 @@ describe("Tests for Axios library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user/12345",
+                    'http://test.com/user/12345',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', 
-                        value: 'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '44' 
+                    {
+                        name: 'Content-Length',
+                        value: '44'
                     }
                 ],
                 queryString: [],
                 bodySize: 44,
                 postData: {
-                  text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',
-                  mimeType: 'application/json'
+                    text: '{"firstName":"Fred","lastName":"Flintstone"}',
+                    mimeType: 'application/json'
                 },
-                method: "POST"   
+                method: 'POST'
             },
             true
         );
     });
 
-    it("axios put request as function", function() {
+    it('axios put request as function', function () {
         const scripts = [
             `axios({
                 method: 'put',
@@ -119,65 +119,65 @@ describe("Tests for Axios library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user/12345",
+                    'http://test.com/user/12345',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', 
-                        value: 'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '44' 
+                    {
+                        name: 'Content-Length',
+                        value: '44'
                     }
                 ],
                 queryString: [],
                 bodySize: 44,
                 postData: {
-                  text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',
-                  mimeType: 'application/json'
+                    text: '{"firstName":"Fred","lastName":"Flintstone"}',
+                    mimeType: 'application/json'
                 },
-                method: "PUT"   
+                method: 'PUT'
             },
             true
         );
     });
 
-    it("axios get request as object's method", function() {
+    it('axios get request as object\'s method', function () {
         const scripts = [
             `axios.get('/user?id=12')`
         ];
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user?id=12",
+                    'http://test.com/user?id=12',
                 queryString: [
                     {
-                        name: "id",
-                        value: "12",
+                        name: 'id',
+                        value: '12',
                     },
                 ],
                 headers: [
                     {
-                        value: "test.com",
-                        name: "Host",
+                        value: 'test.com',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET"   
+                method: 'GET'
             },
             true
         );
     });
 
-    it("axios post request as object's method", function() {
+    it('axios post request as object\'s method', function () {
         const scripts = [
             `axios.post(
                 '/user/12345',
@@ -190,36 +190,36 @@ describe("Tests for Axios library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user/12345",
+                    'http://test.com/user/12345',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', 
-                        value: 'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '44' 
+                    {
+                        name: 'Content-Length',
+                        value: '44'
                     }
                 ],
                 queryString: new Set([]),
                 bodySize: 44,
                 postData: {
-                  text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',
-                  mimeType: 'application/json'
+                    text: '{"firstName":"Fred","lastName":"Flintstone"}',
+                    mimeType: 'application/json'
                 },
-                method: "POST"   
+                method: 'POST'
             },
             true
         );
     });
 
-    it("axios put request as object's method", function() {
+    it('axios put request as object\'s method', function () {
         const scripts = [
             `axios.put(
                 '/user/12345',
@@ -232,30 +232,30 @@ describe("Tests for Axios library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/user/12345",
+                    'http://test.com/user/12345',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', 
-                        value: 'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '44' 
+                    {
+                        name: 'Content-Length',
+                        value: '44'
                     }
                 ],
                 queryString: [],
                 bodySize: 44,
                 postData: {
-                  text: '{\"firstName\":\"Fred\",\"lastName\":\"Flintstone\"}',
-                  mimeType: 'application/json'
+                    text: '{"firstName":"Fred","lastName":"Flintstone"}',
+                    mimeType: 'application/json'
                 },
-                method: "PUT"   
+                method: 'PUT'
             },
             true
         );

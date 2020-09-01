@@ -1,12 +1,12 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest, makeAndRunSimple } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest, makeAndRunSimple } from '../run-tests-helper';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 
-describe("DEP sink call args are deduplicated", () => {
-    it("with two identical calls", () => {
+describe('DEP sink call args are deduplicated', () => {
+    it('with two identical calls', () => {
         const scripts = [
-            `fetch("/123");
-            fetch("/123");`
+            `fetch('/123');
+            fetch('/123');`
         ];
         const analyzer = makeAndRunSimple(
             scripts,
@@ -16,16 +16,16 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "fetch",
-                "args": [
-                    "/123"
+                'funcName': 'fetch',
+                'args': [
+                    '/123'
                 ]
             } as SinkCall,
             false
         );
     });
 
-    it("with different calls producing the same args", () => {
+    it('with different calls producing the same args', () => {
         const scripts = [
             `$.ajax("/test1234", {
                 'method': "POST",
@@ -51,22 +51,18 @@ describe("DEP sink call args are deduplicated", () => {
                 });
             }`
         ];
-        const analyzer = makeAndRunSimple(
-            scripts,
-            false
-        );
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
-                    "/test1234", 
+                'funcName': '$.ajax',
+                'args': [
+                    '/test1234',
                     {
-                        "method": "POST",
-                        "data": 
+                        'method': 'POST',
+                        'data':
                         {
                             x: 33,
-                            y: [5, 6, 7, 8, {"te": "st"}]
+                            y: [5, 6, 7, 8, { 'te': 'st' }]
                         }
                     }
                 ]
@@ -75,19 +71,20 @@ describe("DEP sink call args are deduplicated", () => {
         );
     });
 
-    it("with two sets of duplicates", () => {
+
+    it('with two sets of duplicates', () => {
         const scripts = [
-            `if (window.name === "kek") {
+            `if (window.name === 'kek') {
                 if (Math.random > 0.01) {
-                    fetch("/kek");
+                    fetch('/kek');
                 } else {
-                    $.get("/lol");
+                    $.get('/lol');
                 }
             } else {
                 if (Math.random > 0.01) {
-                    $.get("/lol");
+                    $.get('/lol');
                 } else {
-                    fetch("/kek");
+                    fetch('/kek');
                 }
             }`
         ];
@@ -99,9 +96,9 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "fetch",
-                "args": [
-                    "/kek"
+                'funcName': 'fetch',
+                'args': [
+                    '/kek'
                 ]
             } as SinkCall,
             false
@@ -109,21 +106,21 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$.get",
-                "args": [
-                    "/lol"
+                'funcName': '$.get',
+                'args': [
+                    '/lol'
                 ]
             } as SinkCall,
             false
         );
     });
 
-    it("duplicate unknown value in different calls", () => {
+    it('duplicate unknown value in different calls', () => {
         const scripts = [
             `$.ajax('/api/report.php', {
-                data: { value: document.querySelector("#info").value }
+                data: { value: document.querySelector('#info').value }
             });
-            var v = document.querySelectorAll(".moreinfo"),
+            var v = document.querySelectorAll('.moreinfo'),
                 d = {
                     value: v[0].value
                 };
@@ -139,13 +136,13 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": '$.ajax',
-                "args": [
-                    '/api/report.php', 
-                    { 
-                        data: { 
-                            value: UNKNOWN 
-                        } 
+                'funcName': '$.ajax',
+                'args': [
+                    '/api/report.php',
+                    {
+                        data: {
+                            value: UNKNOWN
+                        }
                     }
                 ]
             } as SinkCall,
@@ -153,14 +150,14 @@ describe("DEP sink call args are deduplicated", () => {
         );
     });
 
-    it("when duplication is caused by unknown val following call chain", () => {
+    it('when duplication is caused by unknown val following call chain', () => {
         const scripts = [
             `function g(data) {
                 var param = prompt();
                 f(param);
             }
             function f(x) {
-                $.ajax("/", { data: { param: x } });
+                $.ajax('/', { data: { param: x } });
             }`
         ];
         const analyzer = makeAndRunSimple(
@@ -171,13 +168,13 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": '$.ajax',
-                "args": [
-                    '/', 
-                    { 
-                        data: { 
-                            param: UNKNOWN 
-                        } 
+                'funcName': '$.ajax',
+                'args': [
+                    '/',
+                    {
+                        data: {
+                            param: UNKNOWN
+                        }
                     }
                 ]
             } as SinkCall,
@@ -185,14 +182,14 @@ describe("DEP sink call args are deduplicated", () => {
         );
     });
 
-    it("when duplication is caused by second call following call chain", () => {
+    it('when duplication is caused by second call following call chain', () => {
         const scripts = [
             `function g(data) {
                 var param = 'info';
                 f(param);
             }
             function f(x) {
-                $.ajax("/", { data: { param: x } });
+                $.ajax('/', { data: { param: x } });
                 fetch('/223344');
             }`
         ];
@@ -204,13 +201,13 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": '$.ajax',
-                "args": [
-                    '/', 
-                    { 
+                'funcName': '$.ajax',
+                'args': [
+                    '/',
+                    {
                         data: {
-                            param: 'info' 
-                        } 
+                            param: 'info'
+                        }
                     }
                 ]
             } as SinkCall,
@@ -219,8 +216,8 @@ describe("DEP sink call args are deduplicated", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": 'fetch',
-                "args": ['/223344']
+                'funcName': 'fetch',
+                'args': ['/223344']
             } as SinkCall,
             false
         );

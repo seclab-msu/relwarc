@@ -1,4 +1,4 @@
-import { runSingleTest } from "../run-tests-helper";
+import { runSingleTest } from '../run-tests-helper';
 
 
 describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
@@ -13,32 +13,32 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
         runSingleTest(
             scripts,
             {
-                method: "POST",
-                url: "http://example.com/123",
+                method: 'POST',
+                url: 'http://example.com/123',
                 headers: [
                     {
-                        name: "Host",
-                        value: "example.com"
+                        name: 'Host',
+                        value: 'example.com'
                     },
                     {
-                        name: "Content-Type",
-                        value: "text/plain"
+                        name: 'Content-Type',
+                        value: 'text/plain'
                     },
                     {
-                        name: "Content-Length",
-                        value: "4"
+                        name: 'Content-Length',
+                        value: '4'
                     }
                 ],
                 queryString: [],
                 bodySize: 4,
                 postData: {
-                    text: "DATA",
-                    mimeType: "text/plain"
+                    text: 'DATA',
+                    mimeType: 'text/plain'
                 },
                 httpVersion: 'HTTP/1.1'
             },
             true,
-            "http://example.com/"
+            'http://example.com/'
         );
     });
 
@@ -54,7 +54,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             scripts,
             {
                 method: 'GET',
-                url: "http://test.site/testxhr/get",
+                url: 'http://test.site/testxhr/get',
                 headers: [
                     {
                         name: 'Host',
@@ -81,7 +81,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             scripts,
             {
                 method: 'GET',
-                url: "http://example.com/test?a=5&param=xx",
+                url: 'http://example.com/test?a=5&param=xx',
                 headers: [
                     {
                         name: 'Host',
@@ -102,7 +102,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 httpVersion: 'HTTP/1.1'
             },
             true,
-            "http://example.com/"
+            'http://example.com/'
         );
     });
 
@@ -119,7 +119,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             scripts,
             {
                 method: 'POST',
-                url: "http://example.com/test",
+                url: 'http://example.com/test',
                 headers: [
                     {
                         name: 'Host',
@@ -153,7 +153,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 httpVersion: 'HTTP/1.1'
             },
             true,
-            "http://example.com/"
+            'http://example.com/'
         );
     });
 });

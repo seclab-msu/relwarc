@@ -1,5 +1,5 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest } from '../run-tests-helper';
 
 describe('Analyzer finding args of XMLHttpRequest calls', () => {
     it('basic case', () => {
@@ -13,8 +13,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         runSingleTest(
             scripts,
             {
-                "funcName": 'XMLHttpRequest.send',
-                "args": [
+                'funcName': 'XMLHttpRequest.send',
+                'args': [
                     {
                         'name': 'open',
                         'args': [
@@ -35,7 +35,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         );
     });
 
-    it("test with setRequestHeader", () => {
+    it('test with setRequestHeader', () => {
         const scripts = [
             `function f() {
                 var xhr = new XMLHttpRequest();
@@ -47,8 +47,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "XMLHttpRequest.send",
-                "args": [
+                'funcName': 'XMLHttpRequest.send',
+                'args': [
                     {
                         name: 'open',
                         args: [
@@ -65,8 +65,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                         ]
                     },
                     {
-                        "name": "send",
-                        "args": []
+                        'name': 'send',
+                        'args': []
                     }
                 ]
             } as SinkCall,
@@ -85,8 +85,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         runSingleTest(
             scripts,
             {
-                "funcName": 'XMLHttpRequest.send',
-                "args": [
+                'funcName': 'XMLHttpRequest.send',
+                'args': [
                     {
                         'name': 'open',
                         'args': [
@@ -105,7 +105,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         );
     });
 
-    it("test with parameters coming from args - call from another func", () => {
+    it('test with parameters coming from args - call from another func', () => {
         const scripts = [
             `function g() {
                 f('abcdef');
@@ -118,9 +118,9 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         ];
         runSingleTest(
             scripts,
-                {
-                "funcName": "XMLHttpRequest.send",
-                "args": [
+            {
+                'funcName': 'XMLHttpRequest.send',
+                'args': [
                     {
                         name: 'open',
                         args: [
@@ -130,8 +130,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                         ]
                     },
                     {
-                        "name": "send",
-                        "args": []
+                        'name': 'send',
+                        'args': []
                     }
                 ]
             } as SinkCall,
@@ -139,7 +139,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         );
     });
 
-    it("test with parameters coming from args - call from global", () => {
+    it('test with parameters coming from args - call from global', () => {
         const scripts = [
             `f('abcdef');
 
@@ -152,8 +152,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "XMLHttpRequest.send",
-                "args": [
+                'funcName': 'XMLHttpRequest.send',
+                'args': [
                     {
                         name: 'open',
                         args: [
@@ -163,8 +163,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                         ]
                     },
                     {
-                        "name": "send",
-                        "args": []
+                        'name': 'send',
+                        'args': []
                     }
                 ]
             } as SinkCall,
@@ -172,7 +172,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         );
     });
 
-    it("test with parameters coming from args - param in body", () => {
+    it('test with parameters coming from args - param in body', () => {
         const scripts = [
             `function g() {
                 f('abcdef');
@@ -187,8 +187,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "XMLHttpRequest.send",
-                "args": [
+                'funcName': 'XMLHttpRequest.send',
+                'args': [
                     {
                         name: 'open',
                         args: [
@@ -198,8 +198,8 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                         ]
                     },
                     {
-                        "name": "send",
-                        "args": ['x=abcdef']
+                        'name': 'send',
+                        'args': ['x=abcdef']
                     }
                 ]
             } as SinkCall,

@@ -1,23 +1,23 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest } from "../run-tests-helper";
-import { UNKNOWN } from "../../../src/analyzer/types/unknown";
-import * as fs from "fs";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest } from '../run-tests-helper';
+import { UNKNOWN } from '../../../src/analyzer/types/unknown';
+import * as fs from 'fs';
 
-describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
-    it("task 6.3 8-th test", () => {
+describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
+    it('task 6.3 8-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/8.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        "async": true,
-                        "url": "/news/news/view?id=134769&disable_layout=1",
-                        "type": "GET",
-                        "success": UNKNOWN
+                        'async': true,
+                        'url': '/news/news/view?id=134769&disable_layout=1',
+                        'type': 'GET',
+                        'success': UNKNOWN
                     }
                 ]
             } as SinkCall,
@@ -25,7 +25,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
             'http://js-training.seclab/js-dep/func-args/samples/computed/8.html'
         );
     });
-    it("task6.3 9-th test", () => {
+    it('task6.3 9-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/9.js').toString()
         ];
@@ -37,7 +37,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 10-th test", () => {
+    it('task6.3 10-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/10.js').toString()
         ];
@@ -49,7 +49,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 11-th test", () => {
+    it('task6.3 11-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/11.js').toString()
         ];
@@ -59,9 +59,9 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
             false,
             'http://js-training.seclab/js-dep/func-args/samples/computed/11.html'
         );
-    })
+    });
 
-    it("task6.3 12-th test", () => {
+    it('task6.3 12-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/12.js').toString()
         ];
@@ -73,7 +73,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 13-th test", () => {
+    it('task6.3 13-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/13.js').toString()
         ];
@@ -85,16 +85,16 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 14-th test", () => {
+    it('task6.3 14-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/14.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "fetch",
-                "args": [
-                    "/api/channel/playlists?UNKNOWN",
+                'funcName': 'fetch',
+                'args': [
+                    '/api/channel/playlists?UNKNOWN',
                     {}
                 ]
             } as SinkCall,
@@ -103,7 +103,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 15-th test", () => {
+    it('task6.3 15-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/15.js').toString()
         ];
@@ -115,7 +115,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 22-th test", () => {
+    it('task6.3 22-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/22.js').toString()
         ];
@@ -127,7 +127,7 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
         );
     });
 
-    it("task6.3 26-th test", () => {
+    it('task6.3 26-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/26.js').toString()
         ];
@@ -138,5 +138,4 @@ describe("Analyzer finding args of DEP sinks (from task 6.3) - part 2", () => {
             'http://js-training.seclab/js-dep/func-args/samples/computed/26.html'
         );
     });
-    
 });

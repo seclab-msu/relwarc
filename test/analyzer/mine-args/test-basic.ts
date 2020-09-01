@@ -1,81 +1,81 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest, makeAndRunSimple } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest, makeAndRunSimple } from '../run-tests-helper';
 
 
-describe("Analyzer finding args of DEP sinks", () => {
-    it("smoke test", function() {
+describe('Analyzer finding args of DEP sinks', () => {
+    it('smoke test', function () {
         const scripts = [
-            'console.log("Hello World!");'
+            `console.log('Hello World!');`
         ];
         makeAndRunSimple(
             scripts,
             false,
-            "http://test.com/test"
+            'http://test.com/test'
         );
     });
 
-    it("finds nothing for code without DEPS", () => {
+    it('finds nothing for code without DEPS', function () {
         const scripts = [
-            'console.log("Hello World!");'
+            `console.log('Hello World!');`
         ];
         const analyzer = makeAndRunSimple(
             scripts,
             false,
-            "http://test.com/test"
+            'http://test.com/test'
         );
-        expect(analyzer.results.length).toEqual(0);     
+        expect(analyzer.results.length).toEqual(0);
     });
 
-    it("handles fetch /", () => {
+    it('handles fetch /', function () {
         const scripts = [
-            'fetch("/");'
+            `fetch('/');`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "fetch",
-                "args": ["/"]
+                'funcName': 'fetch',
+                'args': ['/']
             } as SinkCall,
             false
         );
     });
 
-    it("handles $.ajax /", () => {
+    it('handles $.ajax /', function () {
         const scripts = [
-            '$.ajax("/");'
+            `$.ajax('/');`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": ["/"]
+                'funcName': '$.ajax',
+                'args': ['/']
             } as SinkCall,
             false
         );
     });
 
-    it("supports call with settings object", () => {
+    it('supports call with settings object', function () {
         const scripts = [
             `$.ajax({
-                method: "POST",
-                url: "http://test.site/action",
+                method: 'POST',
+                url: 'http://test.site/action',
                 data: {
                     a: 1,
-                    "b": "xx"
+                    'b': 'xx'
                 }
             });`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        method: "POST",
-                        url: "http://test.site/action",
+                        method: 'POST',
+                        url: 'http://test.site/action',
                         data: {
                             a: 1,
-                            b: "xx"
+                            b: 'xx'
                         }
                     }
                 ]
@@ -84,22 +84,22 @@ describe("Analyzer finding args of DEP sinks", () => {
         );
     });
 
-    it("supports several args", () => {
+    it('supports several args', function () {
         const scripts = [
-            `$.ajax("/test", {
-                method: "POST",
-                url: "http://test.site/action"
+            `$.ajax('/test', {
+                method: 'POST',
+                url: 'http://test.site/action'
             });`
         ];
         runSingleTest(
             scripts,
-            {   
-                "funcName": "$.ajax",
-                "args": [
-                    "/test",
+            {
+                'funcName': '$.ajax',
+                'args': [
+                    '/test',
                     {
-                        method: "POST",
-                        url: "http://test.site/action"
+                        method: 'POST',
+                        url: 'http://test.site/action'
                     }
                 ]
             } as SinkCall,
@@ -107,18 +107,18 @@ describe("Analyzer finding args of DEP sinks", () => {
         );
     });
 
-    it("supports integer addition", () => {
+    it('supports integer addition', function () {
         const scripts = [
             `$.ajax({
-                url: "/",
+                url: '/',
                 data: { a: 5 + 4 }
             });`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
                         url: '/',
                         data: { a: 9 }
@@ -129,20 +129,20 @@ describe("Analyzer finding args of DEP sinks", () => {
         );
     });
 
-    it("supports location.href", () => {
+    it('supports location.href', function () {
         const url = 'http://tst.io/testin?param=1337';
-        const scripts = [ 
+        const scripts = [
             `$.ajax({
-                data: { "myurl": location.href }
+                data: { 'myurl': location.href }
             });`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$.ajax",
-                "args": [
+                'funcName': '$.ajax',
+                'args': [
                     {
-                        data: { "myurl": url }
+                        data: { 'myurl': url }
                     }
                 ]
             } as SinkCall,

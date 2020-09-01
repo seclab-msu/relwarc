@@ -1,58 +1,58 @@
-import { runSingleTest } from "../run-tests-helper";
-import { UNKNOWN } from "../../../src/analyzer/types/unknown";
-import * as fs from "fs";
+import { runSingleTest } from '../run-tests-helper';
+import { UNKNOWN } from '../../../src/analyzer/types/unknown';
+import * as fs from 'fs';
 
-describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
-    it("sample 1", () => {
+describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
+    it('sample 1', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/1.js").toString()
+            fs.readFileSync(__dirname + '/../data/1.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://js-training.seclab/jp/eltex/xsp/ajax/custom/AjaxSuggestBean.json?q=UNKNOWN",
+                    'http://js-training.seclab/jp/eltex/xsp/ajax/custom/AjaxSuggestBean.json?q=UNKNOWN',
                 queryString: [
                     {
-                        name: "q",
-                        value: "UNKNOWN",
+                        name: 'q',
+                        value: 'UNKNOWN',
                     },
                 ],
                 headers: [
                     {
-                        value: "js-training.seclab",
-                        name: "Host",
+                        value: 'js-training.seclab',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET",
+                method: 'GET',
             },
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/1.html'
         );
     });
 
-    it("sample 2", () => {
+    it('sample 2', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/2.js").toString()
+            fs.readFileSync(__dirname + '/../data/2.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                method: "GET",
-                url: "http://js-training.seclab/doing/actions.php?n=x85",
-                httpVersion: "HTTP/1.1",
+                method: 'GET',
+                url: 'http://js-training.seclab/doing/actions.php?n=x85',
+                httpVersion: 'HTTP/1.1',
                 headers: [
                     {
-                        name: "Host",
-                        value: "js-training.seclab",
+                        name: 'Host',
+                        value: 'js-training.seclab',
                     },
                 ],
                 queryString: [
                     {
-                        name: "n",
-                        value: "x85",
+                        name: 'n',
+                        value: 'x85',
                     },
                 ],
                 bodySize: 0,
@@ -63,27 +63,27 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         runSingleTest(
             scripts,
             {
-                method: "PUT",
-                url: "http://js-training.seclab/doing/actions.php",
-                httpVersion: "HTTP/1.1",
+                method: 'PUT',
+                url: 'http://js-training.seclab/doing/actions.php',
+                httpVersion: 'HTTP/1.1',
                 headers: [
                     {
-                        name: "Host",
-                        value: "js-training.seclab",
+                        name: 'Host',
+                        value: 'js-training.seclab',
                     },
                     {
-                        name: "X-Tok",
-                        value: "abcd",
+                        name: 'X-Tok',
+                        value: 'abcd',
                     },
                     {
-                        name: "Content-Length",
-                        value: "5",
+                        name: 'Content-Length',
+                        value: '5',
                     },
                 ],
                 queryString: [],
                 bodySize: 5,
                 postData: {
-                    text: "xn=85",
+                    text: 'xn=85',
                 },
             },
             true,
@@ -91,72 +91,72 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         );
     });
 
-    it("sample 3", () => {
+    it('sample 3', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/3.js").toString()
+            fs.readFileSync(__dirname + '/../data/3.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                method: "GET",
-                httpVersion: "HTTP/1.1",
+                method: 'GET',
+                httpVersion: 'HTTP/1.1',
                 bodySize: 0,
                 queryString: [],
                 headers: [
                     {
-                        value: "js-training.seclab",
-                        name: "Host",
+                        value: 'js-training.seclab',
+                        name: 'Host',
                     },
                 ],
                 url:
-                    "http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131",
+                    'http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131',
             },
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/3.html'
         );
     });
 
-    it("sample 4", () => {
+    it('sample 4', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/4.js").toString()
+            fs.readFileSync(__dirname + '/../data/4.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 bodySize: 106,
-                method: "POST",
+                method: 'POST',
                 headers: [
                     {
-                        name: "Host",
-                        value: "js-training.seclab",
+                        name: 'Host',
+                        value: 'js-training.seclab',
                     },
                     {
-                        value: "application/x-www-form-urlencoded",
-                        name: "Content-Type",
+                        value: 'application/x-www-form-urlencoded',
+                        name: 'Content-Type',
                     },
                     {
-                        value: "106",
-                        name: "Content-Length",
+                        value: '106',
+                        name: 'Content-Length',
                     },
                 ],
                 queryString: [],
-                url: "http://js-training.seclab/stats/",
+                url: 'http://js-training.seclab/stats/',
                 postData: {
-                    mimeType: "application/x-www-form-urlencoded",
+                    mimeType: 'application/x-www-form-urlencoded',
                     params: [
                         {
-                            value: "wikiPageView",
-                            name: "action",
+                            value: 'wikiPageView',
+                            name: 'action',
                         },
                         {
                             value:
-                                "http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
-                            name: "url",
+                                'http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html',
+                            name: 'url',
                         },
                     ],
                     text:
-                        "action=wikiPageView&url=http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html",
+                        'action=wikiPageView&url=http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html',
                 },
             },
             true,
@@ -164,32 +164,32 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         );
     });
 
-    it("sample 5", () => {
+    it('sample 5', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/5.js").toString()
+            fs.readFileSync(__dirname + '/../data/5.js').toString()
         ];
         runSingleTest(
             scripts,
             {
-                url: "http://www.aninews.in/devices/",
+                url: 'http://www.aninews.in/devices/',
                 postData: {
                     text: '{"registration_id":"UNKNOWN","type":"web"}',
-                    mimeType: "application/json",
+                    mimeType: 'application/json',
                 },
-                httpVersion: "HTTP/1.1",
-                method: "POST",
+                httpVersion: 'HTTP/1.1',
+                method: 'POST',
                 headers: [
                     {
-                        value: "www.aninews.in",
-                        name: "Host",
+                        value: 'www.aninews.in',
+                        name: 'Host',
                     },
                     {
-                        name: "Content-Type",
-                        value: "application/json",
+                        name: 'Content-Type',
+                        value: 'application/json',
                     },
                     {
-                        value: "42",
-                        name: "Content-Length",
+                        value: '42',
+                        name: 'Content-Length',
                     },
                 ],
                 bodySize: 42,
@@ -200,32 +200,32 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         );
     });
 
-    it("sample 6", () => {
+    it('sample 6', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/6.js").toString()
+            fs.readFileSync(__dirname + '/../data/6.js').toString()
         ];
         runSingleTest(
             scripts,
             {
                 bodySize: 0,
                 url:
-                    "https://www.site24x7.com/benchmarks/app?vertical=UNKNOWN&daySeparator=UNKNOWN",
+                    'https://www.site24x7.com/benchmarks/app?vertical=UNKNOWN&daySeparator=UNKNOWN',
                 headers: [
                     {
-                        name: "Host",
-                        value: "www.site24x7.com",
+                        name: 'Host',
+                        value: 'www.site24x7.com',
                     },
                 ],
-                httpVersion: "HTTP/1.1",
-                method: "GET",
+                httpVersion: 'HTTP/1.1',
+                method: 'GET',
                 queryString: [
                     {
-                        name: "vertical",
-                        value: "UNKNOWN",
+                        name: 'vertical',
+                        value: 'UNKNOWN',
                     },
                     {
-                        value: "UNKNOWN",
-                        name: "daySeparator",
+                        value: 'UNKNOWN',
+                        name: 'daySeparator',
                     },
                 ],
             },
@@ -234,49 +234,49 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         );
     });
 
-    it("sample 7", () => {
+    it('sample 7', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/7.js").toString()
+            fs.readFileSync(__dirname + '/../data/7.js').toString()
         ];
         runSingleTest(
             scripts,
             {
                 url:
-                    "http://js-training.seclab/ODVA/_vti_bin/OID.SharePoint.FormBuilder/submissions.svc/",
+                    'http://js-training.seclab/ODVA/_vti_bin/OID.SharePoint.FormBuilder/submissions.svc/',
                 postData: {
                     text:
                         '{"formId":"83e3b0f2-1aea-4e88-a9f7-70c399316d2e","formState":"UNKNOWN","fieldValues":"UNKNOWN","reCaptchaResponse":"UNKNOWN","files":"UNKNOWN"}',
-                    mimeType: "application/json",
+                    mimeType: 'application/json',
                 },
                 headers: [
                     {
-                        name: "Host",
-                        value: "js-training.seclab",
+                        name: 'Host',
+                        value: 'js-training.seclab',
                     },
                     {
-                        name: "content-type",
-                        value: "application/json",
+                        name: 'content-type',
+                        value: 'application/json',
                     },
                     {
-                        name: "X-RequestDigest",
+                        name: 'X-RequestDigest',
                         value: UNKNOWN,
                     },
                     {
-                        name: "Content-Length",
-                        value: "143",
+                        name: 'Content-Length',
+                        value: '143',
                     },
                 ],
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 bodySize: 143,
                 queryString: [],
-                method: "POST",
+                method: 'POST',
             },
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/7.html'
         );
     });
 
-    it("sample 18", () => {
+    it('sample 18', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/18.js').toString()
         ];
@@ -288,7 +288,7 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         );
     });
 
-    xit("sample 19 (coming soon)", () => {
+    xit('sample 19 (coming soon)', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/19.js').toString()
         ];
@@ -298,12 +298,9 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
             true,
             'http://js-training.seclab/js-dep/func-args/samples/computed/19.html'
         );
-
-        // expect(makeSimpleHar(dep[2])).toEqual(convertToSet(check)[2]);
-        // checker(dep, convertToSet(check));
     });
 
-    it("sample 20", () => {
+    it('sample 20', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/20.js').toString()
         ];
@@ -315,35 +312,35 @@ describe("Analyzer mining HARs for JS DEPs (from task 6.3) - part 1", () => {
         );
     });
 
-    it("sample 21", () => {
+    it('sample 21', () => {
         const scripts = [
-            fs.readFileSync(__dirname + "/../data/21.js").toString()
+            fs.readFileSync(__dirname + '/../data/21.js').toString()
         ];
         runSingleTest(
             scripts,
             {
                 bodySize: 62,
                 url:
-                    "https://report.seznamzpravy.cz.test.js-training.seclab/report/custom",
-                httpVersion: "HTTP/1.1",
+                    'https://report.seznamzpravy.cz.test.js-training.seclab/report/custom',
+                httpVersion: 'HTTP/1.1',
                 headers: [
                     {
-                        value: "report.seznamzpravy.cz.test.js-training.seclab",
-                        name: "Host",
+                        value: 'report.seznamzpravy.cz.test.js-training.seclab',
+                        name: 'Host',
                     },
                     {
-                        name: "Content-Type",
-                        value: "application/json",
+                        name: 'Content-Type',
+                        value: 'application/json',
                     },
                     {
-                        name: "Content-Length",
-                        value: "62",
+                        name: 'Content-Length',
+                        value: '62',
                     },
                 ],
-                method: "POST",
+                method: 'POST',
                 queryString: [],
                 postData: {
-                    mimeType: "application/json",
+                    mimeType: 'application/json',
                     text:
                         '{"$type":"runner:error","message":"UNKNOWN","stack":"UNKNOWN"}',
                 },

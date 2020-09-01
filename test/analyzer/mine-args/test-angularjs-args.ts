@@ -1,8 +1,8 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest } from '../run-tests-helper';
 
-describe("Tests for AngularJS library's DEPs args", () => {
-    it("$http get request as function", function() {
+describe('Tests for AngularJS library\'s DEPs args', () => {
+    it('$http get request as function', function () {
         const scripts = [
             `$http({
                 method: 'GET',
@@ -12,11 +12,11 @@ describe("Tests for AngularJS library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$http",
-                "args": [
+                'funcName': '$http',
+                'args': [
                     {
                         method: 'GET',
-                        url: "/someUrl?id=12&param=delete"
+                        url: '/someUrl?id=12&param=delete'
                     }
                 ]
             } as SinkCall,
@@ -24,7 +24,7 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http post request as function", function() {
+    it('$http post request as function', function () {
         const scripts = [
             `$http({
                 method: 'POST',
@@ -38,16 +38,16 @@ describe("Tests for AngularJS library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$http",
-                "args": [
+                'funcName': '$http',
+                'args': [
                     {
                         method: 'POST',
-                        url: "/someUrl",
+                        url: '/someUrl',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },
-                        data: { 
-                            'testparam': 'test' 
+                        data: {
+                            'testparam': 'test'
                         }
                     }
                 ]
@@ -56,7 +56,7 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http put request as function", function() {
+    it('$http put request as function', function () {
         const scripts = [
             `$http({
                 method: 'PUT',
@@ -67,11 +67,11 @@ describe("Tests for AngularJS library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$http",
-                "args": [
+                'funcName': '$http',
+                'args': [
                     {
                         method: 'PUT',
-                        url: "/someUrl",
+                        url: '/someUrl',
                         data: { testval: 'value' }
                     }
                 ]
@@ -80,7 +80,7 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http jsonp request as function", function() {
+    it('$http jsonp request as function', function () {
         const scripts = [
             `$http({
                 method: 'JSONP',
@@ -90,11 +90,11 @@ describe("Tests for AngularJS library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$http",
-                "args": [
+                'funcName': '$http',
+                'args': [
                     {
                         method: 'JSONP',
-                        url: "/someUrl?param=1234"
+                        url: '/someUrl?param=1234'
                     }
                 ]
             } as SinkCall,
@@ -102,14 +102,14 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http get request as object's method", function() {
+    it('$http get request as object\'s method', function () {
         const scripts = [
             `$http.get(
                 '/someUrl?param=123',
                 {
                     headers: {
-                        "name": "X-Auth-Tok",
-                        "value": "5fc2de39242922efd3"
+                        'name': 'X-Auth-Tok',
+                        'value': '5fc2de39242922efd3'
                     }
                 }
             );`
@@ -117,13 +117,13 @@ describe("Tests for AngularJS library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$http.get",
-                "args": [
-                    "/someUrl?param=123",
+                'funcName': '$http.get',
+                'args': [
+                    '/someUrl?param=123',
                     {
                         headers: {
-                            "name": "X-Auth-Tok",
-                            "value": "5fc2de39242922efd3"
+                            'name': 'X-Auth-Tok',
+                            'value': '5fc2de39242922efd3'
                         }
                     }
                 ]
@@ -132,25 +132,25 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http post request as object's method", function() {
+    it('$http post request as object\'s method', function () {
         const scripts = [
             `$http.post(
                 '/someUrl',
                 {
-                    "name": "username",
-                    "value": "Name"
+                    'name': 'username',
+                    'value': 'Name'
                 }
             );`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$http.post",
-                "args": [
-                    "/someUrl",
+                'funcName': '$http.post',
+                'args': [
+                    '/someUrl',
                     {
-                        "name": "username",
-                        "value": "Name"
+                        'name': 'username',
+                        'value': 'Name'
                     }
                 ]
             } as SinkCall,
@@ -158,25 +158,25 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http put request as object's method", function() {
+    it('$http put request as object\'s method', function () {
         const scripts = [
             `$http.put(
                 '/someUrl',
                 {
-                    "name": "username",
-                    "value": "Name"
+                    'name': 'username',
+                    'value': 'Name'
                 }
             );`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": "$http.put",
-                "args": [
-                    "/someUrl",
+                'funcName': '$http.put',
+                'args': [
+                    '/someUrl',
                     {
-                        "name": "username",
-                        "value": "Name"
+                        'name': 'username',
+                        'value': 'Name'
                     }
                 ]
             } as SinkCall,
@@ -184,7 +184,7 @@ describe("Tests for AngularJS library's DEPs args", () => {
         );
     });
 
-    it("$http jsonp request as object's method", function() {
+    it('$http jsonp request as object\'s method', function () {
         const scripts = [
             `$http.jsonp(
                 '/someUrl?param=value'
@@ -193,9 +193,9 @@ describe("Tests for AngularJS library's DEPs args", () => {
         runSingleTest(
             scripts,
             {
-                "funcName": "$http.jsonp",
-                "args": [
-                    "/someUrl?param=value"
+                'funcName': '$http.jsonp',
+                'args': [
+                    '/someUrl?param=value'
                 ]
             } as SinkCall,
             false

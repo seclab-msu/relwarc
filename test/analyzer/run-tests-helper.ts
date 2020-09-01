@@ -1,6 +1,7 @@
-import { Analyzer, SinkCall } from "../../src/analyzer/analyzer";
-import { UNKNOWN } from "../../src/analyzer/types/unknown";
-import * as fs from "fs";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Analyzer, SinkCall } from '../../src/analyzer/analyzer';
+import { UNKNOWN } from '../../src/analyzer/types/unknown';
+import * as fs from 'fs';
 
 function makeSets(hars: any) {
     hars.forEach(har => {
@@ -15,13 +16,13 @@ function makeSets(hars: any) {
 
 function getArgsFromFile(path: string): any {
     const check = JSON.parse(fs.readFileSync(path).toString(), function (k, v) {
-        if (v === "UNKNOWN") {
-            if (k === "Content-Type") {
+        if (v === 'UNKNOWN') {
+            if (k === 'Content-Type') {
                 return undefined;
             }
             return UNKNOWN;
         }
-        if (v === "FROM_FUNCTION_CALL") {
+        if (v === 'FROM_FUNCTION_CALL') {
             return UNKNOWN;
         }
         return v;
@@ -31,14 +32,14 @@ function getArgsFromFile(path: string): any {
 
 function removeEmpty(obj) {
     Object.keys(obj).forEach(key => {
-      if (obj[key] && typeof obj[key] === 'object') {
-          removeEmpty(obj[key]);
-      } else if (obj[key] === undefined) {
-        delete obj[key];
-      }
+        if (obj[key] && typeof obj[key] === 'object') {
+            removeEmpty(obj[key]);
+        } else if (obj[key] === undefined) {
+            delete obj[key];
+        }
     });
     return obj;
-};
+}
 
 export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://test.com/test'): Analyzer {
     const analyzer = new Analyzer();
@@ -53,13 +54,16 @@ export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://
     return analyzer;
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function runSingleTest(scripts: string[], checkingObj: any, isHAR: boolean, url='http://test.com/test') {
     const analyzer = makeAndRunSimple(scripts, isHAR, url);
     if (isHAR === true) {
         let convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
         convertedHars = makeSets(convertedHars);
         if (typeof checkingObj === 'string') {
-            let harsForCheck = JSON.parse(fs.readFileSync(checkingObj).toString());
+            let harsForCheck = JSON.parse(
+                fs.readFileSync(checkingObj).toString()
+            );
             harsForCheck = makeSets(harsForCheck);
             for (let i = 0; i < harsForCheck.length; i++) {
                 if (harsForCheck[i] !== undefined) {
@@ -68,10 +72,14 @@ export function runSingleTest(scripts: string[], checkingObj: any, isHAR: boolea
             }
         } else {
             checkingObj = JSON.parse(JSON.stringify(checkingObj));
-            checkingObj.headers = new Set(Object.values(checkingObj.headers))
-            checkingObj.queryString = new Set(Object.values(checkingObj.queryString))
+            checkingObj.headers = new Set(Object.values(checkingObj.headers));
+            checkingObj.queryString = new Set(
+                Object.values(checkingObj.queryString)
+            );
             if (checkingObj.postData && checkingObj.postData.params) {
-                checkingObj.postData.params = new Set(Object.values(checkingObj.postData.params));
+                checkingObj.postData.params = new Set(
+                    Object.values(checkingObj.postData.params)
+                );
             }
             expect(convertedHars).toContain(checkingObj);
         }
@@ -86,6 +94,6 @@ export function runSingleTest(scripts: string[], checkingObj: any, isHAR: boolea
             }
         } else {
             expect(analyzer.results).toContain(checkingObj);
-        } 
+        }
     }
 }

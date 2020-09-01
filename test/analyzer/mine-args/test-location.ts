@@ -1,13 +1,13 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { runSingleTest, makeAndRunSimple } from "../run-tests-helper";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTest, makeAndRunSimple } from '../run-tests-helper';
 
 
-describe("Analyzing code that uses location object", () => {
-    it("does not fail on assigning", function() {
+describe('Analyzing code that uses location object', () => {
+    it('does not fail on assigning', function () {
         const scripts = [
-            `location = "/test";`,
-            `document.location = "/test";`,
-            `window.location = "/test";`
+            `location = '/test';`,
+            `document.location = '/test';`,
+            `window.location = '/test';`
         ];
         makeAndRunSimple(
             scripts,
@@ -15,10 +15,10 @@ describe("Analyzing code that uses location object", () => {
         );
     });
 
-    it("does not fail on assigning location property", function() {
+    it('does not fail on assigning location property', function () {
         const scripts = [
-            `location.href = "/test";`,
-            `document.location.href = "/test";`
+            `location.href = '/test';`,
+            `document.location.href = '/test';`
         ];
         makeAndRunSimple(
             scripts,
@@ -26,22 +26,10 @@ describe("Analyzing code that uses location object", () => {
         );
     });
 
-    it("does not fail when prop is set on copy", function() {
-        const scripts = [
-            `let x = location;
-            x.href = "/test";`
-        ];
-        makeAndRunSimple(
-            scripts,
-            false
-        );
-    });
-
-    it("does not fail when prop is set on copy after assigning", function() {
+    it('does not fail when prop is set on copy', function () {
         const scripts = [
             `let x = location;
-            location = "/test";
-            x.href = "/otherloc";`
+            x.href = '/test';`
         ];
         makeAndRunSimple(
             scripts,
@@ -49,53 +37,65 @@ describe("Analyzing code that uses location object", () => {
         );
     });
 
-    it("assigning location does not terminate analysis", function() {
+    it('does not fail when prop is set on copy after assigning', function () {
+        const scripts = [
+            `let x = location;
+            location = '/test';
+            x.href = '/otherloc';`
+        ];
+        makeAndRunSimple(
+            scripts,
+            false
+        );
+    });
+
+    it('assigning location does not terminate analysis', function () {
         const scripts = [
             `if (true) {
-                location = "/testingtest";
+                location = '/testingtest';
             }
-            fetch("/api/info.jsp");`
+            fetch('/api/info.jsp');`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": 'fetch',
-                "args": ['/api/info.jsp']
+                'funcName': 'fetch',
+                'args': ['/api/info.jsp']
             } as SinkCall,
             false
         );
     });
 
-    it("handles location.pathname usage", function() {
+    it('handles location.pathname usage', function () {
         const scripts = [
             `let path = location.pathname;
-            let secondDir = path.split("/")[2];
-            fetch("/root/" + secondDir + "/testin.jsp");`
+            let secondDir = path.split('/')[2];
+            fetch('/root/' + secondDir + '/testin.jsp');`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": 'fetch',
-                "args": ['/root/dir2/testin.jsp']
+                'funcName': 'fetch',
+                'args': ['/root/dir2/testin.jsp']
             } as SinkCall,
             false,
-            "http://test.com/dir1/dir2/dir3/page.html");
+            'http://test.com/dir1/dir2/dir3/page.html');
     });
 
     // TODO: this does not work for now
-    xit("handles location.pathname usage with immediate split", function() {
+    xit('handles location.pathname usage with immediate split', function () {
         const scripts = [
-            `let secondDir = location.pathname.split("/")[2];
-            fetch("/root/" + secondDir + "/testin.jsp");`
+            `let secondDir = location.pathname.split('/')[2];
+            fetch('/root/' + secondDir + '/testin.jsp');`
         ];
         runSingleTest(
             scripts,
             {
-                "funcName": 'fetch',
-                "args": ['/root/dir2/testin.jsp']
+                'funcName': 'fetch',
+                'args': ['/root/dir2/testin.jsp']
             } as SinkCall,
             false,
-            "http://test.com/dir1/dir2/dir3/page.html"
+            'http://test.com/dir1/dir2/dir3/page.html'
         );
     });
 });

@@ -1,7 +1,7 @@
-import { runSingleTest } from "../run-tests-helper";
+import { runSingleTest } from '../run-tests-helper';
 
-describe("Tests for AngularJS library's DEPs hars", () => {
-    it("$http get request as function", function() {
+describe('Tests for AngularJS library"s DEPs hars', () => {
+    it('$http get request as function', function () {
         const scripts = [
             `$http({
                 method: 'GET',
@@ -11,33 +11,33 @@ describe("Tests for AngularJS library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl?id=12&param=delete",
+                    'http://test.com/someUrl?id=12&param=delete',
                 queryString: [
                     {
-                        name: "id",
-                        value: "12",
+                        name: 'id',
+                        value: '12',
                     },
                     {
-                        name: "param",
-                        value: "delete",
+                        name: 'param',
+                        value: 'delete',
                     }
                 ],
                 headers: [
                     {
-                        value: "test.com",
-                        name: "Host",
+                        value: 'test.com',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET"   
+                method: 'GET'
             },
             true
         );
     });
 
-    it("$http post request as function", function() {
+    it('$http post request as function', function () {
         const scripts = [
             `$http({
                 method: 'POST',
@@ -51,36 +51,36 @@ describe("Tests for AngularJS library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl",
+                    'http://test.com/someUrl',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', value: 
-                        'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '35' 
+                    {
+                        name: 'Content-Length',
+                        value: '35'
                     }
                 ],
                 queryString: [],
                 bodySize: 35,
                 postData: {
-                  text: '{"name":"testparam","value":"test"}',
-                  mimeType: 'application/json'
+                    text: '{"name":"testparam","value":"test"}',
+                    mimeType: 'application/json'
                 },
-                method: "POST"   
+                method: 'POST'
             },
             true
         );
     });
 
-    it("$http put request as function", function() {
+    it('$http put request as function', function () {
         const scripts = [
             `$http({
                 method: 'PUT',
@@ -94,36 +94,36 @@ describe("Tests for AngularJS library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl",
+                    'http://test.com/someUrl',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', value: 
-                        'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '35' 
+                    {
+                        name: 'Content-Length',
+                        value: '35'
                     }
                 ],
                 queryString: [],
                 bodySize: 35,
                 postData: {
-                  text: '{"name":"testparam","value":"test"}',
-                  mimeType: 'application/json'
+                    text: '{"name":"testparam","value":"test"}',
+                    mimeType: 'application/json'
                 },
-                method: "PUT"   
+                method: 'PUT'
             },
             true
         );
     });
 
-    it("$http get request as object's method", function() {
+    it('$http get request as object\'s method', function () {
         const scripts = [
             `$http.get(
                 '/someUrl?param=123'
@@ -132,113 +132,113 @@ describe("Tests for AngularJS library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl?param=123",
+                    'http://test.com/someUrl?param=123',
                 queryString: [
                     {
-                        name: "param",
-                        value: "123",
+                        name: 'param',
+                        value: '123',
                     }
                 ],
                 headers: [
                     {
-                        value: "test.com",
-                        name: "Host",
+                        value: 'test.com',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET"
+                method: 'GET'
             },
             true
         );
-    });   
-       
-    it("$http post request as object's method", function() {
+    });
+
+    it('$http post request as object\'s method', function () {
         const scripts = [
             `$http.post(
                 '/someUrl',
                 {
-                    "name": "username",
-                    "value": "Name"
+                    'name': 'username',
+                    'value': 'Name'
                 }
             );`
         ];
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl",
+                    'http://test.com/someUrl',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', value: 
-                        'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '34' 
+                    {
+                        name: 'Content-Length',
+                        value: '34'
                     }
                 ],
                 queryString: [],
                 bodySize: 34,
                 postData: {
-                  text: '{"name":"username","value":"Name"}',
-                  mimeType: 'application/json'
+                    text: '{"name":"username","value":"Name"}',
+                    mimeType: 'application/json'
                 },
-                method: "POST"   
+                method: 'POST'
             },
             true
         );
     });
 
-    it("$http put request as object's method", function() {
+    it('$http put request as object\'s method', function () {
         const scripts = [
             `$http.put(
                 '/someUrl',
                 {
-                    "name": "username",
-                    "value": "Name"
+                    'name': 'username',
+                    'value': 'Name'
                 }
             );`
         ];
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl",
+                    'http://test.com/someUrl',
                 headers: [
-                    { 
-                        name: 'Host', 
-                        value: 'test.com' 
+                    {
+                        name: 'Host',
+                        value: 'test.com'
                     },
-                    { 
-                        name: 'Content-Type', value: 
-                        'application/json' 
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
                     },
-                    { 
-                        name: 'Content-Length', 
-                        value: '34' 
+                    {
+                        name: 'Content-Length',
+                        value: '34'
                     }
                 ],
                 queryString: [],
                 bodySize: 34,
                 postData: {
-                  text: '{"name":"username","value":"Name"}',
-                  mimeType: 'application/json'
+                    text: '{"name":"username","value":"Name"}',
+                    mimeType: 'application/json'
                 },
-                method: "PUT"   
+                method: 'PUT'
             },
             true
         );
     });
 
-    it("$http jsonp request as object's method", function() {
+    it('$http jsonp request as object\'s method', function () {
         const scripts = [
             `$http.jsonp(
                 '/someUrl?param=123'
@@ -247,25 +247,25 @@ describe("Tests for AngularJS library's DEPs hars", () => {
         runSingleTest(
             scripts,
             {
-                httpVersion: "HTTP/1.1",
+                httpVersion: 'HTTP/1.1',
                 url:
-                    "http://test.com/someUrl?param=123",
+                    'http://test.com/someUrl?param=123',
                 queryString: [
                     {
-                        name: "param",
-                        value: "123",
+                        name: 'param',
+                        value: '123',
                     }
                 ],
                 headers: [
                     {
-                        value: "test.com",
-                        name: "Host",
+                        value: 'test.com',
+                        name: 'Host',
                     },
                 ],
                 bodySize: 0,
-                method: "GET"
+                method: 'GET'
             },
             true
         );
-    }); 
+    });
 });
