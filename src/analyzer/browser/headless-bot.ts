@@ -5,7 +5,12 @@ const { create: createWebpage } = require('webpage');
 const WindowEvents = require('./window-events');
 
 import { getWrappedWindow } from '../utils/window';
-import { wait, formatStack, ErrorStackTraceFrame } from '../utils/common';
+import {
+    wait,
+    formatStack,
+    ErrorStackTraceFrame,
+    withTimeout, TimeoutError
+} from '../utils/common';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
@@ -27,6 +32,8 @@ interface Webpage {
 }
 
 export class HeadlessBot {
+    static readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
+
     onWindowCreated: null | ((win: object, doc: object) => void);
 
     readonly webpage: Webpage;
@@ -84,9 +91,23 @@ export class HeadlessBot {
     }
 
     async navigate(url: string): Promise<void> {
-        const status: string = await this.webpage.open(url);
+        let status: string | null = null;
+        try {
+            status = await withTimeout(
+                this.webpage.open(url),
+                HeadlessBot.LOAD_TIMEOUT
+            );
+        } catch (e) {
+            if (e instanceof TimeoutError) {
+                console.error(
+                    `Warning: timed out waiting for page ${url} to load`
+                );
+            } else {
+                throw e;
+            }
+        }
 
-        if (status !== 'success') {
+        if (status !== null && status !== 'success') {
             throw new Error('Failed to open URL ' + url);
         }
 
@@ -95,9 +116,22 @@ export class HeadlessBot {
             this.notifyAllRequestsAreDone = resolve;
         });
         await delay;
+
         if (this.pendingRequestCount === 0 && this.notifyAllRequestsAreDone) {
             this.notifyAllRequestsAreDone();
         }
-        await allRequestsAreDone;
+
+        try {
+            await withTimeout(allRequestsAreDone, HeadlessBot.LOAD_TIMEOUT);
+        } catch (e) {
+            if (e instanceof TimeoutError) {
+                console.error(
+                    `Warning: timed out waiting for all requests from ${url} ` +
+                    `to finish!`
+                );
+            } else {
+                throw e;
+            }
+        }
     }
 }

@@ -28,3 +28,17 @@ export function makeCallbackPromise(): [Promise<unknown>, () => void] {
 export function hasattr(ob: object, attr: string): boolean {
     return Object.prototype.hasOwnProperty.call(ob, attr);
 }
+
+export class TimeoutError extends Error {}
+
+export function withTimeout<T>(p: Promise<T>, timeout: number): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const timeoutID = setTimeout(() => {
+            reject(new TimeoutError('Operation timed out'));
+        }, timeout);
+        p.then(v => {
+            clearTimeout(timeoutID);
+            resolve(v);
+        });
+    });
+}
