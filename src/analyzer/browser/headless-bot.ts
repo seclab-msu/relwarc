@@ -12,6 +12,8 @@ import {
     withTimeout, TimeoutError
 } from '../utils/common';
 
+import { log } from '../logging';
+
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
 // TODO: replace with type definitions for slimerjs
@@ -22,6 +24,7 @@ interface ResourceResponse {
 // TODO: replace with type definitions for slimerjs
 interface Webpage {
     open(url: string): Promise<string>;
+    // render(filename: string, options?: any);
     settings: {
         [userAgent: string]: string
     };
@@ -99,7 +102,7 @@ export class HeadlessBot {
             );
         } catch (e) {
             if (e instanceof TimeoutError) {
-                console.error(
+                log(
                     `Warning: timed out waiting for page ${url} to load`
                 );
             } else {
@@ -125,7 +128,7 @@ export class HeadlessBot {
             await withTimeout(allRequestsAreDone, HeadlessBot.LOAD_TIMEOUT);
         } catch (e) {
             if (e instanceof TimeoutError) {
-                console.error(
+                log(
                     `Warning: timed out waiting for all requests from ${url} ` +
                     `to finish!`
                 );

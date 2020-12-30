@@ -51,6 +51,8 @@ import {
     wrapSeqInObjectExpressions
 } from './call-sequence';
 
+import { log } from './logging';
+
 const MAX_CALL_CHAIN = 5;
 
 const SPECIAL_PROP_NAMES = [
@@ -284,7 +286,7 @@ export class Analyzer {
             propName = this.valueFromASTNode(prop);
         } else {
             if (!isIdentifier(prop)) {
-                console.error('Warning: non-computed prop is not identifier');
+                log('Warning: non-computed prop is not identifier');
                 return;
             }
             propName = prop.name;
@@ -331,7 +333,7 @@ export class Analyzer {
             const binding = path.scope.getBinding(node.id.name);
 
             if (binding === null || typeof binding === 'undefined') {
-                console.error('Warning: no binding for declared local var');
+                log('Warning: no binding for declared local var');
                 return;
             }
 
@@ -373,7 +375,7 @@ export class Analyzer {
                     this.setVariable(path);
                 } else if (node.type === 'FunctionDeclaration') {
                     if (node.id === null) {
-                        console.error(
+                        log(
                             'Warning: id is null for function declaration: ' +
                                 JSON.stringify(node)
                         );
@@ -383,7 +385,7 @@ export class Analyzer {
                     const binding = path.scope.getBinding(node.id.name);
 
                     if (typeof binding === 'undefined') {
-                        console.error(
+                        log(
                             'Warning: no binding function declaration: ' +
                                 JSON.stringify(node)
                         );
@@ -560,7 +562,7 @@ export class Analyzer {
         }
         if (!node.computed) {
             if (!isIdentifier(node.property)) {
-                console.error('Warning: non-computed prop is not identifier');
+                log('Warning: non-computed prop is not identifier');
                 return UNKNOWN;
             }
             return this.getObjectProperty(ob, node.property.name);
@@ -1146,7 +1148,7 @@ export class Analyzer {
             try {
                 this.parsedScripts.push(parser.parse(script));
             } catch (err) {
-                console.error('Script parsing error: ' + err + '\n');
+                log('Script parsing error: ' + err + '\n');
             }
         }
         this.mergeASTs();
@@ -1157,14 +1159,19 @@ export class Analyzer {
     }
 
     mineArgsForDEPCalls(url: string): void {
+        log('Analyzer: start parsing code');
         this.parseCode();
+        log('Analyzer: done parsing code');
 
         this.seedGlobalScope(url);
 
+        log('Analyzer: start gathering variable values');
         this.gatherVariableValues();
 
+        log('Analyzer: search code for DEP calls');
         this.extractDEPs(this.mergedProgram, null);
 
+        log('Analyzer: search code for DEP calls using call chains');
         while (this.callQueue.length > 0) {
             const callConfig: CallConfig = this.callQueue.shift() as CallConfig;
 
@@ -1196,6 +1203,7 @@ export class Analyzer {
 
     analyze(url: string): void {
         this.mineArgsForDEPCalls(url);
+        log('Analyzer: code analysis done, now make HARs from found calls');
         this.makeHARsFromMinedDEPCallArgs(url);
     }
 }
