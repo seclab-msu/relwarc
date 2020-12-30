@@ -487,7 +487,17 @@ export class Analyzer {
         }
 
         if (callee.name === 'Headers') {
-            return this.valueFromASTNode(node.arguments[0]);
+            if (typeof node.arguments[0] === 'object') {
+                return this.valueFromASTNode(node.arguments[0]);
+            } else { // TODO: add test for this case
+                if (typeof node.arguments[0] !== 'undefined') {
+                    log(
+                        `Warning: expected new Headers arg to be either an ` +
+                        `object or undefined, but got ${node.arguments[0]})`
+                    );
+                }
+                return {};
+            }
         } else if (callee.name === 'Object') {
             return {};
         } else if (callee.name === 'FormData') {
