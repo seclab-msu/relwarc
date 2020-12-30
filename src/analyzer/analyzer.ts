@@ -374,7 +374,7 @@ export class Analyzer {
                 ) {
                     this.setVariable(path);
                 } else if (node.type === 'FunctionDeclaration') {
-                    if (node.id === null) {
+                    if (node.id === null || typeof node.id === 'undefined') {
                         log(
                             'Warning: id is null for function declaration: ' +
                                 JSON.stringify(node)
