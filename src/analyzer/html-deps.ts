@@ -37,17 +37,22 @@ export function mineDEPsFromHTML(webpage: object): HAR[] {
     const document = window.document;
 
     for (const a of document.getElementsByTagName('a')) {
+        if (a.href === '') {
+            // empty href means href attr was not present at all
+            // TODO: add test for it
+            continue;
+        }
         result.push(new HAR(a.href));
     }
 
     for (const form of document.getElementsByTagName('form')) {
         if (form.method !== 'get') {
             // TODO: implement other methods
-            console.error('Not implemened yet');
+            console.error('HTML DEPS: non-GET forms not implemened yet');
             continue;
         }
+
         result.push(harFromGETForm(form));
     }
-
     return result;
 }
