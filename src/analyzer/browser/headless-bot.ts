@@ -32,7 +32,7 @@ interface ResourceResponse {
 // TODO: replace with type definitions for slimerjs
 interface Webpage {
     open(url: string): Promise<string>;
-    render(filename: string, options?: any);
+    render(filename: string, options?: object);
     settings: {
         [userAgent: string]: string
     };
@@ -79,32 +79,8 @@ export class HeadlessBot {
             }
         });
 
-        this.webpage.onResourceRequested = (req) => {
-            this.pendingRequestCount++;
-            this.notifyLoadingContinues();
-            if (this.logRequests) {
-                log(
-                    `requested: ${req.url} count now ` +
-                    `${this.pendingRequestCount}`
-                );
-            }
-        };
-
-        this.webpage.onResourceReceived = response => {
-            if (response.stage !== 'end') {
-                return;
-            }
-            this.pendingRequestCount--;
-            if (this.logRequests) {
-                log(
-                    `request done ${response.url}: ` +
-                    `count now ${this.pendingRequestCount}`
-                );
-            }
-            if (this.pendingRequestCount === 0) {
-                this.ensureAllRequestsAreDone();
-            }
-        };
+        this.webpage.onResourceRequested = this.handleRequest.bind(this);
+        this.webpage.onResourceReceived = this.handleResponse.bind(this);
 
         this.webpage.onError = (message, stack) => {
             if (this.printPageErrors) {
@@ -116,7 +92,34 @@ export class HeadlessBot {
         };
     }
 
-    ensureAllRequestsAreDone() {
+    private handleRequest(req: ResourceRequest): void {
+        this.pendingRequestCount++;
+        this.notifyLoadingContinues();
+        if (this.logRequests) {
+            log(
+                `requested: ${req.url} count now ` +
+                `${this.pendingRequestCount}`
+            );
+        }
+    }
+
+    private handleResponse(response: ResourceResponse): void {
+        if (response.stage !== 'end') {
+            return;
+        }
+        this.pendingRequestCount--;
+        if (this.logRequests) {
+            log(
+                `request done ${response.url}: ` +
+                `count now ${this.pendingRequestCount}`
+            );
+        }
+        if (this.pendingRequestCount === 0) {
+            this.ensureAllRequestsAreDone();
+        }
+    }
+
+    private ensureAllRequestsAreDone(): void {
         this.loadedWatchdog = window.setTimeout(() => {
             if (
                 this.pendingRequestCount === 0 &&
@@ -127,10 +130,10 @@ export class HeadlessBot {
                     console.log('all requests done');
                 }
             }
-         }, LOADED_COOLDOWN);
+        }, LOADED_COOLDOWN);
     }
 
-    notifyLoadingContinues() {
+    private notifyLoadingContinues(): void {
         if (this.loadedWatchdog !== null) {
             window.clearTimeout(this.loadedWatchdog);
             this.loadedWatchdog = null;
