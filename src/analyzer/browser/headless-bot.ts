@@ -16,20 +16,28 @@ import { log } from '../logging';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
+const LOADED_COOLDOWN = 400;
+
+// TODO: replace with type definitions for slimerjs
+interface ResourceRequest {
+    url: string;
+}
+
 // TODO: replace with type definitions for slimerjs
 interface ResourceResponse {
     stage: string;
+    url: string;
 }
 
 // TODO: replace with type definitions for slimerjs
 interface Webpage {
     open(url: string): Promise<string>;
-    // render(filename: string, options?: any);
+    render(filename: string, options?: any);
     settings: {
         [userAgent: string]: string
     };
     onConsoleMessage: (msg: string) => void;
-    onResourceRequested: () => void;
+    onResourceRequested: (req: ResourceRequest) => void;
     onResourceReceived: (response: ResourceResponse) => void;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
 }
@@ -41,13 +49,16 @@ export class HeadlessBot {
 
     readonly webpage: Webpage;
     private readonly printPageErrors: boolean;
+    private readonly logRequests: boolean;
 
     private pendingRequestCount: number;
     private notifyAllRequestsAreDone: null | (() => void);
+    private loadedWatchdog: number | null;
 
     constructor(printPageErrors=false, printPageConsoleLog=true) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
+        this.logRequests = true;
 
         if (printPageConsoleLog) {
             this.webpage.onConsoleMessage = msg => console.log('webpage> ' + msg);
@@ -58,6 +69,7 @@ export class HeadlessBot {
         this.onWindowCreated = null;
         this.pendingRequestCount = 0;
         this.notifyAllRequestsAreDone = null;
+        this.loadedWatchdog = null;
 
         WindowEvents.on(WindowEvents.DOCUMENT_CREATED_EVENT, (win, doc) => {
             if (
@@ -67,8 +79,15 @@ export class HeadlessBot {
             }
         });
 
-        this.webpage.onResourceRequested = () => {
+        this.webpage.onResourceRequested = (req) => {
             this.pendingRequestCount++;
+            this.notifyLoadingContinues();
+            if (this.logRequests) {
+                log(
+                    `requested: ${req.url} count now ` +
+                    `${this.pendingRequestCount}`
+                );
+            }
         };
 
         this.webpage.onResourceReceived = response => {
@@ -76,10 +95,14 @@ export class HeadlessBot {
                 return;
             }
             this.pendingRequestCount--;
-            if (
-                this.pendingRequestCount === 0 && this.notifyAllRequestsAreDone
-            ) {
-                this.notifyAllRequestsAreDone();
+            if (this.logRequests) {
+                log(
+                    `request done ${response.url}: ` +
+                    `count now ${this.pendingRequestCount}`
+                );
+            }
+            if (this.pendingRequestCount === 0) {
+                this.ensureAllRequestsAreDone();
             }
         };
 
@@ -91,6 +114,27 @@ export class HeadlessBot {
                 );
             }
         };
+    }
+
+    ensureAllRequestsAreDone() {
+        this.loadedWatchdog = window.setTimeout(() => {
+            if (
+                this.pendingRequestCount === 0 &&
+                this.notifyAllRequestsAreDone
+            ) {
+                this.notifyAllRequestsAreDone();
+                if (this.logRequests) {
+                    console.log('all requests done');
+                }
+            }
+         }, LOADED_COOLDOWN);
+    }
+
+    notifyLoadingContinues() {
+        if (this.loadedWatchdog !== null) {
+            window.clearTimeout(this.loadedWatchdog);
+            this.loadedWatchdog = null;
+        }
     }
 
     async navigate(url: string): Promise<void> {
@@ -114,14 +158,14 @@ export class HeadlessBot {
             throw new Error('Failed to open URL ' + url);
         }
 
-        const delay = wait(100);
+        const delay = wait(LOADED_COOLDOWN);
         const allRequestsAreDone = new Promise(resolve => {
             this.notifyAllRequestsAreDone = resolve;
         });
         await delay;
 
         if (this.pendingRequestCount === 0 && this.notifyAllRequestsAreDone) {
-            this.notifyAllRequestsAreDone();
+            this.ensureAllRequestsAreDone();
         }
 
         try {
