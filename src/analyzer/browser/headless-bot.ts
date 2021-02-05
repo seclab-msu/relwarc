@@ -4,6 +4,8 @@ const { create: createWebpage } = require('webpage');
 
 const WindowEvents = require('./window-events');
 
+import { observeMutations } from './mutation-observer';
+
 import { getWrappedWindow } from '../utils/window';
 import {
     wait,
@@ -16,7 +18,7 @@ import { log } from '../logging';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
-const LOADED_COOLDOWN = 400;
+const LOADED_COOLDOWN = 250;
 
 // TODO: replace with type definitions for slimerjs
 interface ResourceRequest {
@@ -50,15 +52,20 @@ export class HeadlessBot {
     readonly webpage: Webpage;
     private readonly printPageErrors: boolean;
     private readonly logRequests: boolean;
+    private readonly trackDOMMutations: boolean;
 
     private pendingRequestCount: number;
-    private notifyAllRequestsAreDone: null | (() => void);
+    private notifyPageIsLoaded: null | (() => void);
     private loadedWatchdog: number | null;
+    private lastDOMMutation: number | null;
+
+    private mutationObserver: MutationObserver | null;
 
     constructor(printPageErrors=false, printPageConsoleLog=true) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
         this.logRequests = true;
+        this.trackDOMMutations = true;
 
         if (printPageConsoleLog) {
             this.webpage.onConsoleMessage = msg => console.log('webpage> ' + msg);
@@ -68,14 +75,21 @@ export class HeadlessBot {
 
         this.onWindowCreated = null;
         this.pendingRequestCount = 0;
-        this.notifyAllRequestsAreDone = null;
+        this.notifyPageIsLoaded = null;
         this.loadedWatchdog = null;
+        this.mutationObserver = null;
+        this.lastDOMMutation = null;
 
         WindowEvents.on(WindowEvents.DOCUMENT_CREATED_EVENT, (win, doc) => {
             if (
                 win === getWrappedWindow(this.webpage) && this.onWindowCreated
             ) {
                 this.onWindowCreated(win, doc);
+                if (this.trackDOMMutations) {
+                    this.mutationObserver = observeMutations(win, () => {
+                        this.lastDOMMutation = Date.now();
+                    });
+                }
             }
         });
 
@@ -115,20 +129,38 @@ export class HeadlessBot {
             );
         }
         if (this.pendingRequestCount === 0) {
-            this.ensureAllRequestsAreDone();
+            this.ensurePageIsLoaded();
         }
     }
 
-    private ensureAllRequestsAreDone(): void {
+    private ensurePageIsLoaded(): void {
         this.loadedWatchdog = window.setTimeout(() => {
             if (
-                this.pendingRequestCount === 0 &&
-                this.notifyAllRequestsAreDone
+                this.pendingRequestCount !== 0 ||
+                this.notifyPageIsLoaded === null
             ) {
-                this.notifyAllRequestsAreDone();
-                if (this.logRequests) {
-                    console.log('all requests done');
+                return;
+            }
+
+            if (this.trackDOMMutations) {
+                let sinceLastMutation = Infinity;
+
+                if (this.lastDOMMutation !== null) {
+                    sinceLastMutation = Date.now() - this.lastDOMMutation;
                 }
+
+                if (sinceLastMutation < LOADED_COOLDOWN) {
+                    if (this.logRequests) {
+                        log('DOM was mutated, wait a bit more to load!');
+                    }
+                    this.ensurePageIsLoaded();
+                    return;
+                }
+            }
+
+            this.notifyPageIsLoaded();
+            if (this.logRequests) {
+                log('all requests done and page is loaded');
             }
         }, LOADED_COOLDOWN);
     }
@@ -162,17 +194,17 @@ export class HeadlessBot {
         }
 
         const delay = wait(LOADED_COOLDOWN);
-        const allRequestsAreDone = new Promise(resolve => {
-            this.notifyAllRequestsAreDone = resolve;
+        const pageIsLoaded = new Promise(resolve => {
+            this.notifyPageIsLoaded = resolve;
         });
         await delay;
 
-        if (this.pendingRequestCount === 0 && this.notifyAllRequestsAreDone) {
-            this.ensureAllRequestsAreDone();
+        if (this.pendingRequestCount === 0 && this.notifyPageIsLoaded) {
+            this.ensurePageIsLoaded();
         }
 
         try {
-            await withTimeout(allRequestsAreDone, HeadlessBot.LOAD_TIMEOUT);
+            await withTimeout(pageIsLoaded, HeadlessBot.LOAD_TIMEOUT);
         } catch (e) {
             if (e instanceof TimeoutError) {
                 log(
@@ -181,6 +213,10 @@ export class HeadlessBot {
                 );
             } else {
                 throw e;
+            }
+        } finally {
+            if (this.mutationObserver !== null) {
+                this.mutationObserver.disconnect();
             }
         }
     }
