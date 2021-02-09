@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 
 describe('Tests for Axios library\'s DEPs args', () => {
     it('axios get request as function (without method)', function () {

@@ -1,4 +1,4 @@
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 import * as fs from 'fs';
 
 describe('Analyzer finding HARs of DEPs in combined stand', () => {

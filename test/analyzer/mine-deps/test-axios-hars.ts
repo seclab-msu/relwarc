@@ -1,4 +1,4 @@
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 
 describe('Tests for Axios library\'s DEPs hars', () => {
     it('axios get request as function (without method)', function () {

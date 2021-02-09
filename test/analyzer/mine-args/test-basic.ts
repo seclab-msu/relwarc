@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest, makeAndRunSimple } from '../run-tests-helper';
+import { runSingleTest, makeAndRunSimple } from '../utils';
 
 
 describe('Analyzer finding args of DEP sinks', () => {

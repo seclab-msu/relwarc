@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 import { FormDataModel } from '../../../src/analyzer/types/form-data';
 import * as fs from 'fs';
 

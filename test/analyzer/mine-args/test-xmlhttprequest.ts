@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 
 describe('Analyzer finding args of XMLHttpRequest calls', () => {
     it('basic case', () => {

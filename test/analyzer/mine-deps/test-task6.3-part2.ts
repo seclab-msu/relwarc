@@ -1,4 +1,4 @@
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 import * as fs from 'fs';
 
 describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 2', () => {

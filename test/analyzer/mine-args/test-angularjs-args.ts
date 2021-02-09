@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 
 describe('Tests for AngularJS library\'s DEPs args', () => {
     it('$http get request as function', function () {

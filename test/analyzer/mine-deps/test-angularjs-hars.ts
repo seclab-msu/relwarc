@@ -1,4 +1,4 @@
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 
 describe('Tests for AngularJS library"s DEPs hars', () => {
     it('$http get request as function', function () {

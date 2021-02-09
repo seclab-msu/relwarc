@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 
 describe('Analyzer finding args of requests which used `template strings` as args', () => {
     it('Template string without variables inside', function () {

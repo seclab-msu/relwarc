@@ -1,4 +1,4 @@
-import { runSingleTest } from '../run-tests-helper';
+import { runSingleTest } from '../utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 import * as fs from 'fs';
 
