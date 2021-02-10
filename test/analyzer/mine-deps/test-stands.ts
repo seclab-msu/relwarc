@@ -1,5 +1,4 @@
-import { runSingleTest } from '../utils';
-import { UNKNOWN } from '../../../src/analyzer/types/unknown';
+import { runSingleTestHAR } from '../utils';
 import * as fs from 'fs';
 
 describe('Analyzer mining HARs for DEPs in stands', () => {
@@ -7,7 +6,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/aldine.edu.in.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -39,8 +38,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                     mimeType: 'application/x-www-form-urlencoded'
                 }
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -48,7 +46,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/asbilbayi.com.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -68,8 +66,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -77,7 +74,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/jaist.ac.jp.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -96,8 +93,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -105,7 +101,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/myporn.club.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -136,8 +132,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                     mimeType: 'application/x-www-form-urlencoded'
                 }
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -145,7 +140,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/neuvoo.co.in.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -166,8 +161,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -175,7 +169,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/popco.net.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -194,8 +188,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -203,7 +196,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/zeebiz.com.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -218,8 +211,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://zeebiz.com.stands.fuchsia/market/stock-index-bse-sensex'
+            'http://zeebiz.com.stands.fuchsia/market/stock-index-bse-sensex',
         );
     });
 
@@ -228,7 +220,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         fs.readdirSync(__dirname + '/../data/superprof.es').forEach(file => {
             scripts.push(fs.readFileSync(__dirname + '/../data/superprof.es/' + file).toString());
         });
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -246,17 +238,16 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                     mimeType: 'multipart/form-data',
                     params: [
                         { name: 'action', value: 'wpdLoadMoreComments' },
-                        { name: 'offset', value: 1 },
+                        { name: 'offset', value: '1' },
                         { name: 'orderBy', value: 'comment_date_gmt' },
                         { name: 'order', value: 'desc' },
-                        { name: 'lastParentId', value: UNKNOWN },
-                        { name: 'wpdiscuz_last_visit', value: UNKNOWN },
-                        { name: 'postId', value: 48839 }
+                        { name: 'lastParentId', value: 'UNKNOWN' },
+                        { name: 'wpdiscuz_last_visit', value: 'UNKNOWN' },
+                        { name: 'postId', value: '48839' }
                     ]
                 }
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -265,7 +256,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         fs.readdirSync(__dirname + '/../data/baodautu.vn').forEach(file => {
             scripts.push(fs.readFileSync(__dirname + '/../data/baodautu.vn/' + file).toString());
         });
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 url: 'http://example.com/index.php?mod=home&act=like_comment',
@@ -289,8 +280,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                     ]
                 }
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
     it('akademus.es', () => {
@@ -298,7 +288,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
         fs.readdirSync(__dirname + '/../data/akademus.es').forEach(file => {
             scripts.push(fs.readFileSync(__dirname + '/../data/akademus.es/' + file).toString());
         });
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 url: 'http://example.com/api/user/forgot-password/?username=UNKNOWN&format=json&callback=jQuery111106567430573505544_1591529444128',
@@ -314,8 +304,7 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
                 ],
                 bodySize: 0,
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 });

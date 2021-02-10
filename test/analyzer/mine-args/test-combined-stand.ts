@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 import { FormDataModel } from '../../../src/analyzer/types/form-data';
 import * as fs from 'fs';
 
@@ -13,7 +13,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 },
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -24,7 +24,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -39,7 +38,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -50,7 +49,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -66,7 +64,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
             }
             document.getElementById('req5').addEventListener('click', request5);`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -77,7 +75,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -92,7 +89,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -103,7 +100,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -115,7 +111,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 $.post(api+'interface/Eek0Mu/handle', {'eeNgi6': '1'});
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.post',
@@ -125,7 +121,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                         eeNgi6: '1'
                     }]
             } as SinkCall,
-            false
         );
     });
 
@@ -141,7 +136,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -151,7 +146,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     data: 'lkvo24=1'
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -169,7 +163,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
             }`
         ];
         scripts.push(`param9 = 'control=' + 'asde11';`);
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -178,7 +172,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     url: '/application/n3m1k2/interface/zgjj56/handle?lk90pj=1&control=asde11'
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -186,7 +179,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/10.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -195,7 +188,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     url: '/application/p0065n/interface/zbtghr/handle?hg3f2d=4&id=12'
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -203,7 +195,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/11.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -212,7 +204,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     url: '/application/kl3j5h/interface/32nhj4/handle?qh44j3=1&surveiller=po89uo'
                 }]
             } as SinkCall,
-            false);
+        );
     });
 
     it('DEP number 12 (params for request taken from global config, which is literal object)', function () {
@@ -234,7 +226,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 ssx46: 2
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -246,7 +238,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -265,7 +256,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
             configUn2.isActive = '0';
             configUn2.a09bku = 5;`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -275,7 +266,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     data: 'a09bku=5'
                 }]
             } as SinkCall,
-            false);
+        );
     });
 
     it('DEP number 14 (params for request taken from local config, which is new Object)', function () {
@@ -289,7 +280,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 $.get(url,request);
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.get',
@@ -302,7 +293,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -333,7 +323,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 x956: 35129
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.get',
@@ -347,7 +337,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -367,7 +356,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -383,7 +372,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     contentType: false
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -398,7 +386,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -406,7 +394,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     url: 'http://test.com/application/test/interface/Ua9xek/handle?abi1Lu=1'
                 }]
             } as SinkCall,
-            false
         );
     });
 
@@ -427,7 +414,7 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                 }
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -438,7 +425,6 @@ describe('Analyzer finding args of DEPs in combined stand', () => {
                     }
                 }]
             } as SinkCall,
-            false
         );
     });
 });

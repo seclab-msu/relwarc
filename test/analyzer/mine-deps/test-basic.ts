@@ -1,4 +1,4 @@
-import { runSingleTest, makeAndRunSimple } from '../utils';
+import { runSingleTestHAR, makeAndRunSimple } from '../utils';
 
 describe('Analyzer mining HARs for JS DEPs', () => {
     it('smoke test', () => {
@@ -16,7 +16,7 @@ describe('Analyzer mining HARs for JS DEPs', () => {
         const scripts = [
             `fetch('/');`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -31,8 +31,7 @@ describe('Analyzer mining HARs for JS DEPs', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -47,7 +46,7 @@ describe('Analyzer mining HARs for JS DEPs', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -78,7 +77,6 @@ describe('Analyzer mining HARs for JS DEPs', () => {
                     mimeType: 'application/x-www-form-urlencoded'
                 }
             },
-            true
         );
     });
 });

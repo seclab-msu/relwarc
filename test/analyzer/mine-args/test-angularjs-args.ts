@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 
 describe('Tests for AngularJS library\'s DEPs args', () => {
     it('$http get request as function', function () {
@@ -9,7 +9,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 url: '/someUrl?id=12&param=delete'
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http',
@@ -20,7 +20,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -35,7 +34,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 data: { 'testparam': 'test'}
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http',
@@ -52,7 +51,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -64,7 +62,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 data: { testval: 'value' }
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http',
@@ -76,7 +74,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -87,7 +84,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 url: '/someUrl?param=1234'
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http',
@@ -98,7 +95,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -114,7 +110,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http.get',
@@ -128,7 +124,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -142,7 +137,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http.post',
@@ -154,7 +149,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -168,7 +162,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http.put',
@@ -180,7 +174,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -190,7 +183,7 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                 '/someUrl?param=value'
             );`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http.jsonp',
@@ -198,7 +191,6 @@ describe('Tests for AngularJS library\'s DEPs args', () => {
                     '/someUrl?param=value'
                 ]
             } as SinkCall,
-            false
         );
     });
 });

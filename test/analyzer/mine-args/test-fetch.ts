@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 
 
 describe('Analyzer finding args of fetch() calls', () => {
@@ -7,13 +7,12 @@ describe('Analyzer finding args of fetch() calls', () => {
         const scripts = [
             `window.fetch('/testing/test');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'window.fetch',
                 'args': ['/testing/test']
             } as SinkCall,
-            false
         );
     });
 
@@ -22,13 +21,12 @@ describe('Analyzer finding args of fetch() calls', () => {
         const scripts = [
             `this.fetch('/testing/test');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'this.fetch',
                 'args': ['/testing/test']
             } as SinkCall,
-            false
         );
     });
 });

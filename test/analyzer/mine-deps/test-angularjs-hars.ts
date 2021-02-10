@@ -1,4 +1,5 @@
-import { runSingleTest } from '../utils';
+import { runSingleTestHAR } from '../utils';
+
 
 describe('Tests for AngularJS library"s DEPs hars', () => {
     it('$http get request as function', function () {
@@ -8,7 +9,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 url: '/someUrl?id=12&param=delete'
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -33,7 +34,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -48,7 +48,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -76,7 +76,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 },
                 method: 'POST'
             },
-            true
         );
     });
 
@@ -91,7 +90,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -119,7 +118,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 },
                 method: 'PUT'
             },
-            true
         );
     });
 
@@ -129,7 +127,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 '/someUrl?param=123'
             );`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -150,7 +148,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -164,7 +161,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -192,7 +189,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 },
                 method: 'POST'
             },
-            true
         );
     });
 
@@ -206,7 +202,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -234,7 +230,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 },
                 method: 'PUT'
             },
-            true
         );
     });
 
@@ -244,7 +239,7 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 '/someUrl?param=123'
             );`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -265,7 +260,6 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 });

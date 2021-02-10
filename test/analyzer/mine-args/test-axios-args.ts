@@ -1,12 +1,12 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 
 describe('Tests for Axios library\'s DEPs args', () => {
     it('axios get request as function (without method)', function () {
         const scripts = [
             `axios('/user?id=12');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios',
@@ -14,7 +14,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     '/user?id=12'
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -25,7 +24,7 @@ describe('Tests for Axios library\'s DEPs args', () => {
                 url: '/user?id=12'
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios',
@@ -36,7 +35,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -51,7 +49,7 @@ describe('Tests for Axios library\'s DEPs args', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios',
@@ -66,7 +64,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -81,7 +78,7 @@ describe('Tests for Axios library\'s DEPs args', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios',
@@ -96,7 +93,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -104,7 +100,7 @@ describe('Tests for Axios library\'s DEPs args', () => {
         const scripts = [
             `axios.get('/user?id=12')`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios.get',
@@ -112,7 +108,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     '/user?id=12'
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -126,7 +121,7 @@ describe('Tests for Axios library\'s DEPs args', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios.post',
@@ -138,7 +133,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -152,7 +146,7 @@ describe('Tests for Axios library\'s DEPs args', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'axios.put',
@@ -164,7 +158,6 @@ describe('Tests for Axios library\'s DEPs args', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 });

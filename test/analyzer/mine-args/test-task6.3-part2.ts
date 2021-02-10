@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 import * as fs from 'fs';
 
@@ -8,7 +8,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/8.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -21,19 +21,17 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
                     }
                 ]
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/8.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/8.html',
         );
     });
     it('task6.3 9-th test', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/9.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args9.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/9.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/9.html',
         );
     });
 
@@ -41,11 +39,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/10.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args10.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/10.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/10.html',
         );
     });
 
@@ -53,11 +50,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/11.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args11.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/11.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/11.html',
         );
     });
 
@@ -65,11 +61,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/12.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args12.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/12.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/12.html',
         );
     });
 
@@ -77,11 +72,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/13.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args13.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/13.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/13.html',
         );
     });
 
@@ -89,7 +83,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/14.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
@@ -98,8 +92,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
                     {}
                 ]
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/14.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/14.html',
         );
     });
 
@@ -107,11 +100,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/15.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args15.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/15.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/15.html',
         );
     });
 
@@ -119,11 +111,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/22.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args22.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/22.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/22.html',
         );
     });
 
@@ -131,11 +122,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/26.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/6_3task_tests/args26.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/26.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/26.html',
         );
     });
 });

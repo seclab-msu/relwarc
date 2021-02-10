@@ -1,21 +1,36 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Analyzer, SinkCall } from '../../src/analyzer/analyzer';
 import { UNKNOWN } from '../../src/analyzer/types/unknown';
+import { HAR } from '../../src/analyzer/har';
+import { TestHAR } from './test-har';
+import { UnorderedHAR } from './unordered-har';
 import * as fs from 'fs';
 
-function makeSets(hars: any) {
-    hars.forEach(har => {
-        har.headers = new Set(har.headers);
-        har.queryString = new Set(har.queryString);
-        if (har.postData && har.postData.params) {
-            har.postData.params = new Set(har.postData.params);
+function makeUnorderedHARS(hars: (HAR|TestHAR)[]): UnorderedHAR[] {
+    return hars.map(function (har: HAR|TestHAR): UnorderedHAR {
+        const newHAR: UnorderedHAR = {
+            method: har.method,
+            url: har.url,
+            httpVersion: har.httpVersion,
+            headers: new Set(har.headers),
+            queryString: new Set(har.queryString),
+            bodySize: har.bodySize,
+        };
+        const postData = har instanceof HAR ? har.getPostData() : har.postData;
+        if (postData) {
+            newHAR.postData = {
+                text: postData.text,
+                mimeType: postData.mimeType
+            };
+            if (postData.params) {
+                newHAR.postData.params = new Set(postData.params);
+            }
         }
+        return newHAR;
     });
-    return hars;
 }
 
-function getArgsFromFile(path: string): any {
-    const check = JSON.parse(fs.readFileSync(path).toString(), function (k, v) {
+function getArgsFromFile(path: string): SinkCall[] {
+    return JSON.parse(fs.readFileSync(path).toString(), function (k, v) {
         if (v === 'UNKNOWN') {
             if (k === 'Content-Type') {
                 return undefined;
@@ -27,10 +42,9 @@ function getArgsFromFile(path: string): any {
         }
         return v;
     });
-    return check;
 }
 
-function removeEmpty(obj) {
+function removeEmpty(obj: SinkCall[]): SinkCall[] {
     Object.keys(obj).forEach(key => {
         if (obj[key] && typeof obj[key] === 'object') {
             removeEmpty(obj[key]);
@@ -54,46 +68,57 @@ export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://
     return analyzer;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function runSingleTest(scripts: string[], checkingObj: any, isHAR: boolean, url='http://test.com/test') {
-    const analyzer = makeAndRunSimple(scripts, isHAR, url);
-    if (isHAR === true) {
-        let convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
-        convertedHars = makeSets(convertedHars);
-        if (typeof checkingObj === 'string') {
-            let harsForCheck = JSON.parse(
-                fs.readFileSync(checkingObj).toString()
-            );
-            harsForCheck = makeSets(harsForCheck);
-            for (let i = 0; i < harsForCheck.length; i++) {
-                if (harsForCheck[i] !== undefined) {
-                    expect(convertedHars).toContain(harsForCheck[i]);
-                }
+export function runSingleTestHARFromFile(
+    scripts: string[],
+    checkingHAR: string,
+    url='http://test.com/test'
+): void {
+    const analyzer = makeAndRunSimple(scripts, true, url);
+    let convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
+    convertedHars = makeUnorderedHARS(convertedHars);
+    let harsForCheck = JSON.parse(
+        fs.readFileSync(checkingHAR).toString()
+    );
+    harsForCheck = makeUnorderedHARS(harsForCheck);
+    for (let i = 0; i < harsForCheck.length; i++) {
+        if (harsForCheck[i] !== undefined) {
+            expect(convertedHars).toContain(harsForCheck[i]);
+        }
+    }
+}
+
+export function runSingleTestHAR(
+    scripts: string[],
+    checkingHAR: HAR|TestHAR,
+    url='http://test.com/test'
+): void {
+    const analyzer = makeAndRunSimple(scripts, true, url);
+    let convertedHars = JSON.parse(JSON.stringify(analyzer.hars), function (k, v) {
+        if (typeof v === 'number' && k !== 'bodySize') {
+            return String(v);
+        }
+        return v;
+    });
+    convertedHars = makeUnorderedHARS(convertedHars);
+    const checkHAR: UnorderedHAR = makeUnorderedHARS([checkingHAR])[0];
+    expect(convertedHars).toContain(checkHAR);
+}
+
+export function runSingleTestSinkCall(
+    scripts: string[],
+    checkingObj: SinkCall|string,
+    url='http://test.com/test'
+): void {
+    const analyzer = makeAndRunSimple(scripts, false, url);
+    if (typeof checkingObj === 'string') {
+        const argsFromFile = getArgsFromFile(checkingObj);
+        const results = removeEmpty(analyzer.results);
+        for (let i = 0; i < argsFromFile.length; i++) {
+            if (argsFromFile[i] !== undefined) {
+                expect(results).toContain(argsFromFile[i] as SinkCall);
             }
-        } else {
-            checkingObj = JSON.parse(JSON.stringify(checkingObj));
-            checkingObj.headers = new Set(Object.values(checkingObj.headers));
-            checkingObj.queryString = new Set(
-                Object.values(checkingObj.queryString)
-            );
-            if (checkingObj.postData && checkingObj.postData.params) {
-                checkingObj.postData.params = new Set(
-                    Object.values(checkingObj.postData.params)
-                );
-            }
-            expect(convertedHars).toContain(checkingObj);
         }
     } else {
-        if (typeof checkingObj === 'string') {
-            const argsFromFile = getArgsFromFile(checkingObj);
-            const results = removeEmpty(analyzer.results);
-            for (let i = 0; i < argsFromFile.length; i++) {
-                if (argsFromFile[i] !== undefined) {
-                    expect(results).toContain(argsFromFile[i] as SinkCall);
-                }
-            }
-        } else {
-            expect(analyzer.results).toContain(checkingObj);
-        }
+        expect(analyzer.results).toContain(checkingObj);
     }
 }

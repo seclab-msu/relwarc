@@ -1,11 +1,12 @@
-import { runSingleTest } from '../utils';
+import { runSingleTestHAR } from '../utils';
+
 
 describe('Tests for Axios library\'s DEPs hars', () => {
     it('axios get request as function (without method)', function () {
         const scripts = [
             `axios('/user?id=12');`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -26,7 +27,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -37,7 +37,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 url: '/user?id=12'
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -58,7 +58,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -73,7 +72,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -101,7 +100,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 },
                 method: 'POST'
             },
-            true
         );
     });
 
@@ -116,7 +114,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -144,7 +142,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 },
                 method: 'PUT'
             },
-            true
         );
     });
 
@@ -152,7 +149,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
         const scripts = [
             `axios.get('/user?id=12')`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -173,7 +170,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -187,7 +183,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -207,7 +203,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                         value: '44'
                     }
                 ],
-                queryString: new Set([]),
+                queryString: [],
                 bodySize: 44,
                 postData: {
                     text: '{"firstName":"Fred","lastName":"Flintstone"}',
@@ -215,7 +211,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 },
                 method: 'POST'
             },
-            true
         );
     });
 
@@ -229,7 +224,7 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 }
             );`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -257,7 +252,6 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 },
                 method: 'PUT'
             },
-            true
         );
     });
 });

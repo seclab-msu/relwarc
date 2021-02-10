@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 import * as fs from 'fs';
 
@@ -8,7 +8,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/1.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -26,8 +26,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/1.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/1.html',
         );
     });
 
@@ -35,7 +34,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/2.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -48,10 +47,9 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html',
         );
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
@@ -66,8 +64,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/${test}.html',
         );
     });
 
@@ -75,7 +72,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/3.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http.get',
@@ -83,8 +80,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     '/Umbraco/EuroNCAP/Widgets/GetTweets/17131'
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/3.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/3.html',
         );
     });
 
@@ -92,7 +88,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/4.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
@@ -108,8 +104,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/4.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/4.html',
         );
     });
 
@@ -117,7 +112,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/5.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
@@ -133,8 +128,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/5.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/5.html',
         );
     });
 
@@ -142,7 +136,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$http',
@@ -153,8 +147,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/6.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/6.html',
         );
     });
 
@@ -162,7 +155,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/7.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 funcName: 'fetch',
@@ -180,8 +173,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/7.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/7.html',
         );
     });
 
@@ -189,11 +181,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/18.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/check/18_args.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/18.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/18.html',
         );
     });
 
@@ -201,11 +192,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/19.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/check/19_args.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/19.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/19.html',
         );
     });
 
@@ -213,11 +203,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/20.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             __dirname + '/../data/check/20_args.json',
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/20.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/20.html',
         );
     });
 
@@ -225,7 +214,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/21.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 funcName: 'fetch',
@@ -241,8 +230,7 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 1', () => {
                     },
                 ],
             } as SinkCall,
-            false,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/21.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/21.html',
         );
     });
 });

@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 import { FormDataModel } from '../../../src/analyzer/types/form-data';
 import * as fs from 'fs';
@@ -9,7 +9,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/aldine.edu.in.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -23,7 +23,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -31,7 +30,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/asbilbayi.com.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -45,7 +44,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -53,7 +51,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/jaist.ac.jp.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'jQuery.ajax',
@@ -69,7 +67,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -77,7 +74,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/myporn.club.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.post',
@@ -90,7 +87,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     UNKNOWN
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -98,7 +94,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/neuvoo.co.in.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.get',
@@ -114,7 +110,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     UNKNOWN
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -122,7 +117,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/popco.net.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.load',
@@ -130,7 +125,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     'view_comment_list.php?id=event&no=97&c_page=1'
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -138,7 +132,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/zeebiz.com.js').toString()
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -153,8 +147,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false,
-            'http://zeebiz.com.stands.fuchsia/market/stock-index-bse-sensex'
+            'http://zeebiz.com.stands.fuchsia/market/stock-index-bse-sensex',
         );
     });
 
@@ -163,7 +156,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         fs.readdirSync(__dirname + '/../data/superprof.es').forEach(file => {
             scripts.push(fs.readFileSync(__dirname + '/../data/superprof.es/' + file).toString());
         });
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -185,7 +178,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -194,7 +186,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         fs.readdirSync(__dirname + '/../data/baodautu.vn').forEach(file => {
             scripts.push(fs.readFileSync(__dirname + '/../data/baodautu.vn/' + file).toString());
         });
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -211,7 +203,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -220,7 +211,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
         fs.readdirSync(__dirname + '/../data/akademus.es').forEach(file => {
             scripts.push(fs.readFileSync(__dirname + '/../data/akademus.es/' + file).toString());
         });
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -238,7 +229,6 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 });

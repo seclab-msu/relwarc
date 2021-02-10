@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest, makeAndRunSimple } from '../utils';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils';
 
 
 describe('Analyzing code that uses location object', () => {
@@ -56,13 +56,12 @@ describe('Analyzing code that uses location object', () => {
             }
             fetch('/api/info.jsp');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
                 'args': ['/api/info.jsp']
             } as SinkCall,
-            false
         );
     });
 
@@ -72,14 +71,14 @@ describe('Analyzing code that uses location object', () => {
             let secondDir = path.split('/')[2];
             fetch('/root/' + secondDir + '/testin.jsp');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
                 'args': ['/root/dir2/testin.jsp']
             } as SinkCall,
-            false,
-            'http://test.com/dir1/dir2/dir3/page.html');
+            'http://test.com/dir1/dir2/dir3/page.html',
+        );
     });
 
     // TODO: this does not work for now
@@ -88,14 +87,13 @@ describe('Analyzing code that uses location object', () => {
             `let secondDir = location.pathname.split('/')[2];
             fetch('/root/' + secondDir + '/testin.jsp');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
                 'args': ['/root/dir2/testin.jsp']
             } as SinkCall,
-            false,
-            'http://test.com/dir1/dir2/dir3/page.html'
+            'http://test.com/dir1/dir2/dir3/page.html',
         );
     });
 });

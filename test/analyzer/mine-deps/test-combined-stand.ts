@@ -1,4 +1,4 @@
-import { runSingleTest } from '../utils';
+import { runSingleTestHAR } from '../utils';
 import * as fs from 'fs';
 
 describe('Analyzer finding HARs of DEPs in combined stand', () => {
@@ -11,7 +11,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 },
             });`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -32,7 +32,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -47,7 +46,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -68,7 +67,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -84,7 +82,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
             }
             document.getElementById('req5').addEventListener('click', request5);`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -105,7 +103,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -120,7 +117,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -141,7 +138,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -153,7 +149,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 $.post(api+'interface/Eek0Mu/handle', {'eeNgi6': '1'});
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -187,7 +183,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 8,
                 method: 'POST'
             },
-            true
         );
     });
 
@@ -203,7 +198,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -224,7 +219,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -242,7 +236,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
             }`,
             `param9 = 'control=' + 'asde11';`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -267,7 +261,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -275,7 +268,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/10.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -300,7 +293,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -308,7 +300,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/11.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 url: 'http://test.com/application/kl3j5h/interface/32nhj4/handle?qh44j3=1&surveiller=po89uo',
@@ -332,7 +324,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 ],
                 bodySize: 0
             },
-            true
         );
     });
 
@@ -355,7 +346,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 ssx46: 2
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -376,7 +367,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true);
+        );
     });
 
     it('DEP number 13 har (params for request taken from global config, which is new Object)', function () {
@@ -394,7 +385,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
             configUn2.isActive = '0';
             configUn2.a09bku = 5;`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -415,7 +406,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -430,7 +420,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 $.get(url,request);
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -459,7 +449,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -490,7 +479,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 x956: 35129
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -523,7 +512,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -543,7 +531,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -585,7 +573,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'POST'
             },
-            true
         );
     });
 
@@ -600,7 +587,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -621,7 +608,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 
@@ -642,7 +628,7 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 }
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -663,7 +649,6 @@ describe('Analyzer finding HARs of DEPs in combined stand', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true
         );
     });
 });

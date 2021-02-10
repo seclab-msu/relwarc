@@ -1,11 +1,11 @@
-import { runSingleTest } from '../utils';
+import { runSingleTestHAR } from '../utils';
 
 describe('Analyzer mining HARs from fetch() calls', () => {
     it('handles window.fetch()', () => {
         const scripts = [
             `window.fetch('/testing/tst');`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -20,8 +20,7 @@ describe('Analyzer mining HARs from fetch() calls', () => {
                 bodySize: 0,
                 method: 'GET'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 });

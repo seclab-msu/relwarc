@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest, makeAndRunSimple } from '../utils';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 
 describe('DEP sink call args are deduplicated', () => {
@@ -13,7 +13,7 @@ describe('DEP sink call args are deduplicated', () => {
             false
         );
         expect(analyzer.results.length).toEqual(1);
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
@@ -21,7 +21,6 @@ describe('DEP sink call args are deduplicated', () => {
                     '/123'
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -51,7 +50,7 @@ describe('DEP sink call args are deduplicated', () => {
                 });
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -67,7 +66,6 @@ describe('DEP sink call args are deduplicated', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -93,7 +91,7 @@ describe('DEP sink call args are deduplicated', () => {
             false
         );
         expect(analyzer.results.length).toEqual(2);
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
@@ -101,9 +99,8 @@ describe('DEP sink call args are deduplicated', () => {
                     '/kek'
                 ]
             } as SinkCall,
-            false
         );
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.get',
@@ -111,7 +108,6 @@ describe('DEP sink call args are deduplicated', () => {
                     '/lol'
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -133,7 +129,7 @@ describe('DEP sink call args are deduplicated', () => {
             false
         );
         expect(analyzer.results.length).toEqual(1);
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -146,7 +142,6 @@ describe('DEP sink call args are deduplicated', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -165,7 +160,7 @@ describe('DEP sink call args are deduplicated', () => {
             false
         );
         expect(analyzer.results.length).toEqual(1);
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -178,7 +173,6 @@ describe('DEP sink call args are deduplicated', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -198,7 +192,7 @@ describe('DEP sink call args are deduplicated', () => {
             false
         );
         expect(analyzer.results.length).toBeLessThanOrEqual(3);
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -211,15 +205,13 @@ describe('DEP sink call args are deduplicated', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
                 'args': ['/223344']
             } as SinkCall,
-            false
         );
     });
 });

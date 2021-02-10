@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest, makeAndRunSimple } from '../utils';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils';
 
 
 describe('Analyzer finding args of DEP sinks', () => {
@@ -30,13 +30,12 @@ describe('Analyzer finding args of DEP sinks', () => {
         const scripts = [
             `fetch('/');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'fetch',
                 'args': ['/']
             } as SinkCall,
-            false
         );
     });
 
@@ -44,13 +43,12 @@ describe('Analyzer finding args of DEP sinks', () => {
         const scripts = [
             `$.ajax('/');`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
                 'args': ['/']
             } as SinkCall,
-            false
         );
     });
 
@@ -65,7 +63,7 @@ describe('Analyzer finding args of DEP sinks', () => {
                 }
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -80,7 +78,6 @@ describe('Analyzer finding args of DEP sinks', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -91,7 +88,7 @@ describe('Analyzer finding args of DEP sinks', () => {
                 url: 'http://test.site/action'
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -103,7 +100,6 @@ describe('Analyzer finding args of DEP sinks', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -114,7 +110,7 @@ describe('Analyzer finding args of DEP sinks', () => {
                 data: { a: 5 + 4 }
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -125,7 +121,6 @@ describe('Analyzer finding args of DEP sinks', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -136,7 +131,7 @@ describe('Analyzer finding args of DEP sinks', () => {
                 data: { 'myurl': location.href }
             });`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -146,8 +141,7 @@ describe('Analyzer finding args of DEP sinks', () => {
                     }
                 ]
             } as SinkCall,
-            false,
-            url
+            url,
         );
     });
 });

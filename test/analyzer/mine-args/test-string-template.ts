@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 
 describe('Analyzer finding args of requests which used `template strings` as args', () => {
     it('Template string without variables inside', function () {
@@ -7,7 +7,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             `var a = \`/randomurl?name=asd\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -17,7 +17,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -27,7 +26,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             var a = \`\${url}\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -37,7 +36,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -47,7 +45,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             var a = \`\${url}/anxj22?id=123\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -57,7 +55,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -67,7 +64,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             var a = \`/anxj22\${url}?id=123\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -77,7 +74,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -87,7 +83,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             var a = \`/test/anxj22?id=\${param}\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -97,7 +93,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -108,7 +103,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             var a = \`/test/\${urlPart}?id=\${param}\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -118,7 +113,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -130,7 +124,7 @@ describe('Analyzer finding args of requests which used `template strings` as arg
             var a = \`\${urlpart2}/test/\${urlPart}?id=\${param}&test=1234\`;
             $.ajax({ url: a});`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': '$.ajax',
@@ -140,7 +134,6 @@ describe('Analyzer finding args of requests which used `template strings` as arg
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 });

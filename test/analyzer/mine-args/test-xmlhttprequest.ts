@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTest } from '../utils';
+import { runSingleTestSinkCall } from '../utils';
 
 describe('Analyzer finding args of XMLHttpRequest calls', () => {
     it('basic case', () => {
@@ -10,7 +10,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                 xhr.send('DATA');
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'XMLHttpRequest.send',
@@ -31,7 +31,6 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -44,7 +43,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                 xhr.send();
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'XMLHttpRequest.send',
@@ -70,7 +69,6 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -82,7 +80,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                 xhr.send();
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'XMLHttpRequest.send',
@@ -101,7 +99,6 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -116,7 +113,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                 xhr.send();
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'XMLHttpRequest.send',
@@ -135,7 +132,6 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -149,7 +145,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                 xhr.send();
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'XMLHttpRequest.send',
@@ -168,7 +164,6 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 
@@ -184,7 +179,7 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                 xhr.send('x=' + x);
             }`
         ];
-        runSingleTest(
+        runSingleTestSinkCall(
             scripts,
             {
                 'funcName': 'XMLHttpRequest.send',
@@ -203,7 +198,6 @@ describe('Analyzer finding args of XMLHttpRequest calls', () => {
                     }
                 ]
             } as SinkCall,
-            false
         );
     });
 });

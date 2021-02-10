@@ -1,4 +1,4 @@
-import { runSingleTest } from '../utils';
+import { runSingleTestHAR } from '../utils';
 
 
 describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
@@ -10,7 +10,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 xhr.send('DATA');
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'POST',
@@ -37,8 +37,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 },
                 httpVersion: 'HTTP/1.1'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -50,7 +49,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 xhr.send();
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'GET',
@@ -65,7 +64,6 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 bodySize: 0,
                 httpVersion: 'HTTP/1.1'
             },
-            true
         );
     });
 
@@ -77,7 +75,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 xhr.send();
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'GET',
@@ -101,8 +99,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 bodySize: 0,
                 httpVersion: 'HTTP/1.1'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 
@@ -115,7 +112,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 xhr.send('param=val&param2=val2');
             }`
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'POST',
@@ -152,8 +149,7 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 },
                 httpVersion: 'HTTP/1.1'
             },
-            true,
-            'http://example.com/'
+            'http://example.com/',
         );
     });
 });

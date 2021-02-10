@@ -1,5 +1,4 @@
-import { runSingleTest } from '../utils';
-import { UNKNOWN } from '../../../src/analyzer/types/unknown';
+import { runSingleTestHAR, runSingleTestHARFromFile } from '../utils';
 import * as fs from 'fs';
 
 describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
@@ -7,7 +6,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/1.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -28,8 +27,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                 bodySize: 0,
                 method: 'GET',
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/1.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/1.html',
         );
     });
 
@@ -37,7 +35,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/2.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'GET',
@@ -57,10 +55,9 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                 ],
                 bodySize: 0,
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/2.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/2.html',
         );
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'PUT',
@@ -86,8 +83,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                     text: 'xn=85',
                 },
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/2.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/2.html',
         );
     });
 
@@ -95,7 +91,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/3.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 method: 'GET',
@@ -111,8 +107,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                 url:
                     'http://js-training.seclab/Umbraco/EuroNCAP/Widgets/GetTweets/17131',
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/3.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/3.html',
         );
     });
 
@@ -120,7 +115,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/4.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
@@ -159,8 +154,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                         'action=wikiPageView&url=http%3A%2F%2Fjs-training.seclab%2Fjs-dep%2Ffunc-args%2Fsamples%2Fcomputed%2F4.html',
                 },
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/4.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/4.html',
         );
     });
 
@@ -168,7 +162,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/5.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 url: 'http://www.aninews.in/devices/',
@@ -195,8 +189,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                 bodySize: 42,
                 queryString: [],
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/5.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/5.html',
         );
     });
 
@@ -204,7 +197,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 bodySize: 0,
@@ -229,8 +222,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                     },
                 ],
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/6.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/6.html',
         );
     });
 
@@ -238,7 +230,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/7.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 url:
@@ -259,7 +251,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                     },
                     {
                         name: 'X-RequestDigest',
-                        value: UNKNOWN,
+                        value: 'UNKNOWN',
                     },
                     {
                         name: 'Content-Length',
@@ -271,8 +263,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                 queryString: [],
                 method: 'POST',
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/7.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/7.html',
         );
     });
 
@@ -280,11 +271,10 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/18.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHARFromFile(
             scripts,
             __dirname + '/../data/check/18_hars.json',
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/18.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/18.html',
         );
     });
 
@@ -292,11 +282,10 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/19.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHARFromFile(
             scripts,
             __dirname + '/../data/check/19_hars.json',
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/19.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/19.html',
         );
     });
 
@@ -304,11 +293,10 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/20.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHARFromFile(
             scripts,
             __dirname + '/../data/check/20_hars.json',
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/20.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/20.html',
         );
     });
 
@@ -316,7 +304,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/21.js').toString()
         ];
-        runSingleTest(
+        runSingleTestHAR(
             scripts,
             {
                 bodySize: 62,
@@ -345,8 +333,7 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 1', () => {
                         '{"$type":"runner:error","message":"UNKNOWN","stack":"UNKNOWN"}',
                 },
             },
-            true,
-            'http://js-training.seclab/js-dep/func-args/samples/computed/21.html'
+            'http://js-training.seclab/js-dep/func-args/samples/computed/21.html',
         );
     });
 });
