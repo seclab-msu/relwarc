@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils';
+import { runSingleTestHAR } from '../utils/utils';
 
 
 describe('Tests for Axios library\'s DEPs hars', () => {

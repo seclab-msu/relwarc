@@ -1,4 +1,4 @@
-import { runSingleTestHAR, runSingleTestHARFromFile } from '../utils';
+import { runSingleTestHAR, runSingleTestHARFromFile } from '../utils/utils';
 import * as fs from 'fs';
 
 describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 2', () => {

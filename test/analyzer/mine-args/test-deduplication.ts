@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTestSinkCall, makeAndRunSimple } from '../utils';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils/utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 
 describe('DEP sink call args are deduplicated', () => {

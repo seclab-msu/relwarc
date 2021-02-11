@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils';
+import { runSingleTestHAR } from '../utils/utils';
 
 describe('Analyzer mining HARs from fetch() calls', () => {
     it('handles window.fetch()', () => {

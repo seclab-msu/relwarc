@@ -1,4 +1,4 @@
-import { makeAndRunSimple } from '../utils';
+import { makeAndRunSimple } from '../utils/utils';
 
 describe('DEP HARs are deduplicated', () => {
     it('with two identical calls', () => {

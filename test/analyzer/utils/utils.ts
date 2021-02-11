@@ -1,8 +1,7 @@
-import { Analyzer, SinkCall } from '../../src/analyzer/analyzer';
-import { UNKNOWN } from '../../src/analyzer/types/unknown';
-import { HAR } from '../../src/analyzer/har';
-import { TestHAR } from './test-har';
-import { UnorderedHAR } from './unordered-har';
+import { Analyzer, SinkCall } from '../../../src/analyzer/analyzer';
+import { UNKNOWN } from '../../../src/analyzer/types/unknown';
+import { HAR } from '../../../src/analyzer/har';
+import { TestHAR, UnorderedHAR } from './auxillary-types';
 import * as fs from 'fs';
 
 function makeUnorderedHARS(hars: (HAR|TestHAR)[]): UnorderedHAR[] {
@@ -81,9 +80,7 @@ export function runSingleTestHARFromFile(
     );
     harsForCheck = makeUnorderedHARS(harsForCheck);
     for (let i = 0; i < harsForCheck.length; i++) {
-        if (harsForCheck[i] !== undefined) {
-            expect(convertedHars).toContain(harsForCheck[i]);
-        }
+        expect(convertedHars).toContain(harsForCheck[i]);
     }
 }
 
@@ -114,9 +111,7 @@ export function runSingleTestSinkCall(
         const argsFromFile = getArgsFromFile(checkingObj);
         const results = removeEmpty(analyzer.results);
         for (let i = 0; i < argsFromFile.length; i++) {
-            if (argsFromFile[i] !== undefined) {
-                expect(results).toContain(argsFromFile[i] as SinkCall);
-            }
+            expect(results).toContain(argsFromFile[i] as SinkCall);
         }
     } else {
         expect(analyzer.results).toContain(checkingObj);

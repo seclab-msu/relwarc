@@ -1,4 +1,4 @@
-import { runSingleTestHAR, makeAndRunSimple } from '../utils';
+import { runSingleTestHAR, makeAndRunSimple } from '../utils/utils';
 
 describe('Analyzer mining HARs for JS DEPs', () => {
     it('smoke test', () => {

@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTestSinkCall, makeAndRunSimple } from '../utils';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils/utils';
 
 
 describe('Analyzing code that uses location object', () => {

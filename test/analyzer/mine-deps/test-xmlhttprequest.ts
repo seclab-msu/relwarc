@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils';
+import { runSingleTestHAR } from '../utils/utils';
 
 
 describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {

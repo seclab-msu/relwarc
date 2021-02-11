@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils';
+import { runSingleTestHAR } from '../utils/utils';
 import * as fs from 'fs';
 
 describe('Analyzer finding HARs of DEPs in combined stand', () => {
