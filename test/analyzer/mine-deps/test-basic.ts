@@ -1,66 +1,82 @@
-import { Analyzer } from "../../../src/analyzer/analyzer";
+import { runSingleTestHAR, makeAndRunSimple } from '../utils/utils';
 
-import { makeAndRunSimple } from './common';
-
-describe("Analyzer mining HARs for JS DEPs", () => {
-    it("smoke test", () => {
-        const analyzer = new Analyzer();
-        analyzer.addScript('console.log("Hello World!");');
-        analyzer.analyze('http://example.com/');
+describe('Analyzer mining HARs for JS DEPs', () => {
+    it('smoke test', () => {
+        const scripts = [
+            `console.log('Hello World!');`
+        ];
+        makeAndRunSimple(
+            scripts,
+            true,
+            'http://example.com/'
+        );
     });
 
-    it("handles fetch /", () => {
-        const analyzer = new Analyzer();
-        analyzer.addScript('fetch("/");');
-
-        analyzer.analyze('http://example.com/');
-
-        expect(analyzer.hars.length).toEqual(1);
-
-        const dep = analyzer.hars[0];
-
-        expect(dep.url).toEqual("http://example.com/");
-        expect(dep.method).toEqual("GET");
-        expect(dep.getHeader('host')).toEqual("example.com");
-        expect(dep.queryString).toEqual([]);
-        expect(dep.bodySize).toEqual(0);
+    it('handles fetch /', () => {
+        const scripts = [
+            `fetch('/');`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://example.com/',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'example.com',
+                        name: 'Host',
+                    },
+                ],
+                bodySize: 0,
+                method: 'GET'
+            },
+            'http://example.com/',
+        );
     });
 
-    it("supports $.ajax with settings object", () => {
-        const analyzer = makeAndRunSimple(`$.ajax({
-            method: "POST",
-            url: "http://test.site/action",
-            data: {
-                a: 1,
-                "b": "xx"
-            }
-        });`);
-        expect(analyzer.hars.length).toEqual(1);
-
-        const dep = analyzer.hars[0];
-
-        expect(dep.url).toEqual("http://test.site/action");
-        expect(dep.method).toEqual('POST');
-        expect(dep.getHeader('host')).toEqual('test.site');
-
-        const expectedPostBody = 'a=1&b=xx';
-        const expectedPostData = {
-            text: expectedPostBody,
-            params: [
-                { name: 'a', value: '1' },
-                { name: 'b', value: 'xx' }
-            ],
-            mimeType: "application/x-www-form-urlencoded"
-        };
-        
-        expect(dep.bodySize).toEqual(expectedPostBody.length);
-
-        const postData = dep.getPostData();
-
-        expect(postData).toBeDefined();
-
-        if (typeof postData !== 'undefined') {
-            expect(postData).toEqual(expectedPostData);
-        }
+    it('supports $.ajax with settings object', () => {
+        const scripts = [
+            `$.ajax({
+                method: 'POST',
+                url: 'http://test.site/action',
+                data: {
+                    a: 1,
+                    'b': 'xx'
+                }
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.site/action',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.site',
+                        name: 'Host',
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/x-www-form-urlencoded'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '8'
+                    }
+                ],
+                bodySize: 8,
+                method: 'POST',
+                postData: {
+                    text: 'a=1&b=xx',
+                    params: [
+                        { name: 'a', value: '1' },
+                        { name: 'b', value: 'xx' }
+                    ],
+                    mimeType: 'application/x-www-form-urlencoded'
+                }
+            },
+        );
     });
 });

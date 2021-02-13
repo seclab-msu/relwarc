@@ -1,26 +1,32 @@
-import { SinkCall } from "../../../src/analyzer/analyzer";
-import { makeAndRunSimple } from './common';
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTestSinkCall } from '../utils/utils';
 
 
-describe("Analyzer finding args of fetch() calls", () => {
-    it("works with window.fetch()", () => {
-        const analyzer = makeAndRunSimple('window.fetch("/testing/test");');
-
-        expect(analyzer.results.length).toBeGreaterThanOrEqual(1);
-        expect(analyzer.results).toContain({
-            "funcName": "window.fetch",
-            "args": ["/testing/test"]
-        } as SinkCall);
+describe('Analyzer finding args of fetch() calls', () => {
+    it('works with window.fetch()', function () {
+        const scripts = [
+            `window.fetch('/testing/test');`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'window.fetch',
+                'args': ['/testing/test']
+            } as SinkCall,
+        );
     });
 
     // TODO: does not currently work, reconsider whether it should be added
-    xit("works with this.fetch()", () => {
-        const analyzer = makeAndRunSimple('this.fetch("/testing/test");');
-
-        expect(analyzer.results.length).toBeGreaterThanOrEqual(1);
-        expect(analyzer.results).toContain({
-            "funcName": "this.fetch",
-            "args": ["/testing/test"]
-        } as SinkCall);
+    xit('works with this.fetch()', function () {
+        const scripts = [
+            `this.fetch('/testing/test');`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'this.fetch',
+                'args': ['/testing/test']
+            } as SinkCall,
+        );
     });
 });

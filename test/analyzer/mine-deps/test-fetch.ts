@@ -1,22 +1,26 @@
-import { Analyzer } from "../../../src/analyzer/analyzer";
+import { runSingleTestHAR } from '../utils/utils';
 
-import { makeAndRunSimple } from './common';
-
-describe("Analyzer mining HARs from fetch() calls", () => {
-    it("handles window.fetch()", () => {
-        const analyzer = new Analyzer();
-        analyzer.addScript('window.fetch("/testing/tst");');
-
-        analyzer.analyze('http://example.com/');
-
-        expect(analyzer.hars.length).toEqual(1);
-
-        const dep = analyzer.hars[0];
-
-        expect(dep.url).toEqual("http://example.com/testing/tst");
-        expect(dep.method).toEqual("GET");
-        expect(dep.getHeader('host')).toEqual("example.com");
-        expect(dep.queryString).toEqual([]);
-        expect(dep.bodySize).toEqual(0);
+describe('Analyzer mining HARs from fetch() calls', () => {
+    it('handles window.fetch()', () => {
+        const scripts = [
+            `window.fetch('/testing/tst');`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://example.com/testing/tst',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'example.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET'
+            },
+            'http://example.com/',
+        );
     });
 });

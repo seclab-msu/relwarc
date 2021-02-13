@@ -1,24 +1,32 @@
-import { Analyzer, SinkCall } from "../../../src/analyzer/analyzer";
+import { SinkCall } from '../../../src/analyzer/analyzer';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils/utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
-import { makeAndRunSimple } from './common';
 
-
-describe("DEP sink call args are deduplicated", () => {
-    it("with two identical calls", () => {
-        const analyzer = makeAndRunSimple(`
-            fetch("/123");
-            fetch("/123");
-        `);
+describe('DEP sink call args are deduplicated', () => {
+    it('with two identical calls', () => {
+        const scripts = [
+            `fetch('/123');
+            fetch('/123');`
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            false
+        );
         expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            funcName: "fetch",
-            args: ["/123"]
-        } as SinkCall);
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'fetch',
+                'args': [
+                    '/123'
+                ]
+            } as SinkCall,
+        );
     });
 
-    it("with different calls producing the same args", () => {
-        const analyzer = makeAndRunSimple(`
-            $.ajax("/test1234", {
+    it('with different calls producing the same args', () => {
+        const scripts = [
+            `$.ajax("/test1234", {
                 'method': "POST",
                 data: {
                     x: 33,
@@ -40,104 +48,170 @@ describe("DEP sink call args are deduplicated", () => {
                         x: 30 + 3, y: arr
                     }
                 });
-            }
-        `);
-        expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            funcName: "$.ajax",
-            args: ["/test1234", {
-                'method': "POST",
-                data: {
-                    x: 33,
-                    y: [5, 6, 7, 8, {"te": "st"}]
-                }
-            }]
-        } as SinkCall);
+            }`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': '$.ajax',
+                'args': [
+                    '/test1234',
+                    {
+                        'method': 'POST',
+                        'data':
+                        {
+                            x: 33,
+                            y: [5, 6, 7, 8, { 'te': 'st' }]
+                        }
+                    }
+                ]
+            } as SinkCall,
+        );
     });
 
-    it("with two sets of duplicates", () => {
-        const analyzer = makeAndRunSimple(`
-            if (window.name === "kek") {
+
+    it('with two sets of duplicates', () => {
+        const scripts = [
+            `if (window.name === 'kek') {
                 if (Math.random > 0.01) {
-                    fetch("/kek");
+                    fetch('/kek');
                 } else {
-                    $.get("/lol");
+                    $.get('/lol');
                 }
             } else {
                 if (Math.random > 0.01) {
-                    $.get("/lol");
+                    $.get('/lol');
                 } else {
-                    fetch("/kek");
+                    fetch('/kek');
                 }
-            }
-        `);
+            }`
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            false
+        );
         expect(analyzer.results.length).toEqual(2);
-        expect(analyzer.results).toContain({
-            funcName: "fetch",
-            args: ["/kek"]
-        } as SinkCall);
-        expect(analyzer.results).toContain({
-            funcName: "$.get",
-            args: ["/lol"]
-        } as SinkCall);
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'fetch',
+                'args': [
+                    '/kek'
+                ]
+            } as SinkCall,
+        );
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': '$.get',
+                'args': [
+                    '/lol'
+                ]
+            } as SinkCall,
+        );
     });
 
-    it("duplicate unknown value in different calls", () => {
-        const analyzer = makeAndRunSimple(`
-            $.ajax('/api/report.php', {
-                data: { value: document.querySelector("#info").value }
+    it('duplicate unknown value in different calls', () => {
+        const scripts = [
+            `$.ajax('/api/report.php', {
+                data: { value: document.querySelector('#info').value }
             });
-            var v = document.querySelectorAll(".moreinfo"),
+            var v = document.querySelectorAll('.moreinfo'),
                 d = {
                     value: v[0].value
                 };
             if (window.name === 'provideMorelInfo') {
                 $.ajax('/api/report.php', { data: d });
-            }
-        `);
+            }`
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            false
+        );
         expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            funcName: '$.ajax',
-            args: ['/api/report.php', { data: { value: UNKNOWN } }]
-        } as SinkCall);
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': '$.ajax',
+                'args': [
+                    '/api/report.php',
+                    {
+                        data: {
+                            value: UNKNOWN
+                        }
+                    }
+                ]
+            } as SinkCall,
+        );
     });
 
-    it("when duplication is caused by unknown val following call chain", () => {
-        const analyzer = makeAndRunSimple(`
-            function g(data) {
+    it('when duplication is caused by unknown val following call chain', () => {
+        const scripts = [
+            `function g(data) {
                 var param = prompt();
                 f(param);
             }
             function f(x) {
-                $.ajax("/", { data: { param: x } });
-            }
-        `);
+                $.ajax('/', { data: { param: x } });
+            }`
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            false
+        );
         expect(analyzer.results.length).toEqual(1);
-        expect(analyzer.results[0]).toEqual({
-            funcName: '$.ajax',
-            args: ['/', { data: { param: UNKNOWN } }]
-        } as SinkCall);
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': '$.ajax',
+                'args': [
+                    '/',
+                    {
+                        data: {
+                            param: UNKNOWN
+                        }
+                    }
+                ]
+            } as SinkCall,
+        );
     });
 
-    it("when duplication is caused by second call following call chain", () => {
-        const analyzer = makeAndRunSimple(`
-            function g(data) {
+    it('when duplication is caused by second call following call chain', () => {
+        const scripts = [
+            `function g(data) {
                 var param = 'info';
                 f(param);
             }
             function f(x) {
-                $.ajax("/", { data: { param: x } });
+                $.ajax('/', { data: { param: x } });
                 fetch('/223344');
-            }
-        `);
+            }`
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            false
+        );
         expect(analyzer.results.length).toBeLessThanOrEqual(3);
-        expect(analyzer.results).toContain({
-            funcName: '$.ajax',
-            args: ['/', { data: { param: 'info' } }]
-        } as SinkCall);
-        expect(analyzer.results).toContain({
-            funcName: 'fetch',
-            args: ['/223344']
-        } as SinkCall);
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': '$.ajax',
+                'args': [
+                    '/',
+                    {
+                        data: {
+                            param: 'info'
+                        }
+                    }
+                ]
+            } as SinkCall,
+        );
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'fetch',
+                'args': ['/223344']
+            } as SinkCall,
+        );
     });
 });
