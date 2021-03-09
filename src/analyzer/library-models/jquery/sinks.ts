@@ -48,7 +48,7 @@ function makeHARJQuery(funcName: string, args, baseURL: string): HAR|null {
         method = settings.type || settings.method || 'GET';
     }
 
-    method = method.toUpperCase();
+    method = method.toString().toUpperCase();
 
     har.method = method;
 
