@@ -50,7 +50,7 @@ function makeHARAngular(name, args, baseURL) {
         har.reparseURL();
     }
 
-    method = method.toUpperCase();
+    method = method.toString().toUpperCase();
 
     har.method = method;
     const headers = settings.headers || {};

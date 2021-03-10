@@ -40,7 +40,7 @@ function makeHARAxios(funcName, args, baseURL) {
     }
 
     const har = new HAR(url, baseURL);
-    har.method = method.toUpperCase();
+    har.method = method.toString().toUpperCase();
 
     if (settings.params) {
         har.url = replaceQuery(
@@ -54,7 +54,7 @@ function makeHARAxios(funcName, args, baseURL) {
 
     har.headers.push(...headersFromMap(headers));
 
-    if (method.toUpperCase() !== 'GET') {
+    if (har.method !== 'GET') {
         let ct,
             ctSet = false;
         if (headers['content-type']) {
