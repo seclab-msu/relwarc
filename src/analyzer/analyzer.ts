@@ -40,6 +40,11 @@ import { HAR } from './har';
 import { makeHAR } from './library-models/sinks';
 
 import {
+    combineComments,
+    parseComments
+} from './uncommenter';
+
+import {
     matchFreeStandingCallSignature,
     matchMethodCallSignature,
     callSequenceMethodNames
@@ -1161,17 +1166,30 @@ export class Analyzer {
                 log('Script parsing error: ' + err + '\n');
             }
         }
-        this.mergeASTs();
+    }
+
+    private addCommentedCode(): void {
+        for (let script of this.scripts) {
+            break;
+            const parsedComments = [];
+            this.parsedScripts.push(...parsedComments);
+        }
     }
 
     onNewHAR(har: HAR): void {
         this.hars.push(har);
     }
 
-    mineArgsForDEPCalls(url: string): void {
+    mineArgsForDEPCalls(url: string, uncomment?: boolean): void {
         log('Analyzer: start parsing code');
         this.parseCode();
         log('Analyzer: done parsing code');
+
+        if (uncomment) {
+            this.addCommentedCode();
+        }
+
+        this.mergeASTs();
 
         this.seedGlobalScope(url);
 
@@ -1211,8 +1229,8 @@ export class Analyzer {
         }
     }
 
-    analyze(url: string): void {
-        this.mineArgsForDEPCalls(url);
+    analyze(url: string, uncomment?: boolean): void {
+        this.mineArgsForDEPCalls(url, uncomment);
         log('Analyzer: code analysis done, now make HARs from found calls');
         this.makeHARsFromMinedDEPCallArgs(url);
     }

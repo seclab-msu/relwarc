@@ -22,7 +22,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     analyzer.addScript(source);
 
-    analyzer.analyze(baseURL);
+    analyzer.analyze(baseURL, argv.includes('--uncomment'));
 
     if (argv.includes('--args')) {
         for (const result of analyzer.results) {

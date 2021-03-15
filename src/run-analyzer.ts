@@ -17,7 +17,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const analyzer = new DynamicPageAnalyzer();
 
-    await analyzer.run(targetURL);
+    await analyzer.run(targetURL, argv.includes('--uncomment'));
 
     if (argv.includes('--args')) {
         for (const result of analyzer.analyzer.results) {
