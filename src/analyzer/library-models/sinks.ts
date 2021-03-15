@@ -7,7 +7,9 @@ import angularSinks from './angular/sinks';
 import axiosSinks from './axios/sinks';
 import xmlHttpRequestSinks from './xmlhttprequest/sinks';
 
-type Sink = (name: string, args, baseURL: string) => (HAR | null);
+import type { Value } from '../types/generic';
+
+type Sink = (name: string, args: Value[], baseURL: string) => (HAR | null);
 
 interface BaseSinkDescr {
     type: string;
@@ -44,7 +46,11 @@ for (const sinkDescr of sinkList) {
     }
 }
 
-export function makeHAR(name: string, args, baseURL: string): HAR | null {
+export function makeHAR(
+    name: string,
+    args: Value[],
+    baseURL: string
+): HAR | null {
     if (hasattr(freeStandingSinks, name)) {
         return freeStandingSinks[name](name, args, baseURL);
     }

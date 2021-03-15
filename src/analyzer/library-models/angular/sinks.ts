@@ -7,15 +7,14 @@ import {
     hasHeader
 } from '../../har';
 
+import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 
-function makeHARAngular(name, args, baseURL) {
+function parseArgs(name, args) {
     let settings,
         postData,
         method,
-        params,
         url;
-
     if (name === '$http') {
         settings = args[0];
         url = settings.url;
@@ -35,7 +34,15 @@ function makeHARAngular(name, args, baseURL) {
             method = name;
         }
     }
+    return [settings, postData, method, url];
+}
 
+function makeHARAngular(
+    name: string,
+    args: Value[],
+    baseURL: string
+): HAR | null {
+    let [settings, postData, method, url] = parseArgs(name, args);
 
     if (!url || isUnknown(url) || isUnknown(postData)) {
         return null;

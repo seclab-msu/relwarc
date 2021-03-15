@@ -6,14 +6,14 @@ import {
     headersFromMap,
 } from '../../har';
 
+import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 
-function makeHARAxios(funcName, args, baseURL) {
+function parseArgs(funcName: string, args) {
     let url,
-        settings: Record<string, any> = {},
+        settings: Record<string, Value> = {},
         method,
         postData;
-
     if (funcName === 'axios') {
         if (typeof args[0] === 'object') {
             settings = args[0];
@@ -34,6 +34,46 @@ function makeHARAxios(funcName, args, baseURL) {
             settings = args[1] || {};
         }
     }
+    return [settings, postData, method, url];
+}
+
+function checkHeaders(headers, postData) {
+    let ct,
+        ctSet = false;
+    if (headers['content-type']) {
+        ct = headers['content-type'];
+        ctSet = true;
+    } else if (headers['Content-Type']) {
+        ct = headers['Content-Type'];
+        ctSet = true;
+    }
+    if (postData === null) {
+        postData = '';
+    }
+    if (typeof postData === 'string') {
+        ct = 'application/x-www-form-urlencoded';
+    } else if (typeof postData === 'object') {
+        ct = 'application/json';
+    }
+    if (ct === 'application/json' && typeof postData === 'object') {
+        postData = JSON.stringify(postData);
+    }
+    if (ct && !ctSet) {
+        return [{
+            'name': 'Content-Type',
+            'value': ct
+        }, postData];
+    }
+    return [null, postData];
+}
+
+function makeHARAxios(
+    funcName: string,
+    args: Value[],
+    baseURL: string
+): HAR | null {
+    let [settings, postData, method, url] = parseArgs(funcName, args),
+        cType;
 
     if (!url || isUnknown(url) || isUnknown(postData)) {
         return null;
@@ -41,7 +81,6 @@ function makeHARAxios(funcName, args, baseURL) {
 
     const har = new HAR(url, baseURL);
     har.method = method.toString().toUpperCase();
-
     if (settings.params) {
         har.url = replaceQuery(
             har.url,
@@ -51,35 +90,12 @@ function makeHARAxios(funcName, args, baseURL) {
     }
 
     const headers = settings.headers || {};
-
     har.headers.push(...headersFromMap(headers));
 
     if (har.method !== 'GET') {
-        let ct,
-            ctSet = false;
-        if (headers['content-type']) {
-            ct = headers['content-type'];
-            ctSet = true;
-        } else if (headers['Content-Type']) {
-            ct = headers['Content-Type'];
-            ctSet = true;
-        }
-        if (postData === null) {
-            postData = '';
-        }
-        if (typeof postData === 'string') {
-            ct = 'application/x-www-form-urlencoded';
-        } else if (typeof postData === 'object') {
-            ct = 'application/json';
-        }
-        if (ct === 'application/json' && typeof postData === 'object') {
-            postData = JSON.stringify(postData);
-        }
-        if (ct && !ctSet) {
-            har.headers.push({
-                'name': 'Content-Type',
-                'value': ct
-            });
+        [cType, postData] = checkHeaders(headers, postData);
+        if (cType) {
+            har.headers.push(cType);
         }
         har.setPostData(postData || '');
     }
