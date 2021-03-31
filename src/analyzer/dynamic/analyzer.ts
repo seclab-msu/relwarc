@@ -32,5 +32,7 @@ export class DynamicAnalyzer {
                 this.newScriptCallback(script.source.text);
             }
         };
+
+        this.dbg = dbg;
     }
 }
