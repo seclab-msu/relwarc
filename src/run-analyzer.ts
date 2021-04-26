@@ -18,7 +18,8 @@ async function main(argc: number, argv: string[]): Promise<number> {
     let analyzer: DynamicPageAnalyzer;
 
     if (argv.includes('--tar-page')) {
-        const [mapURLs, contentURLs] = await readTar('/dev/stdin');
+        const path = argv[argv.indexOf('--tar-page') + 1];
+        const [mapURLs, contentURLs] = await readTar(path);
         analyzer = new DynamicPageAnalyzer(mapURLs, contentURLs);
         targetURL = mapURLs['index.html'];
     } else {
