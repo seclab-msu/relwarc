@@ -1,5 +1,6 @@
 import { Analyzer } from './analyzer';
 import { HeadlessBot } from './browser/headless-bot';
+import { OfflineHeadlessBot } from './browser/offline-headless-bot';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
 import { HAR } from './har';
@@ -9,10 +10,16 @@ export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
 
     readonly analyzer: Analyzer;
-    readonly bot: HeadlessBot;
+    readonly bot: HeadlessBot | OfflineHeadlessBot;
 
-    constructor() {
-        const bot = new HeadlessBot(false, false);
+    constructor(mapURLs?: object, resources?: object) {
+        let bot: HeadlessBot | OfflineHeadlessBot;
+        if (mapURLs && resources) {
+            bot = new OfflineHeadlessBot(false, false, mapURLs, resources);
+        } else {
+            bot = new HeadlessBot(false, false);
+        }
+
         const dynamicAnalyzer = new DynamicAnalyzer();
         const analyzer = new Analyzer(dynamicAnalyzer);
 

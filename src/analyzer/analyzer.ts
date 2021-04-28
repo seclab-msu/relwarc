@@ -1170,8 +1170,9 @@ export class Analyzer {
 
     private addCommentedCode(): void {
         for (let script of this.scripts) {
-            break;
-            const parsedComments = [];
+            script = script.replace(/^\s*[\r\n]/gm, '');
+            const combComments = combineComments(parser.parse(script).comments);
+            const parsedComments = parseComments(combComments);
             this.parsedScripts.push(...parsedComments);
         }
     }

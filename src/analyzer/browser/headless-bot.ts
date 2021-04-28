@@ -21,7 +21,7 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/201
 const LOADED_COOLDOWN = 250;
 
 // TODO: replace with type definitions for slimerjs
-interface ResourceRequest {
+export interface ResourceRequest {
     url: string;
 }
 
@@ -32,6 +32,11 @@ interface ResourceResponse {
 }
 
 // TODO: replace with type definitions for slimerjs
+export interface NetworkRequest {
+    changeUrl: (url: string) => void;
+}
+
+// TODO: replace with type definitions for slimerjs
 interface Webpage {
     open(url: string): Promise<string>;
     render(filename: string, options?: object);
@@ -39,27 +44,27 @@ interface Webpage {
         [userAgent: string]: string
     };
     onConsoleMessage: (msg: string) => void;
-    onResourceRequested: (req: ResourceRequest) => void;
+    onResourceRequested: (req: ResourceRequest, netReq: NetworkRequest) => void;
     onResourceReceived: (response: ResourceResponse) => void;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
 }
 
 export class HeadlessBot {
-    static readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
+    protected readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
 
     onWindowCreated: null | ((win: object, doc: object) => void);
 
     readonly webpage: Webpage;
-    private readonly printPageErrors: boolean;
-    private readonly logRequests: boolean;
-    private readonly trackDOMMutations: boolean;
+    protected readonly printPageErrors: boolean;
+    protected readonly logRequests: boolean;
+    protected readonly trackDOMMutations: boolean;
 
-    private pendingRequestCount: number;
-    private notifyPageIsLoaded: null | (() => void);
-    private loadedWatchdog: number | null;
-    private lastDOMMutation: number | null;
+    protected pendingRequestCount: number;
+    protected notifyPageIsLoaded: null | (() => void);
+    protected loadedWatchdog: number | null;
+    protected lastDOMMutation: number | null;
 
-    private mutationObserver: MutationObserver | null;
+    protected mutationObserver: MutationObserver | null;
 
     constructor(printPageErrors=false, printPageConsoleLog=true) {
         this.webpage = createWebpage();
@@ -106,7 +111,7 @@ export class HeadlessBot {
         };
     }
 
-    private handleRequest(req: ResourceRequest): void {
+    protected handleRequest(req: ResourceRequest): void {
         this.pendingRequestCount++;
         this.notifyLoadingContinues();
         if (this.logRequests) {
@@ -117,7 +122,7 @@ export class HeadlessBot {
         }
     }
 
-    private handleResponse(response: ResourceResponse): void {
+    protected handleResponse(response: ResourceResponse): void {
         if (response.stage !== 'end') {
             return;
         }
@@ -133,7 +138,7 @@ export class HeadlessBot {
         }
     }
 
-    private ensurePageIsLoaded(): void {
+    protected ensurePageIsLoaded(): void {
         this.loadedWatchdog = window.setTimeout(() => {
             if (
                 this.pendingRequestCount !== 0 ||
@@ -165,7 +170,7 @@ export class HeadlessBot {
         }, LOADED_COOLDOWN);
     }
 
-    private notifyLoadingContinues(): void {
+    protected notifyLoadingContinues(): void {
         if (this.loadedWatchdog !== null) {
             window.clearTimeout(this.loadedWatchdog);
             this.loadedWatchdog = null;
@@ -177,7 +182,7 @@ export class HeadlessBot {
         try {
             status = await withTimeout(
                 this.webpage.open(url),
-                HeadlessBot.LOAD_TIMEOUT
+                this.LOAD_TIMEOUT
             );
         } catch (e) {
             if (e instanceof TimeoutError) {
@@ -204,7 +209,7 @@ export class HeadlessBot {
         }
 
         try {
-            await withTimeout(pageIsLoaded, HeadlessBot.LOAD_TIMEOUT);
+            await withTimeout(pageIsLoaded, this.LOAD_TIMEOUT);
         } catch (e) {
             if (e instanceof TimeoutError) {
                 log(

@@ -5,6 +5,7 @@ declare const slimer: {
 };
 
 import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
+import { readTar } from './read-tar';
 
 
 async function main(argc: number, argv: string[]): Promise<number> {
@@ -13,9 +14,17 @@ async function main(argc: number, argv: string[]): Promise<number> {
         return 1;
     }
 
-    const targetURL = argv[1];
+    let targetURL = argv[1];
+    let analyzer: DynamicPageAnalyzer;
 
-    const analyzer = new DynamicPageAnalyzer();
+    if (argv.includes('--tar-page')) {
+        const path = argv[argv.indexOf('--tar-page') + 1];
+        const [mapURLs, resources] = await readTar(path);
+        analyzer = new DynamicPageAnalyzer(mapURLs, resources);
+        targetURL = mapURLs['index.html'];
+    } else {
+        analyzer = new DynamicPageAnalyzer();
+    }
 
     await analyzer.run(targetURL, argv.includes('--uncomment'));
 
