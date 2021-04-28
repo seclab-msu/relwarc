@@ -12,10 +12,10 @@ export class DynamicPageAnalyzer {
     readonly analyzer: Analyzer;
     readonly bot: HeadlessBot | OfflineHeadlessBot;
 
-    constructor(mapURLs?: object, contentURLs?: object) {
+    constructor(mapURLs?: object, resources?: object) {
         let bot: HeadlessBot | OfflineHeadlessBot;
-        if (mapURLs && contentURLs) {
-            bot = new OfflineHeadlessBot(false, false, mapURLs, contentURLs);
+        if (mapURLs && resources) {
+            bot = new OfflineHeadlessBot(false, false, mapURLs, resources);
         } else {
             bot = new HeadlessBot(false, false);
         }

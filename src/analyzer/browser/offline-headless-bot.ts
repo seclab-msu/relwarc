@@ -68,9 +68,9 @@ export class OfflineHeadlessBot {
         printPageErrors=false,
         printPageConsoleLog=true,
         mapURLs: object,
-        contentURLs: object,
+        resources: object,
     ) {
-        this.createWebServer(mapURLs, contentURLs);
+        this.createWebServer(mapURLs, resources);
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
         this.logRequests = true;
@@ -115,7 +115,7 @@ export class OfflineHeadlessBot {
         };
     }
 
-    private createWebServer(mapURLs: object, contentURLs: object) {
+    private createWebServer(mapURLs: object, resources: object) {
         this.webserver = webServerFactory.create();
         this.webserver.listen(-1);
         for (const [filename, url] of Object.entries(mapURLs)) {
@@ -124,7 +124,7 @@ export class OfflineHeadlessBot {
                 reqUrl.pathname + reqUrl.search,
                 function (request, response) {
                     response.statusCode = 200;
-                    response.write(contentURLs[filename]);
+                    response.write(resources[filename]);
                     response.close();
                 }
             );

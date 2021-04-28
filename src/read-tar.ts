@@ -6,7 +6,7 @@ export function readTar(path: string): Promise<object[]> {
         const tarFileStream = fs.createReadStream(path);
 
         let mapURLs: object = {};
-        const contentURLs: object = {};
+        const resources: object = {};
 
         const extract = tar.extract();
 
@@ -23,7 +23,7 @@ export function readTar(path: string): Promise<object[]> {
                     if (header.name == 'metainfo.json') {
                         mapURLs = JSON.parse(content);
                     } else {
-                        contentURLs[header.name] = content;
+                        resources[header.name] = content;
                     }
                     next();
                 });
@@ -39,7 +39,7 @@ export function readTar(path: string): Promise<object[]> {
             reject(new Error('extract error : ' + err + ' ' + err.stack));
         });
 
-        extract.on('finish', () => resolve([mapURLs, contentURLs]));
+        extract.on('finish', () => resolve([mapURLs, resources]));
 
         tarFileStream.pipe(extract);
     });

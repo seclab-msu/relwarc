@@ -7,11 +7,11 @@ function JSONObjectFromHAR(har: object): object {
 
 describe('Analyzing DEPs from TAR', () => {
     it('params in different scripts', async () => {
-    	const [mapURLs, contentURLs] = await readTar('test/analyzer/page/www/example.tar');
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example.tar');
 
         const url = mapURLs['index.html'];
 
-        const dpa = new DynamicPageAnalyzer(mapURLs, contentURLs);
+        const dpa = new DynamicPageAnalyzer(mapURLs, resources);
 
         await dpa.run(url);
 
