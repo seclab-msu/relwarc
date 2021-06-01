@@ -3,6 +3,8 @@ const fs = require('fs');
 const Jasmine = require('jasmine');
 const Reporter = require('jasmine-terminal-reporter');
 
+const logging = require('../../src/analyzer/logging');
+
 const PAGE_SPEC_FILES = 'page/test*.js';
 const defaultSpecFiles = [
     'test*.js',
@@ -52,6 +54,10 @@ for (const arg of args) {
     }
 }
 
+const testLogs = [];
+
+logging.setLogFunc(msg => testLogs.push(msg));
+
 specFiles = specFiles || defaultSpecFiles;
 
 jasmine.loadConfig({
@@ -67,6 +73,18 @@ jasmine.addReporter(new Reporter({
     print: s => stdout.write(s),
     isVerbose: true
 }));
+
+jasmine.addReporter({
+    specDone(result) {
+        if (result.status === 'failed') {
+            console.log("Spec failed, printing its log output:");
+            for (const msg of testLogs) {
+                console.log(msg);
+            }
+        }
+        testLogs.length = 0;
+    }
+})
 
 jasmine.onComplete(function(passed) {
     exit(passed ? 0 : 1);

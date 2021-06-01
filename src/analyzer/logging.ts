@@ -1,3 +1,5 @@
+type LogFuncType = (msg: string) => void;
+
 function formatDate(): string {
     const pad = s => String(s).padStart(2, '0');
 
@@ -10,6 +12,18 @@ function formatDate(): string {
     return `${dateString} ${timeString}`;
 }
 
-export function log(msg: string): void {
+let logFunc: LogFuncType = function log(msg: string): void {
     console.error(`${formatDate()} ${msg}`);
+};
+
+export function log(msg: string): void {
+    logFunc(msg);
+}
+
+export function setLogFunc(f: LogFuncType): void {
+    logFunc = f;
+}
+
+export function getLogFunc(): LogFuncType {
+    return logFunc;
 }
