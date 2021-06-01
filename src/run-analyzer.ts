@@ -4,31 +4,39 @@ declare const slimer: {
     exit(status: number): void;
 };
 
+import { ArgumentParser } from 'argparse';
+
 import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
 import { readTar } from './read-tar';
 
 
 async function main(argc: number, argv: string[]): Promise<number> {
-    if (argc < 2) {
-        system.stderr.write('Usage: ' + argv[0] + ' <target url>\n');
-        return 1;
-    }
+    const parser = new ArgumentParser({ prog: `slimerjs ${argv[0]}` });
 
-    let targetURL = argv[1];
+    parser.add_argument('target_url');
+    parser.add_argument('--tar-page', { type: String });
+    parser.add_argument('--uncomment', { action: 'store_true' });
+    parser.add_argument('--args', { action: 'store_true' });
+    parser.add_argument('--no-html-deps', { action: 'store_true' });
+
+    const args = parser.parse_args(argv.slice(1));
+
     let analyzer: DynamicPageAnalyzer;
+    let targetURL = args.target_url;
 
-    if (argv.includes('--tar-page')) {
-        const path = argv[argv.indexOf('--tar-page') + 1];
-        const [mapURLs, resources] = await readTar(path);
+    if (args.tar_page) {
+        const [mapURLs, resources] = await readTar(args.tar_page);
         analyzer = new DynamicPageAnalyzer(mapURLs, resources);
         targetURL = mapURLs['index.html'];
     } else {
         analyzer = new DynamicPageAnalyzer();
     }
 
-    await analyzer.run(targetURL, argv.includes('--uncomment'));
+    const mineHTMLDEPs = !args.no_html_deps;
 
-    if (argv.includes('--args')) {
+    await analyzer.run(targetURL, args.uncomment, mineHTMLDEPs);
+
+    if (args.args) {
         for (const result of analyzer.analyzer.results) {
             console.log(JSON.stringify(result, null, 4));
         }

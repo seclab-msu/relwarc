@@ -1,30 +1,30 @@
 import { promises as fs } from 'fs';
 
+import { ArgumentParser } from 'argparse';
+
 import { Analyzer } from './analyzer/analyzer';
 
 async function main(argc: number, argv: string[]): Promise<number> {
-    if (argc < 3) {
-        process.stderr.write(`Usage: ${argv[0]} ${argv[1]} <path to script>\n`);
-        return 1;
-    }
+    const parser = new ArgumentParser();
 
-    const scriptPath = argv[2];
+    parser.add_argument('script_path');
+    parser.add_argument('base_url', {nargs: '?'});
+    parser.add_argument('--uncomment', { action: 'store_true' });
+    parser.add_argument('--args', { action: 'store_true' });
 
-    let baseURL = 'http://example.com/';
+    const args = parser.parse_args();
 
-    if (argc > 3) {
-        baseURL = argv[3];
-    }
+    const baseURL = args.base_url || 'http://example.com/';
 
-    const source = await fs.readFile(scriptPath, { encoding: 'utf8' });
+    const source = await fs.readFile(args.script_path, { encoding: 'utf8' });
 
     const analyzer = new Analyzer();
 
     analyzer.addScript(source);
 
-    analyzer.analyze(baseURL, argv.includes('--uncomment'));
+    analyzer.analyze(baseURL, args.uncomment);
 
-    if (argv.includes('--args')) {
+    if (args.args) {
         for (const result of analyzer.results) {
             console.log(JSON.stringify(result, null, 4));
         }
