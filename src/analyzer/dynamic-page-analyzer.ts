@@ -30,7 +30,11 @@ export class DynamicPageAnalyzer {
         this.htmlDEPs = [];
     }
 
-    async run(url: string, uncomment?: boolean): Promise<void> {
+    async run(
+        url: string,
+        uncomment?: boolean,
+        mineHTMLDEPs=true
+    ): Promise<void> {
         log(`Navigating to URL: ${url}`);
 
         await this.bot.navigate(url);
@@ -41,8 +45,10 @@ export class DynamicPageAnalyzer {
 
         this.analyzer.analyze(url, uncomment);
 
-        log('Analyzer done, now mine HTML DEPs');
+        if (mineHTMLDEPs) {
+            log('Analyzer done, now mine HTML DEPs');
 
-        this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage);
+            this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage);
+        }
     }
 }
