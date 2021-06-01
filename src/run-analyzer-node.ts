@@ -4,11 +4,11 @@ import { ArgumentParser } from 'argparse';
 
 import { Analyzer } from './analyzer/analyzer';
 
-async function main(argc: number, argv: string[]): Promise<number> {
+async function main(): Promise<number> {
     const parser = new ArgumentParser();
 
     parser.add_argument('script_path');
-    parser.add_argument('base_url', {nargs: '?'});
+    parser.add_argument('base_url', { nargs: '?' });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
 
@@ -40,8 +40,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     let exitStatus: number;
 
     try {
-        const argv = process.argv;
-        exitStatus = await main(argv.length, argv);
+        exitStatus = await main();
     } catch (e) {
         process.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
         exitStatus = 1;
