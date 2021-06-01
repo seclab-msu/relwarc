@@ -199,7 +199,7 @@ export class HeadlessBot {
         }
 
         const delay = wait(LOADED_COOLDOWN);
-        const pageIsLoaded = new Promise(resolve => {
+        const pageIsLoaded: Promise<void> = new Promise(resolve => {
             this.notifyPageIsLoaded = resolve;
         });
         await delay;

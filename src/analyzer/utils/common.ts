@@ -15,10 +15,10 @@ export function formatStack(stack: ErrorStackTraceFrame[]): string {
     ).join('\n');
 }
 
-export function makeCallbackPromise(): [Promise<unknown>, () => void] {
+export function makeCallbackPromise(): [Promise<void>, () => void] {
     let doneCallback: undefined | (() => void);
 
-    const p = new Promise(resolve => {
+    const p: Promise<void> = new Promise(resolve => {
         doneCallback = resolve;
     });
 
