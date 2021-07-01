@@ -49,6 +49,12 @@ interface Webpage {
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
 }
 
+export interface HeadlessBotOptions {
+    printPageErrors: boolean;
+    printPageConsoleLog: boolean;
+    logRequests: boolean;
+}
+
 export class HeadlessBot {
     protected readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
 
@@ -66,10 +72,14 @@ export class HeadlessBot {
 
     protected mutationObserver: MutationObserver | null;
 
-    constructor(printPageErrors=false, printPageConsoleLog=true) {
+    constructor({
+        printPageErrors=false,
+        printPageConsoleLog=true,
+        logRequests=false
+    }: HeadlessBotOptions) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
-        this.logRequests = true;
+        this.logRequests = logRequests;
         this.trackDOMMutations = true;
 
         if (printPageConsoleLog) {

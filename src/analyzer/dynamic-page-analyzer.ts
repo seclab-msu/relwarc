@@ -6,18 +6,31 @@ import { mineDEPsFromHTML } from './html-deps';
 import { HAR } from './har';
 import { log } from './logging';
 
+
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
 
     readonly analyzer: Analyzer;
     readonly bot: HeadlessBot | OfflineHeadlessBot;
 
-    constructor(mapURLs?: object, resources?: object) {
+    constructor({
+        logRequests=false,
+        mapURLs=(null as object | null),
+        resources=(null as object | null)
+    }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
         if (mapURLs && resources) {
-            bot = new OfflineHeadlessBot(false, false, mapURLs, resources);
+            bot = new OfflineHeadlessBot(mapURLs, resources, {
+                printPageErrors: false,
+                printPageConsoleLog: false,
+                logRequests
+            });
         } else {
-            bot = new HeadlessBot(false, false);
+            bot = new HeadlessBot({
+                printPageErrors: false,
+                printPageConsoleLog: false,
+                logRequests
+            });
         }
 
         const dynamicAnalyzer = new DynamicAnalyzer();

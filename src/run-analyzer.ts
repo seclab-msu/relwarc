@@ -19,6 +19,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
+    parser.add_argument('--log-requests', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -31,10 +32,10 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     if (args.tar_page) {
         const [mapURLs, resources] = await readTar(args.tar_page);
-        analyzer = new DynamicPageAnalyzer(mapURLs, resources);
+        analyzer = new DynamicPageAnalyzer({ mapURLs, resources });
         targetURL = mapURLs['index.html'];
     } else {
-        analyzer = new DynamicPageAnalyzer();
+        analyzer = new DynamicPageAnalyzer({ logRequests: args.log_requests });
     }
 
     const mineHTMLDEPs = !args.no_html_deps;

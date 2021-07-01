@@ -1,7 +1,7 @@
 const webServerFactory = require('webserver');
 
 import {
-    HeadlessBot,
+    HeadlessBot, HeadlessBotOptions,
     ResourceRequest,
     NetworkRequest
 } from './headless-bot';
@@ -11,13 +11,12 @@ const LOCALHOST_BASE = 'http://127.0.0.1:';
 export class OfflineHeadlessBot extends HeadlessBot {
     private webserver;
 
-    constructor(
+    constructor(mapURLs: object, resources: object, {
         printPageErrors=false,
         printPageConsoleLog=true,
-        mapURLs: object,
-        resources: object,
-    ) {
-        super(printPageErrors, printPageConsoleLog);
+        logRequests=false
+    }: HeadlessBotOptions) {
+        super({ printPageErrors, printPageConsoleLog, logRequests });
         this.createWebServer(mapURLs, resources);
     }
 

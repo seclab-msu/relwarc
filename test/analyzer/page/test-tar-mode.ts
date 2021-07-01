@@ -11,7 +11,7 @@ describe('Analyzing DEPs from TAR', () => {
 
         const url = mapURLs['index.html'];
 
-        const dpa = new DynamicPageAnalyzer(mapURLs, resources);
+        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
 
         await dpa.run(url);
 
