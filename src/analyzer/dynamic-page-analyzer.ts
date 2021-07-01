@@ -5,7 +5,10 @@ import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
 import { HAR } from './har';
 import { log } from './logging';
-
+import {
+    DomainFilteringMode,
+    filterByDomain
+} from './domain-filtering';
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
@@ -13,10 +16,13 @@ export class DynamicPageAnalyzer {
     readonly analyzer: Analyzer;
     readonly bot: HeadlessBot | OfflineHeadlessBot;
 
+    private readonly domainFilteringMode: DomainFilteringMode;
+
     constructor({
         logRequests=false,
         mapURLs=(null as object | null),
-        resources=(null as object | null)
+        resources=(null as object | null),
+        domainFilteringMode=DomainFilteringMode.Any
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
         if (mapURLs && resources) {
@@ -41,6 +47,8 @@ export class DynamicPageAnalyzer {
         this.analyzer = analyzer;
         this.bot = bot;
         this.htmlDEPs = [];
+
+        this.domainFilteringMode = domainFilteringMode;
     }
 
     async run(
@@ -48,6 +56,11 @@ export class DynamicPageAnalyzer {
         uncomment?: boolean,
         mineHTMLDEPs=true
     ): Promise<void> {
+        this.analyzer.harFilter = (har: HAR): boolean => {
+            return filterByDomain(har.url, url, this.domainFilteringMode);
+        };
+
+
         log(`Navigating to URL: ${url}`);
 
         await this.bot.navigate(url);
@@ -61,7 +74,9 @@ export class DynamicPageAnalyzer {
         if (mineHTMLDEPs) {
             log('Analyzer done, now mine HTML DEPs');
 
-            this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage);
+            this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage).filter(har => {
+                return filterByDomain(har.url, url, this.domainFilteringMode);
+            });
         }
     }
 }

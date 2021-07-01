@@ -9,8 +9,12 @@ import { ArgumentParser } from 'argparse';
 
 import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
 import { readTar } from './read-tar';
+import {
+    domainFilteringModeFromString,
+    validDomainFilteringModeValues
+} from './analyzer/domain-filtering';
 
-
+/* eslint max-lines-per-function:off */
 async function main(argc: number, argv: string[]): Promise<number> {
     const parser = new ArgumentParser({ prog: `slimerjs ${argv[0]}` });
 
@@ -20,6 +24,10 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
     parser.add_argument('--log-requests', { action: 'store_true' });
+    parser.add_argument('--domain-scope', {
+        choices: validDomainFilteringModeValues,
+        default: 'subdomain'
+    });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -27,16 +35,23 @@ async function main(argc: number, argv: string[]): Promise<number> {
         return 1;
     }
 
-    let analyzer: DynamicPageAnalyzer;
     let targetURL = args.target_url;
+
+    const analyzerOptions = {
+        logRequests: args.log_requests,
+        domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
+        mapURLs: null as (object | null),
+        resources: null as (object | null)
+    };
 
     if (args.tar_page) {
         const [mapURLs, resources] = await readTar(args.tar_page);
-        analyzer = new DynamicPageAnalyzer({ mapURLs, resources });
+        analyzerOptions.mapURLs = mapURLs;
+        analyzerOptions.resources = resources;
         targetURL = mapURLs['index.html'];
-    } else {
-        analyzer = new DynamicPageAnalyzer({ logRequests: args.log_requests });
     }
+
+    const analyzer = new DynamicPageAnalyzer(analyzerOptions);
 
     const mineHTMLDEPs = !args.no_html_deps;
 

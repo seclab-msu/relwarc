@@ -139,6 +139,8 @@ export class Analyzer {
 
     private trackedCallSequences: Map<string, TrackedCallSequence>;
 
+    harFilter: null | ((had: HAR) => boolean);
+
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
@@ -172,6 +174,7 @@ export class Analyzer {
         this.selectedFunction = null;
         this.argsStackOffset = null;
         this.mergedProgram = null;
+        this.harFilter = null;
 
         this.resultsAlready = new Set();
 
@@ -1177,6 +1180,12 @@ export class Analyzer {
         }
     }
 
+    private newHARCallback(har: HAR): void {
+        if (!this.harFilter || this.harFilter(har)) {
+            this.onNewHAR(har);
+        }
+    }
+
     onNewHAR(har: HAR): void {
         this.hars.push(har);
     }
@@ -1226,7 +1235,7 @@ export class Analyzer {
             }
             harsAlready.add(harStringified);
 
-            this.onNewHAR(har);
+            this.newHARCallback(har);
         }
     }
 
