@@ -2,6 +2,7 @@ const system = require('system');
 
 declare const slimer: {
     exit(status: number): void;
+    isExiting(): boolean;
 };
 
 import { ArgumentParser } from 'argparse';
@@ -20,6 +21,10 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--no-html-deps', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
+
+    if (slimer.isExiting()) { // this means arg parsing failed and called exit
+        return 1;
+    }
 
     let analyzer: DynamicPageAnalyzer;
     let targetURL = args.target_url;
@@ -61,5 +66,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         system.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
         exitStatus = 1;
     }
-    slimer.exit(exitStatus);
+    if (!slimer.isExiting()) {
+        slimer.exit(exitStatus);
+    }
 })();
