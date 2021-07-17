@@ -81,7 +81,7 @@ export class HeadlessBot {
     constructor({
         printPageErrors=false,
         printPageConsoleLog=true,
-        logRequests=false,
+        logRequests=false
     }: HeadlessBotOptions) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;

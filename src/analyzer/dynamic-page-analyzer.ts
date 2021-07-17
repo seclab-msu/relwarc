@@ -14,6 +14,7 @@ import {
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
     dynamicDEPs: HAR[];
+    analyzerDEPs: HAR[];
 
     readonly analyzer: Analyzer;
     readonly bot: HeadlessBot | OfflineHeadlessBot;
@@ -51,6 +52,7 @@ export class DynamicPageAnalyzer {
         this.bot = bot;
         this.htmlDEPs = [];
         this.dynamicDEPs = [];
+        this.analyzerDEPs = [];
 
         if (mineDynamicDEPs) {
             bot.dynamicDEPsCallback = (req => {
@@ -64,29 +66,14 @@ export class DynamicPageAnalyzer {
     async run(
         url: string,
         uncomment?: boolean,
-        mineHTMLDEPs=true,
-        mineDynamicDEPs=true
+        mineHTMLDEPs=true
     ): Promise<void> {
         this.analyzer.harFilter = (har: HAR): boolean => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
         };
 
-
         log(`Navigating to URL: ${url}`);
-
         await this.bot.navigate(url);
-
-        if (mineDynamicDEPs) {
-            const bot = this.bot;
-            if (bot instanceof OfflineHeadlessBot) {
-                this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                    return this.changeLocalURL(har, url, bot.getServerPort());
-                });
-            }
-            this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                return filterByDomain(har.url, url, this.domainFilteringMode);
-            });
-        }
 
         // this.bot.webpage.render("/tmp/page.png");
 
@@ -94,20 +81,36 @@ export class DynamicPageAnalyzer {
 
         this.analyzer.analyze(url, uncomment);
 
+        this.analyzerDEPs = this.analyzer.hars;
+
         if (mineHTMLDEPs) {
             log('Analyzer done, now mine HTML DEPs');
 
-            this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage).filter(har => {
-                return filterByDomain(har.url, url, this.domainFilteringMode);
+            this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage);
+        }
+
+        const bot = this.bot;
+        if (bot instanceof OfflineHeadlessBot) {
+            this.analyzerDEPs = this.analyzerDEPs.filter(har => {
+                return this.changeLocalURL(har, url, bot.getServerPort());
             });
 
-            const bot = this.bot;
-            if (bot instanceof OfflineHeadlessBot) {
-                this.htmlDEPs = this.htmlDEPs.filter(har => {
-                    return this.changeLocalURL(har, url, bot.getServerPort());
-                });
-            }
+            this.dynamicDEPs = this.dynamicDEPs.filter(har => {
+                return this.changeLocalURL(har, url, bot.getServerPort());
+            });
+
+            this.htmlDEPs = this.htmlDEPs.filter(har => {
+                return this.changeLocalURL(har, url, bot.getServerPort());
+            });
         }
+
+        this.dynamicDEPs = this.dynamicDEPs.filter(har => {
+            return filterByDomain(har.url, url, this.domainFilteringMode);
+        });
+
+        this.htmlDEPs = this.htmlDEPs.filter(har => {
+            return filterByDomain(har.url, url, this.domainFilteringMode);
+        });
     }
 
     private changeLocalURL(har: HAR, baseURL: string, port: number): HAR {
@@ -124,5 +127,9 @@ export class DynamicPageAnalyzer {
             har.headers[hostPos].value = parsedBaseURL.host;
         }
         return har;
+    }
+
+    getAllDeps(): HAR[] {
+        return this.analyzerDEPs.concat(this.dynamicDEPs).concat(this.htmlDEPs);
     }
 }

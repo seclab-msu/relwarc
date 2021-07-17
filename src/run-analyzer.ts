@@ -38,14 +38,12 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     let targetURL = args.target_url;
 
-    const mineDynamicDEPs = !args.no_dynamic_deps;
-
     const analyzerOptions = {
         logRequests: args.log_requests,
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
         resources: null as (object | null),
-        mineDynamicDEPs: mineDynamicDEPs as boolean
+        mineDynamicDEPs: !args.no_dynamic_deps as boolean
     };
 
     if (args.tar_page) {
@@ -59,12 +57,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const mineHTMLDEPs = !args.no_html_deps;
 
-    await analyzer.run(
-        targetURL,
-        args.uncomment,
-        mineHTMLDEPs,
-        mineDynamicDEPs
-    );
+    await analyzer.run(targetURL, args.uncomment, mineHTMLDEPs);
 
     if (args.args) {
         for (const result of analyzer.analyzer.results) {
@@ -72,9 +65,8 @@ async function main(argc: number, argv: string[]): Promise<number> {
         }
     } else {
         // hars
-        const result = analyzer.analyzer.hars.concat(analyzer.htmlDEPs);
         console.log(JSON.stringify(
-            result.concat(analyzer.dynamicDEPs),
+            analyzer.getAllDeps(),
             null,
             4
         ));
