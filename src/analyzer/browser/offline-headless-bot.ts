@@ -22,20 +22,16 @@ export class OfflineHeadlessBot extends HeadlessBot {
 
     private createWebServer(mapURLs: object, resources: object) {
         this.webserver = webServerFactory.create();
-        this.webserver.listen(-1);
-        for (const [filename, url] of Object.entries(mapURLs)) {
-            const reqUrl = new URL(url);
-            this.webserver.registerPathHandler(
-                reqUrl.pathname,
-                function (request, response) {
-                    if (request.url === reqUrl.pathname + reqUrl.search) {
-                        response.statusCode = 200;
-                        response.write(resources[filename]);
-                        response.close();
-                    }
+        this.webserver.listen(-1, function (request, response) {
+            for (const [filename, url] of Object.entries(mapURLs)) {
+                const reqUrl = new URL(url);
+                if (request.url === reqUrl.pathname + reqUrl.search) {
+                    response.statusCode = 200;
+                    response.write(resources[filename]);
+                    response.close();
                 }
-            );
-        }
+            }
+        });
     }
 
     protected handleRequest(
