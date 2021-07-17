@@ -99,14 +99,14 @@ function makeHARJQuery(
     args: Value[],
     baseURL: string
 ): HAR|null {
-    let [url, settings, data] = parseArgs(funcName, args);
-
     if (funcName === 'load' && typeof args[0] !== 'string') {
         // jQuery until 3.0 also had event-handling function .load
         // See https://api.jquery.com/load/
         // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
         return null;
     }
+
+    let [url, settings, data] = parseArgs(funcName, args);
 
     if (!url || isUnknown(url)) {
         return null;
