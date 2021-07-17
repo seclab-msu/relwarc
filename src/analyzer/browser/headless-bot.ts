@@ -6,8 +6,7 @@ const WindowEvents = require('./window-events');
 
 import { observeMutations } from './mutation-observer';
 
-import { requestToHar } from '../dynamic-deps';
-import { HAR, KeyValue } from '../har';
+import { KeyValue } from '../har';
 
 import { getWrappedWindow } from '../utils/window';
 import {
@@ -59,20 +58,18 @@ export interface HeadlessBotOptions {
     printPageErrors: boolean;
     printPageConsoleLog: boolean;
     logRequests: boolean;
-    mineDynamicDEPs: boolean;
 }
 
 export class HeadlessBot {
     protected readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
 
     onWindowCreated: null | ((win: object, doc: object) => void);
+    dynamicDEPsCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
-    readonly dynamicDEPs: HAR[];
     protected readonly printPageErrors: boolean;
     protected readonly logRequests: boolean;
     protected readonly trackDOMMutations: boolean;
-    protected readonly mineDynamicDEPs: boolean;
 
     protected pendingRequestCount: number;
     protected notifyPageIsLoaded: null | (() => void);
@@ -85,13 +82,12 @@ export class HeadlessBot {
         printPageErrors=false,
         printPageConsoleLog=true,
         logRequests=false,
-        mineDynamicDEPs=true,
     }: HeadlessBotOptions) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
         this.logRequests = logRequests;
-        this.mineDynamicDEPs = mineDynamicDEPs;
-        this.dynamicDEPs = [];
+
+        this.dynamicDEPsCallback = null;
         this.trackDOMMutations = true;
 
         if (printPageConsoleLog) {
@@ -141,8 +137,8 @@ export class HeadlessBot {
                 `${this.pendingRequestCount}`
             );
         }
-        if (this.mineDynamicDEPs) {
-            this.dynamicDEPs.push(requestToHar(req));
+        if (this.dynamicDEPsCallback) {
+            this.dynamicDEPsCallback(req);
         }
     }
 

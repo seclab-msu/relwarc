@@ -3,6 +3,7 @@ import { HeadlessBot } from './browser/headless-bot';
 import { OfflineHeadlessBot } from './browser/offline-headless-bot';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
+import { requestToHar } from './dynamic-deps';
 import { HAR } from './har';
 import { log } from './logging';
 import {
@@ -31,15 +32,13 @@ export class DynamicPageAnalyzer {
             bot = new OfflineHeadlessBot(mapURLs, resources, {
                 printPageErrors: false,
                 printPageConsoleLog: false,
-                logRequests,
-                mineDynamicDEPs
+                logRequests
             });
         } else {
             bot = new HeadlessBot({
                 printPageErrors: false,
                 printPageConsoleLog: false,
-                logRequests,
-                mineDynamicDEPs
+                logRequests
             });
         }
 
@@ -52,6 +51,12 @@ export class DynamicPageAnalyzer {
         this.bot = bot;
         this.htmlDEPs = [];
         this.dynamicDEPs = [];
+
+        if (mineDynamicDEPs) {
+            bot.dynamicDEPsCallback = (req => {
+                this.dynamicDEPs.push(requestToHar(req));
+            });
+        }
 
         this.domainFilteringMode = domainFilteringMode;
     }
@@ -72,7 +77,7 @@ export class DynamicPageAnalyzer {
         await this.bot.navigate(url);
 
         if (mineDynamicDEPs) {
-            this.dynamicDEPs = this.bot.dynamicDEPs.filter(har => {
+            this.dynamicDEPs = this.dynamicDEPs.filter(har => {
                 return filterByDomain(har.url, url, this.domainFilteringMode);
             });
         }
