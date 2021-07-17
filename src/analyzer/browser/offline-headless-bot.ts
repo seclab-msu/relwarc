@@ -14,9 +14,15 @@ export class OfflineHeadlessBot extends HeadlessBot {
     constructor(mapURLs: object, resources: object, {
         printPageErrors=false,
         printPageConsoleLog=true,
-        logRequests=false
+        logRequests=false,
+        mineDynamicDEPs=true
     }: HeadlessBotOptions) {
-        super({ printPageErrors, printPageConsoleLog, logRequests });
+        super({
+            printPageErrors,
+            printPageConsoleLog,
+            logRequests,
+            mineDynamicDEPs
+        });
         this.createWebServer(mapURLs, resources);
     }
 

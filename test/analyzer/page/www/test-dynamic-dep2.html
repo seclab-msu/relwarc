@@ -1,0 +1,17 @@
+<script src="/educba.com/jquery.min.js"></script>
+<script>
+(function() {
+    let test = $;
+    test.post(
+        '/test/test2',
+        {
+            id: '1',
+            test: true
+        },
+        function(response){
+            console.log(response);
+        }
+    );
+}());
+
+</script>

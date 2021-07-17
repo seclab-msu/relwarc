@@ -23,6 +23,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
+    parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--log-requests', { action: 'store_true' });
     parser.add_argument('--domain-scope', {
         choices: validDomainFilteringModeValues,
@@ -37,11 +38,14 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     let targetURL = args.target_url;
 
+    const mineDynamicDEPs = !args.no_dynamic_deps;
+
     const analyzerOptions = {
         logRequests: args.log_requests,
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
-        resources: null as (object | null)
+        resources: null as (object | null),
+        mineDynamicDEPs: mineDynamicDEPs as boolean
     };
 
     if (args.tar_page) {
@@ -55,7 +59,12 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const mineHTMLDEPs = !args.no_html_deps;
 
-    await analyzer.run(targetURL, args.uncomment, mineHTMLDEPs);
+    await analyzer.run(
+        targetURL,
+        args.uncomment,
+        mineHTMLDEPs,
+        mineDynamicDEPs
+    );
 
     if (args.args) {
         for (const result of analyzer.analyzer.results) {
@@ -63,8 +72,9 @@ async function main(argc: number, argv: string[]): Promise<number> {
         }
     } else {
         // hars
+        const result = analyzer.analyzer.hars.concat(analyzer.htmlDEPs);
         console.log(JSON.stringify(
-            analyzer.analyzer.hars.concat(analyzer.htmlDEPs),
+            result.concat(analyzer.dynamicDEPs),
             null,
             4
         ));

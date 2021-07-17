@@ -12,6 +12,7 @@ import {
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
+    dynamicDEPs: HAR[];
 
     readonly analyzer: Analyzer;
     readonly bot: HeadlessBot | OfflineHeadlessBot;
@@ -22,20 +23,23 @@ export class DynamicPageAnalyzer {
         logRequests=false,
         mapURLs=(null as object | null),
         resources=(null as object | null),
-        domainFilteringMode=DomainFilteringMode.Any
+        domainFilteringMode=DomainFilteringMode.Any,
+        mineDynamicDEPs=true
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
         if (mapURLs && resources) {
             bot = new OfflineHeadlessBot(mapURLs, resources, {
                 printPageErrors: false,
                 printPageConsoleLog: false,
-                logRequests
+                logRequests,
+                mineDynamicDEPs
             });
         } else {
             bot = new HeadlessBot({
                 printPageErrors: false,
                 printPageConsoleLog: false,
-                logRequests
+                logRequests,
+                mineDynamicDEPs
             });
         }
 
@@ -47,6 +51,7 @@ export class DynamicPageAnalyzer {
         this.analyzer = analyzer;
         this.bot = bot;
         this.htmlDEPs = [];
+        this.dynamicDEPs = [];
 
         this.domainFilteringMode = domainFilteringMode;
     }
@@ -54,7 +59,8 @@ export class DynamicPageAnalyzer {
     async run(
         url: string,
         uncomment?: boolean,
-        mineHTMLDEPs=true
+        mineHTMLDEPs=true,
+        mineDynamicDEPs=true
     ): Promise<void> {
         this.analyzer.harFilter = (har: HAR): boolean => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
@@ -64,6 +70,12 @@ export class DynamicPageAnalyzer {
         log(`Navigating to URL: ${url}`);
 
         await this.bot.navigate(url);
+
+        if (mineDynamicDEPs) {
+            this.dynamicDEPs = this.bot.dynamicDEPs.filter(har => {
+                return filterByDomain(har.url, url, this.domainFilteringMode);
+            });
+        }
 
         // this.bot.webpage.render("/tmp/page.png");
 
