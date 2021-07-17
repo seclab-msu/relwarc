@@ -77,6 +77,12 @@ export class DynamicPageAnalyzer {
         await this.bot.navigate(url);
 
         if (mineDynamicDEPs) {
+            const bot = this.bot;
+            if (bot instanceof OfflineHeadlessBot) {
+                this.dynamicDEPs = this.dynamicDEPs.filter(har => {
+                    return this.changeLocalURL(har, url, bot.getServerPort());
+                });
+            }
             this.dynamicDEPs = this.dynamicDEPs.filter(har => {
                 return filterByDomain(har.url, url, this.domainFilteringMode);
             });
@@ -94,6 +100,29 @@ export class DynamicPageAnalyzer {
             this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage).filter(har => {
                 return filterByDomain(har.url, url, this.domainFilteringMode);
             });
+
+            const bot = this.bot;
+            if (bot instanceof OfflineHeadlessBot) {
+                this.htmlDEPs = this.htmlDEPs.filter(har => {
+                    return this.changeLocalURL(har, url, bot.getServerPort());
+                });
+            }
         }
+    }
+
+    private changeLocalURL(har: HAR, baseURL: string, port: number): HAR {
+        const parsedURL = new URL(har.url);
+
+        if (parsedURL.hostname === '127.0.0.1' && Number(parsedURL.port) === port) {
+            const parsedBaseURL = new URL(baseURL);
+            parsedURL.protocol = parsedBaseURL.protocol;
+            parsedURL.hostname = parsedBaseURL.hostname;
+            parsedURL.port = parsedBaseURL.port;
+            har.url = parsedURL.href;
+
+            const hostPos = har.headers.findIndex((obj => obj.name == 'Host'));
+            har.headers[hostPos].value = parsedBaseURL.host;
+        }
+        return har;
     }
 }

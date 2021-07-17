@@ -51,4 +51,7 @@ export class OfflineHeadlessBot extends HeadlessBot {
         }
         super.handleRequest(req);
     }
+    getServerPort(): number {
+        return this.webserver.port;
+    }
 }
