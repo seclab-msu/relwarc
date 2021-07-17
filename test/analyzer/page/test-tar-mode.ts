@@ -31,8 +31,33 @@ describe('Analyzing DEPs from TAR', () => {
             "bodySize": 0,
         }));
     });
-    it('querystring in js-scripts', async () => {
+    it('one param in querystring js-script', async () => {
         const [mapURLs, resources] = await readTar('test/analyzer/page/www/example2.tar');
+
+        const url = mapURLs['index.html'];
+
+        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+
+        await dpa.run(url);
+
+        expect(dpa.analyzer.hars.length).toBeGreaterThan(0);
+
+        const hars = dpa.analyzer.hars.map(JSONObjectFromHAR);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            "method": "GET",
+            "url": 'http://test.com/test/url?q=123',
+            "queryString": [
+                {
+                    "name": "q",
+                    "value": "123"
+                }
+            ],
+            "bodySize": 0,
+        }));
+    });
+    it('two params in querystring js-script', async () => {
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example3.tar');
 
         const url = mapURLs['index.html'];
 
