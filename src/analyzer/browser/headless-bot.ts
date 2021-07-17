@@ -29,6 +29,7 @@ export interface ResourceRequest {
 interface ResourceResponse {
     stage: string;
     url: string;
+    status: number;
 }
 
 // TODO: replace with type definitions for slimerjs
@@ -139,7 +140,7 @@ export class HeadlessBot {
         this.pendingRequestCount--;
         if (this.logRequests) {
             log(
-                `request done ${response.url}: ` +
+                `request done ${response.url} (status ${response.status}): ` +
                 `count now ${this.pendingRequestCount}`
             );
         }
