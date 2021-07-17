@@ -26,11 +26,13 @@ export class OfflineHeadlessBot extends HeadlessBot {
         for (const [filename, url] of Object.entries(mapURLs)) {
             const reqUrl = new URL(url);
             this.webserver.registerPathHandler(
-                reqUrl.pathname + reqUrl.search,
+                reqUrl.pathname,
                 function (request, response) {
-                    response.statusCode = 200;
-                    response.write(resources[filename]);
-                    response.close();
+                    if (request.url === reqUrl.pathname + reqUrl.search) {
+                        response.statusCode = 200;
+                        response.write(resources[filename]);
+                        response.close();
+                    }
                 }
             );
         }
