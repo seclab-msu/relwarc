@@ -55,9 +55,9 @@ export class DynamicPageAnalyzer {
         this.analyzerDEPs = [];
 
         if (mineDynamicDEPs) {
-            bot.dynamicDEPsCallback = (req => {
+            bot.requestCallback = req => {
                 this.dynamicDEPs.push(requestToHar(req));
-            });
+            };
         }
 
         this.domainFilteringMode = domainFilteringMode;

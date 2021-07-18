@@ -64,7 +64,7 @@ export class HeadlessBot {
     protected readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
 
     onWindowCreated: null | ((win: object, doc: object) => void);
-    dynamicDEPsCallback: null | ((req: ResourceRequest) => void);
+    requestCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
     protected readonly printPageErrors: boolean;
@@ -87,7 +87,7 @@ export class HeadlessBot {
         this.printPageErrors = printPageErrors;
         this.logRequests = logRequests;
 
-        this.dynamicDEPsCallback = null;
+        this.requestCallback = null;
         this.trackDOMMutations = true;
 
         if (printPageConsoleLog) {
@@ -137,8 +137,8 @@ export class HeadlessBot {
                 `${this.pendingRequestCount}`
             );
         }
-        if (this.dynamicDEPsCallback) {
-            this.dynamicDEPsCallback(req);
+        if (this.requestCallback) {
+            this.requestCallback(req);
         }
     }
 
