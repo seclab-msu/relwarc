@@ -6,6 +6,8 @@ const WindowEvents = require('./window-events');
 
 import { observeMutations } from './mutation-observer';
 
+import { KeyValue } from '../har';
+
 import { getWrappedWindow } from '../utils/window';
 import {
     wait,
@@ -23,6 +25,9 @@ const LOADED_COOLDOWN = 250;
 // TODO: replace with type definitions for slimerjs
 export interface ResourceRequest {
     url: string;
+    method: string;
+    headers: KeyValue[];
+    postData: string;
 }
 
 // TODO: replace with type definitions for slimerjs
@@ -60,6 +65,7 @@ export class HeadlessBot {
     protected readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
 
     onWindowCreated: null | ((win: object, doc: object) => void);
+    requestCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
     protected readonly printPageErrors: boolean;
@@ -81,6 +87,8 @@ export class HeadlessBot {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
         this.logRequests = logRequests;
+
+        this.requestCallback = null;
         this.trackDOMMutations = true;
 
         if (printPageConsoleLog) {
@@ -88,7 +96,6 @@ export class HeadlessBot {
         }
 
         this.webpage.settings.userAgent = USER_AGENT;
-
         this.onWindowCreated = null;
         this.pendingRequestCount = 0;
         this.notifyPageIsLoaded = null;
@@ -130,6 +137,9 @@ export class HeadlessBot {
                 `requested: ${req.url} count now ` +
                 `${this.pendingRequestCount}`
             );
+        }
+        if (this.requestCallback) {
+            this.requestCallback(req);
         }
     }
 

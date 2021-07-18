@@ -23,6 +23,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
+    parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--log-requests', { action: 'store_true' });
     parser.add_argument('--domain-scope', {
         choices: validDomainFilteringModeValues,
@@ -41,7 +42,8 @@ async function main(argc: number, argv: string[]): Promise<number> {
         logRequests: args.log_requests,
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
-        resources: null as (object | null)
+        resources: null as (object | null),
+        mineDynamicDEPs: !args.no_dynamic_deps as boolean
     };
 
     if (args.tar_page) {
@@ -64,7 +66,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     } else {
         // hars
         console.log(JSON.stringify(
-            analyzer.analyzer.hars.concat(analyzer.htmlDEPs),
+            analyzer.getAllDeps(),
             null,
             4
         ));
