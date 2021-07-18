@@ -117,4 +117,13 @@ describe('Analyzing DEPs from TAR', () => {
             "bodySize": 0,
         }));
     });
+    it('Tar without required js-script', async () => {
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example5.tar');
+
+        const url = mapURLs['index.html'];
+
+        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+
+        await dpa.run(url)
+    });
 });

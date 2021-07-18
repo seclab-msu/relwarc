@@ -29,8 +29,12 @@ export class OfflineHeadlessBot extends HeadlessBot {
                     response.statusCode = 200;
                     response.write(resources[filename]);
                     response.close();
+                    return;
                 }
             }
+            response.statusCode = 404;
+            response.write('Not found');
+            response.close();
         });
     }
 
