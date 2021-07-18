@@ -7,7 +7,7 @@ function JSONObjectFromHAR(har: object): object {
 
 describe('Analyzing DEPs from TAR', () => {
     it('params in different scripts', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example.tar');
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-1.tar');
 
         const url = mapURLs['index.html'];
 
@@ -32,7 +32,7 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('one param in querystring js-script', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example2.tar');
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-2.tar');
 
         const url = mapURLs['index.html'];
 
@@ -57,7 +57,7 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('two params in querystring js-script', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example3.tar');
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-3.tar');
 
         const url = mapURLs['index.html'];
 
@@ -82,7 +82,7 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('two scripts with different querystring', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example4.tar');
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-4.tar');
 
         const url = mapURLs['index.html'];
 
@@ -118,7 +118,7 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('Tar without required js-script', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/example5.tar');
+        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-5.tar');
 
         const url = mapURLs['index.html'];
 

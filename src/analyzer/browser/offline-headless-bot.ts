@@ -23,7 +23,7 @@ export class OfflineHeadlessBot extends HeadlessBot {
     private createWebServer(mapURLs: object, resources: object) {
         this.webserver = webServerFactory.create();
         this.webserver.listen(-1, function (request, response) {
-            for (const [filename, url] of Object.entries(mapURLs)) {
+            for (const [filename, url] of Object.entries(mapURLs).filter(([key]) => key !== 'types')) {
                 const reqUrl = new URL(url);
                 if (request.url === reqUrl.pathname + reqUrl.search) {
                     response.statusCode = 200;
