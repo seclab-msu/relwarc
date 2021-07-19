@@ -24,13 +24,12 @@ export class DynamicPageAnalyzer {
     constructor({
         logRequests=false,
         mapURLs=(null as object | null),
-        resources=(null as object | null),
         domainFilteringMode=DomainFilteringMode.Any,
         mineDynamicDEPs=true
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
-        if (mapURLs && resources) {
-            bot = new OfflineHeadlessBot(mapURLs, resources, {
+        if (mapURLs) {
+            bot = new OfflineHeadlessBot(mapURLs, {
                 printPageErrors: false,
                 printPageConsoleLog: false,
                 logRequests

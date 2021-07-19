@@ -42,15 +42,13 @@ async function main(argc: number, argv: string[]): Promise<number> {
         logRequests: args.log_requests,
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
-        resources: null as (object | null),
         mineDynamicDEPs: !args.no_dynamic_deps as boolean
     };
 
     if (args.tar_page) {
-        const [mapURLs, resources] = await readTar(args.tar_page);
+        const [indexURL, mapURLs] = await readTar(args.tar_page);
         analyzerOptions.mapURLs = mapURLs;
-        analyzerOptions.resources = resources;
-        targetURL = mapURLs['index.html'];
+        targetURL = indexURL;
     }
 
     const analyzer = new DynamicPageAnalyzer(analyzerOptions);
