@@ -1,11 +1,11 @@
 import * as tar from 'tar-stream';
 const fs = require('fs');
 
-export function readTar(path: string): Promise<object[]> {
+export function readTar(path: string): Promise<[string, object]> {
     return new Promise((resolve, reject) => {
         const tarFileStream = fs.createReadStream(path);
 
-        let mapURLs: object = {};
+        let metainfo: object = {};
         const resources: object = {};
 
         const extract = tar.extract();
@@ -21,7 +21,7 @@ export function readTar(path: string): Promise<object[]> {
                 stream.on('end', function () {
                     const content = contentParts.join('');
                     if (header.name == 'metainfo.json') {
-                        mapURLs = JSON.parse(content);
+                        metainfo = JSON.parse(content);
                     } else {
                         resources[header.name] = content;
                     }
@@ -39,8 +39,21 @@ export function readTar(path: string): Promise<object[]> {
             reject(new Error('extract error : ' + err + ' ' + err.stack));
         });
 
-        extract.on('finish', () => resolve([mapURLs, resources]));
+        extract.on('finish', () => resolve(getMapURLs(metainfo, resources)));
 
         tarFileStream.pipe(extract);
     });
+}
+
+function getMapURLs(metainfo: object, resources: object): [string, object] {
+    const mapURLs: object = {};
+    Object.entries(metainfo).forEach(([filename, url]) => {
+        if (filename === 'types') {
+            return;
+        }
+        const urlParsed = new URL(url);
+        const key = urlParsed.pathname + urlParsed.search;
+        mapURLs[key] = resources[filename];
+    });
+    return [metainfo['index.html'], mapURLs];
 }

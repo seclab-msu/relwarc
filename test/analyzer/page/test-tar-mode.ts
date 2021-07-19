@@ -7,11 +7,9 @@ function JSONObjectFromHAR(har: object): object {
 
 describe('Analyzing DEPs from TAR', () => {
     it('params in different scripts', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-1.tar');
+        const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-1.tar');
 
-        const url = mapURLs['index.html'];
-
-        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+        const dpa = new DynamicPageAnalyzer({mapURLs});
 
         await dpa.run(url);
 
@@ -32,11 +30,9 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('one param in querystring js-script', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-2.tar');
+        const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-2.tar');
 
-        const url = mapURLs['index.html'];
-
-        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+        const dpa = new DynamicPageAnalyzer({mapURLs});
 
         await dpa.run(url);
 
@@ -57,11 +53,9 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('two params in querystring js-script', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-3.tar');
+        const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-3.tar');
 
-        const url = mapURLs['index.html'];
-
-        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+        const dpa = new DynamicPageAnalyzer({mapURLs});
 
         await dpa.run(url);
 
@@ -82,11 +76,9 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('two scripts with different querystring', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-4.tar');
+        const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-4.tar');
 
-        const url = mapURLs['index.html'];
-
-        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+        const dpa = new DynamicPageAnalyzer({mapURLs});
 
         await dpa.run(url);
 
@@ -118,11 +110,9 @@ describe('Analyzing DEPs from TAR', () => {
         }));
     });
     it('Tar without required js-script', async () => {
-        const [mapURLs, resources] = await readTar('test/analyzer/page/www/test-tar-5.tar');
+        const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-5.tar');
 
-        const url = mapURLs['index.html'];
-
-        const dpa = new DynamicPageAnalyzer({mapURLs, resources});
+        const dpa = new DynamicPageAnalyzer({mapURLs});
 
         await dpa.run(url)
     });

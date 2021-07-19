@@ -1,4 +1,5 @@
 const webServerFactory = require('webserver');
+import { hasattr } from '../utils/common';
 
 import {
     HeadlessBot, HeadlessBotOptions,
@@ -11,29 +12,25 @@ const LOCALHOST_BASE = 'http://127.0.0.1:';
 export class OfflineHeadlessBot extends HeadlessBot {
     private webserver;
 
-    constructor(mapURLs: object, resources: object, {
+    constructor(mapURLs: object, {
         printPageErrors=false,
         printPageConsoleLog=true,
         logRequests=false
     }: HeadlessBotOptions) {
         super({ printPageErrors, printPageConsoleLog, logRequests });
-        this.createWebServer(mapURLs, resources);
+        this.createWebServer(mapURLs);
     }
 
-    private createWebServer(mapURLs: object, resources: object) {
+    private createWebServer(mapURLs: object) {
         this.webserver = webServerFactory.create();
         this.webserver.listen(-1, function (request, response) {
-            for (const [filename, url] of Object.entries(mapURLs).filter(([key]) => key !== 'types')) {
-                const reqUrl = new URL(url);
-                if (request.url === reqUrl.pathname + reqUrl.search) {
-                    response.statusCode = 200;
-                    response.write(resources[filename]);
-                    response.close();
-                    return;
-                }
+            if (hasattr(mapURLs, request.url)) {
+                response.statusCode = 200;
+                response.write(mapURLs[request.url]);
+            } else {
+                response.statusCode = 404;
+                response.write('Not found');
             }
-            response.statusCode = 404;
-            response.write('Not found');
             response.close();
         });
     }
