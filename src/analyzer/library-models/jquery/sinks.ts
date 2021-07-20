@@ -19,7 +19,10 @@ function parseArgs(funcName, args) {
             settings = args[1];
         } else if (args[1] === UNKNOWN_FUNCTION) {
             data = null;
-        } else if (typeof args[1] === 'object') {
+        } else if (
+            typeof args[1] === 'object' ||
+            funcName === 'post' && typeof args[1] === 'string'
+        ) {
             data = args[1];
         }
     } else {
