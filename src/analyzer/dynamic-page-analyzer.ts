@@ -1,6 +1,7 @@
 import { Analyzer } from './analyzer';
 import { HeadlessBot } from './browser/headless-bot';
 import { OfflineHeadlessBot } from './browser/offline-headless-bot';
+import { deduplicateDEPs } from './comparsion-deps';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
 import { requestToHar } from './dynamic-deps';
@@ -129,6 +130,7 @@ export class DynamicPageAnalyzer {
     }
 
     getAllDeps(): HAR[] {
-        return this.analyzerDEPs.concat(this.dynamicDEPs).concat(this.htmlDEPs);
+        const deps = this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs);
+        return deduplicateDEPs(deps);
     }
 }
