@@ -4,6 +4,8 @@ import { ArgumentParser } from 'argparse';
 
 import { Analyzer } from './analyzer/analyzer';
 
+import { deduplicateDEPs } from './analyzer/comparsion-deps';
+
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
 
@@ -11,6 +13,7 @@ async function main(): Promise<number> {
     parser.add_argument('base_url', { nargs: '?' });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
+    parser.add_argument('--deduplicate-deps', { action: 'store_true' });
 
     const args = parser.parse_args();
 
@@ -30,7 +33,11 @@ async function main(): Promise<number> {
         }
     } else {
         // hars
-        console.log(JSON.stringify(analyzer.hars, null, 4));
+        let hars = analyzer.hars;
+        if (args.deduplicate_deps) {
+            hars = deduplicateDEPs(hars);
+        }
+        console.log(JSON.stringify(hars, null, 4));
     }
 
     return 0;

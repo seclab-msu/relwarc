@@ -129,8 +129,11 @@ export class DynamicPageAnalyzer {
         return har;
     }
 
-    getAllDeps(): HAR[] {
+    getAllDeps(unique?: boolean): HAR[] {
         const deps = this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs);
-        return deduplicateDEPs(deps);
+        if (unique) {
+            return deduplicateDEPs(deps);
+        }
+        return deps;
     }
 }

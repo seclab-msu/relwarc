@@ -22,6 +22,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--tar-page', { type: String });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
+    parser.add_argument('--deduplicate-deps', { action: 'store_true' });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
     parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--log-requests', { action: 'store_true' });
@@ -64,7 +65,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     } else {
         // hars
         console.log(JSON.stringify(
-            analyzer.getAllDeps(),
+            analyzer.getAllDeps(args.deduplicate_deps),
             null,
             4
         ));
