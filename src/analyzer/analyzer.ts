@@ -137,7 +137,7 @@ export class Analyzer {
 
     private resultsAlready: Set<string>;
 
-    private trackedCallSequences: Map<string, TrackedCallSequence>;
+    private trackedCallSequencesStack: Map<string, TrackedCallSequence>[];
 
     harFilter: null | ((had: HAR) => boolean);
 
@@ -178,7 +178,7 @@ export class Analyzer {
 
         this.resultsAlready = new Set();
 
-        this.trackedCallSequences = new Map();
+        this.trackedCallSequencesStack = [new Map()];
     }
 
     addScript(source: string): void {
@@ -966,7 +966,7 @@ export class Analyzer {
             return;
         }
         const key = nodeKey(ob);
-        this.trackedCallSequences.set(key, {
+        this.getTrackedCallSequences().set(key, {
             sequence: seq,
             calls: [{ name: funcName, args }]
         });
@@ -982,7 +982,7 @@ export class Analyzer {
         }
 
         const key = nodeKey(ob);
-        const trackedSeq = this.trackedCallSequences.get(key);
+        const trackedSeq = this.getTrackedCallSequences().get(key);
 
         if (!trackedSeq) {
             return false;
@@ -1003,7 +1003,7 @@ export class Analyzer {
         calls.push({ name: funcName, args });
 
         if (isFinal) {
-            this.trackedCallSequences.delete(key);
+            this.getTrackedCallSequences().delete(key);
             this.extractDEPFromArgs(
                 sequence.name + '.' + funcName,
                 // hack
@@ -1072,7 +1072,7 @@ export class Analyzer {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
-                    this.trackedCallSequences.clear();
+                    this.trackedCallSequencesStack.push(new Map());
                 }
                 if (
                     this.functionsStack.length > 0 &&
@@ -1090,6 +1090,7 @@ export class Analyzer {
                 if (isFunction(path.node)) {
                     this.argsStack.pop();
                     this.functionsStack.pop();
+                    this.trackedCallSequencesStack.pop();
                 }
             }
         };
@@ -1113,7 +1114,7 @@ export class Analyzer {
 
         this.functionsStack.length = 0;
         this.stage = AnalysisPhase.DEPExtracting;
-        this.trackedCallSequences.clear();
+        this.getTrackedCallSequences().clear();
         if (funcInfo !== null) {
             this.formalArgs = funcInfo.args;
             this.functionsStack.push(funcInfo.code);
@@ -1169,6 +1170,11 @@ export class Analyzer {
                 log('Script parsing error: ' + err + '\n');
             }
         }
+    }
+
+    private getTrackedCallSequences() {
+        const lastNum = this.trackedCallSequencesStack.length - 1;
+        return this.trackedCallSequencesStack[lastNum];
     }
 
     private addCommentedCode(): void {
