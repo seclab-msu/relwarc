@@ -35,15 +35,39 @@ export function stdoutIsTTY(): boolean {
     return system.env['__SLIMERJS_INTERACTIVE'] === '1';
 }
 
+function prettyPrintQueryString(qs: string): void {
+    let inValue = false;
+    colorPrinter.yellow();
+    for (const c of qs) {
+        if (c === '&') {
+            colorPrinter.magenta().write('&').yellow();
+            inValue = false;
+        } else if (c === '=' && !inValue) {
+            colorPrinter.magenta().write('=').blue();
+            inValue = true;
+        } else {
+            colorPrinter.write(c);
+        }
+    }
+}
+
 export function prettyPrintHAR(har: HAR): void {
+    const qsIndex = har.url.indexOf('?');
+
+    const urlBeforeQS = qsIndex >= 0 ? har.url.substring(0, qsIndex) : har.url;
     colorPrinter
         .write('\n')
         .brightGreen()
         .write(har.method)
         .write(' ')
         .cyan()
-        .write(har.url)
-        .write('\n');
+        .write(urlBeforeQS);
+    if (qsIndex > 0) {
+        colorPrinter.magenta().write('?').cyan();
+        prettyPrintQueryString(har.url.substring(qsIndex + 1));
+    }
+    colorPrinter.write('\n');
+    let isForm = false;
     for (const h of har.headers) {
         colorPrinter
             .yellow()
@@ -52,12 +76,19 @@ export function prettyPrintHAR(har: HAR): void {
             .blue()
             .write(h.value)
             .write('\n');
+        if (h.name.toLowerCase() === 'content-type' && h.value === 'application/x-www-form-urlencoded') {
+            isForm = true;
+        }
     }
     const postData = har.getPostData();
     if (postData) {
         colorPrinter.reset().write('\n');
         if (postData.text) {
-            colorPrinter.write(postData.text);
+            if (isForm) {
+                prettyPrintQueryString(postData.text);
+            } else {
+                colorPrinter.write(postData.text);
+            }
         } else if (postData.params) {
             for (const p of postData.params) {
                 colorPrinter
