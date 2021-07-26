@@ -100,7 +100,6 @@ function compareDEPs(har1: HAR, har2: HAR): boolean {
 
 function uniteDEPs(har1: HAR, har2: HAR): HAR {
     const newURL = new URL(har1.url);
-    const searchParams = newURL.searchParams;
 
     har1.queryString.forEach(qsParam => {
         if (undefinedValues.includes(qsParam.value)) {
@@ -109,11 +108,15 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
             });
             if (sameParam !== undefined) {
                 qsParam.value = sameParam.value;
-                searchParams.set(qsParam.name, qsParam.value);
             }
         }
     });
-    newURL.search = searchParams.toString();
+
+    const newQs = har1.queryString.map(param => {
+        return param.name + '=' + param.value;
+    }).join('&');
+
+    newURL.search = newQs;
     har1.url = newURL.toString();
 
     const postData1 = har1.getPostData();
