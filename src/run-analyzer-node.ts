@@ -35,7 +35,7 @@ async function main(): Promise<number> {
         const deps = analyzer.hars;
 
         if (stdoutIsTTY()) {
-            console.log('\nDEPS:');
+            console.log('\nDEPS (' + deps.length + '):');
             deps.forEach(prettyPrintHAR);
         } else {
             console.log(JSON.stringify(deps, null, 4));
