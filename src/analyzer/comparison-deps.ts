@@ -4,7 +4,7 @@ const undefinedValues = ['UNKNOWN', ''];
 const importantParams = ['route', 'action', 'type', 'r'];
 const importantHeaders = ['Content-Type', 'Host'];
 const urlMarkers = ['/', '%2F'];
-const urlStarts = ['//', 'HTTPS://', 'HTTP://'];
+const urlStarts = ['//', 'https://', 'http://'];
 
 function compareKeys(a: KeyValue[], b: KeyValue[]): boolean {
     const aKeys = a.map(param => param.name).sort();
@@ -27,8 +27,8 @@ function checkImportantParams(
             impParam1.value !== impParam2.value
         ) {
             if (value === 'r') {
-                const impValue1 = impParam1.value.toUpperCase();
-                const impValue2 = impParam2.value.toUpperCase();
+                const impValue1 = impParam1.value;
+                const impValue2 = impParam2.value;
                 return (
                     !urlStarts.some(el => {
                         return (
