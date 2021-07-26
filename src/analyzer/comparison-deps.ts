@@ -12,7 +12,7 @@ function compareKeys(a: KeyValue[], b: KeyValue[]): boolean {
     return JSON.stringify(aKeys) === JSON.stringify(bKeys);
 }
 
-function checkImportantParams(
+function extendedComparison(
     params1: KeyValue[],
     params2: KeyValue[]
 ): boolean {
@@ -58,7 +58,45 @@ function checkHeaders(har1, har2): boolean {
     });
 }
 
-function compareDEPs(har1: HAR, har2: HAR): boolean {
+function checkParamValues(
+    params1: KeyValue[],
+    params2: KeyValue[],
+    extendedMode: boolean
+): boolean {
+    if (!compareKeys(params1, params2)) {
+        return true;
+    }
+    if (extendedMode) {
+        return extendedComparison(params1, params2);
+    } else {
+        return !defaultComparison(params1, params2);
+    }
+}
+
+function defaultComparison(
+    params1: KeyValue[],
+    params2: KeyValue[]
+): boolean {
+    return params1.every(param1 => {
+        const param2 = params2.find(param => param1.name === param.name);
+        if (param2 === undefined) {
+            return false;
+        }
+        if (
+            undefinedValues.includes(param1.value) ||
+            undefinedValues.includes(param2.value)
+        ) {
+            return true;
+        } else {
+            return (
+                !Number.isNaN(Number(param1.value)) &&
+                !Number.isNaN(Number(param2.value))
+            );
+        }
+    });
+}
+
+function compareDEPs(har1: HAR, har2: HAR, extendedMode: boolean): boolean {
     const url1 = new URL(har1.url);
     const url2 = new URL(har2.url);
 
@@ -74,10 +112,7 @@ function compareDEPs(har1: HAR, har2: HAR): boolean {
         return false;
     }
 
-    if (
-        !compareKeys(har1.queryString, har2.queryString) ||
-        checkImportantParams(har1.queryString, har2.queryString)
-    ) {
+    if (checkParamValues(har1.queryString, har2.queryString, extendedMode)) {
         return false;
     }
 
@@ -86,9 +121,10 @@ function compareDEPs(har1: HAR, har2: HAR): boolean {
 
     if (postData1 && postData2) {
         if (postData1.params && postData2.params) {
-            if (
-                !compareKeys(postData1.params, postData2.params) ||
-                checkImportantParams(postData1.params, postData2.params)
+            if (checkParamValues(
+                postData1.params,
+                postData2.params,
+                extendedMode)
             ) {
                 return false;
             }
@@ -152,10 +188,13 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
     return har1;
 }
 
-export function deduplicateDEPs(hars: HAR[]): HAR[] {
+export function deduplicateDEPs(
+    hars: HAR[],
+    extendedMode = false
+): HAR[] {
     hars.forEach((har, id, hars) => {
         for (let i = id + 1; i < hars.length; i++) {
-            if (compareDEPs(har, hars[i])) {
+            if (compareDEPs(har, hars[i], extendedMode)) {
                 har = uniteDEPs(har, hars[i]);
                 hars.splice(i--, 1);
             }

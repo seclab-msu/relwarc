@@ -34,10 +34,7 @@ async function main(): Promise<number> {
         }
     } else {
         // hars
-        let deps = analyzer.hars;
-        if (args.deduplicate_deps) {
-            deps = deduplicateDEPs(deps);
-        }
+        const deps = deduplicateDEPs(analyzer.hars, args.deduplicate_deps);
 
         if (stdoutIsTTY()) {
             console.log('\nDEPS (' + deps.length + '):');
