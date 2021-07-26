@@ -173,4 +173,82 @@ describe('Tests for comparison library', () => {
             'bodySize': 0
         }));
     });
+
+    it('routing param "r"', async () => {
+        const scripts = [
+            fs.readFileSync(__dirname + '/../data/test-deduplication6.js').toString()
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(analyzer.hars).map(JSONObjectFromHAR);
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/auto/index.php?r=/order/test&pserid=4907',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    name: 'r',
+                    value: '/order/test'
+                },
+                {
+                    name: 'pserid',
+                    value: '4907'
+                }
+            ],
+            'bodySize': 0
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/auto/index.php?r=%2Ftest%2Fexample&pserid=4907',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    name: 'r',
+                    value: '%2Ftest%2Fexample'
+                },
+                {
+                    name: 'pserid',
+                    value: '4907'
+                }
+            ],
+            'bodySize': 0
+        }));
+    });
+
+    it('simple param "r"', async () => {
+        const scripts = [
+            fs.readFileSync(__dirname + '/../data/test-deduplication7.js').toString()
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(analyzer.hars).map(JSONObjectFromHAR);
+        expect(hars.length).toEqual(1);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/auto/index.php?r=testing&pserid=4907',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    name: 'r',
+                    value: 'testing'
+                },
+                {
+                    name: 'pserid',
+                    value: '4907'
+                }
+            ],
+            'bodySize': 0
+        }));
+    });
 });
