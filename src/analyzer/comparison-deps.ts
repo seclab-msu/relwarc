@@ -1,11 +1,36 @@
 import { HAR, KeyValue } from './har';
 
 const undefinedValues = ['UNKNOWN', ''];
+const importantParams = ['route', 'action', 'type'];
+const importantHeaders = ['Content-Type', 'Host'];
 
 function compareKeys(a: KeyValue[], b: KeyValue[]): boolean {
     const aKeys = a.map(param => param.name).sort();
     const bKeys = b.map(param => param.name).sort();
     return JSON.stringify(aKeys) === JSON.stringify(bKeys);
+}
+
+function checkImportantParams(
+    params1: KeyValue[],
+    params2: KeyValue[]
+): boolean {
+    return importantParams.some(value => {
+        const impParam1 = params1.find(param => param.name === value);
+        const impParam2 = params2.find(param => param.name === value);
+        return (
+            impParam1 &&
+            impParam2 &&
+            !undefinedValues.includes(impParam1.value) &&
+            !undefinedValues.includes(impParam2.value) &&
+            impParam1.value !== impParam2.value
+        );
+    });
+}
+
+function checkHeaders(har1, har2): boolean {
+    return importantHeaders.some(header => {
+        return har1.getHeader(header) !== har2.getHeader(header);
+    });
 }
 
 function compareDEPs(har1: HAR, har2: HAR): boolean {
@@ -20,15 +45,14 @@ function compareDEPs(har1: HAR, har2: HAR): boolean {
         return false;
     }
 
-    if (har1.getHeader('Content-Type') !== har2.getHeader('Content-Type')) {
+    if (checkHeaders(har1, har2)) {
         return false;
     }
 
-    if (har1.getHeader('Host') !== har2.getHeader('Host')) {
-        return false;
-    }
-
-    if (!compareKeys(har1.queryString, har2.queryString)) {
+    if (
+        !compareKeys(har1.queryString, har2.queryString) ||
+        checkImportantParams(har1.queryString, har2.queryString)
+    ) {
         return false;
     }
 
@@ -37,7 +61,10 @@ function compareDEPs(har1: HAR, har2: HAR): boolean {
 
     if (postData1 && postData2) {
         if (postData1.params && postData2.params) {
-            if (!compareKeys(postData1.params, postData2.params)) {
+            if (
+                !compareKeys(postData1.params, postData2.params) ||
+                checkImportantParams(postData1.params, postData2.params)
+            ) {
                 return false;
             }
         }

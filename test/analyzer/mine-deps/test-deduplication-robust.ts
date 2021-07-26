@@ -131,4 +131,46 @@ describe('Tests for comparison library', () => {
         hars = deduplicateDEPs(analyzer.hars).map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
     });
+
+    it('different values of important params', async () => {
+        const scripts = [
+            fs.readFileSync(__dirname + '/../data/test-deduplication5.js').toString()
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        let hars = analyzer.hars.map(JSONObjectFromHAR);
+        expect(hars.length).toEqual(2);
+
+        hars = deduplicateDEPs(analyzer.hars).map(JSONObjectFromHAR);
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/test?route=test',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    name: 'route',
+                    value: 'test'
+                }
+            ],
+            'bodySize': 0
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/test?route=example',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    name: 'route',
+                    value: 'example'
+                }
+            ],
+            'bodySize': 0
+        }));
+    });
 });
