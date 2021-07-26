@@ -55,7 +55,7 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
             const sameParam = har2.queryString.find(param => {
                 return param.name === qsParam.name;
             });
-            if (sameParam) {
+            if (sameParam !== undefined) {
                 qsParam.value = sameParam.value;
                 searchParams.set(qsParam.name, qsParam.value);
             }
@@ -79,7 +79,7 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
                 const sameParam = params2.find(param => {
                     return param.name === dataParam.name;
                 });
-                if (sameParam) {
+                if (sameParam !== undefined) {
                     dataParam.value = sameParam.value;
                 }
             }
