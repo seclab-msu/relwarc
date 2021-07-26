@@ -4,6 +4,8 @@ import { ArgumentParser } from 'argparse';
 
 import { Analyzer } from './analyzer/analyzer';
 
+import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
+
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
 
@@ -30,7 +32,14 @@ async function main(): Promise<number> {
         }
     } else {
         // hars
-        console.log(JSON.stringify(analyzer.hars, null, 4));
+        const deps = analyzer.hars;
+
+        if (stdoutIsTTY()) {
+            console.log('\nDEPS:');
+            deps.forEach(prettyPrintHAR);
+        } else {
+            console.log(JSON.stringify(deps, null, 4));
+        }
     }
 
     return 0;

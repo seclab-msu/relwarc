@@ -14,6 +14,9 @@ import {
     validDomainFilteringModeValues
 } from './analyzer/domain-filtering';
 
+import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
+console.log('');
+
 /* eslint max-lines-per-function:off */
 async function main(argc: number, argv: string[]): Promise<number> {
     const parser = new ArgumentParser({ prog: `slimerjs ${argv[0]}` });
@@ -63,11 +66,14 @@ async function main(argc: number, argv: string[]): Promise<number> {
         }
     } else {
         // hars
-        console.log(JSON.stringify(
-            analyzer.getAllDeps(),
-            null,
-            4
-        ));
+        const deps = analyzer.getAllDeps();
+
+        if (stdoutIsTTY()) {
+            console.log('\nDEPS:');
+            deps.forEach(prettyPrintHAR);
+        } else {
+            console.log(JSON.stringify(deps, null, 4));
+        }
     }
 
     return 0;
