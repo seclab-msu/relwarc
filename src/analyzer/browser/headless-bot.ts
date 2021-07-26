@@ -22,6 +22,8 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/201
 
 const LOADED_COOLDOWN = 250;
 
+const DEFAULT_LOAD_TIMEOUT = 180; // 180 seconds = 3 min
+
 // TODO: replace with type definitions for slimerjs
 export interface ResourceRequest {
     url: string;
@@ -59,15 +61,15 @@ export interface HeadlessBotOptions {
     printPageErrors: boolean;
     printPageConsoleLog: boolean;
     logRequests: boolean;
+    loadTimeout?: number;
 }
 
 export class HeadlessBot {
-    protected readonly LOAD_TIMEOUT = 180 * 1000; // 3 minutes
-
     onWindowCreated: null | ((win: object, doc: object) => void);
     requestCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
+    private readonly loadTimeout: number;
     protected readonly printPageErrors: boolean;
     protected readonly logRequests: boolean;
     protected readonly trackDOMMutations: boolean;
@@ -82,11 +84,13 @@ export class HeadlessBot {
     constructor({
         printPageErrors=false,
         printPageConsoleLog=true,
-        logRequests=false
+        logRequests=false,
+        loadTimeout=DEFAULT_LOAD_TIMEOUT
     }: HeadlessBotOptions) {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
         this.logRequests = logRequests;
+        this.loadTimeout = (loadTimeout || DEFAULT_LOAD_TIMEOUT) * 1000;
 
         this.requestCallback = null;
         this.trackDOMMutations = true;
@@ -203,7 +207,7 @@ export class HeadlessBot {
         try {
             status = await withTimeout(
                 this.webpage.open(url),
-                this.LOAD_TIMEOUT
+                this.loadTimeout
             );
         } catch (e) {
             if (e instanceof TimeoutError) {
@@ -230,7 +234,7 @@ export class HeadlessBot {
         }
 
         try {
-            await withTimeout(pageIsLoaded, this.LOAD_TIMEOUT);
+            await withTimeout(pageIsLoaded, this.loadTimeout);
         } catch (e) {
             if (e instanceof TimeoutError) {
                 log(

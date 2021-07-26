@@ -25,20 +25,23 @@ export class DynamicPageAnalyzer {
         logRequests=false,
         mapURLs=(null as object | null),
         domainFilteringMode=DomainFilteringMode.Any,
-        mineDynamicDEPs=true
+        mineDynamicDEPs=true,
+        loadTimeout=(undefined as number | undefined)
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
         if (mapURLs) {
             bot = new OfflineHeadlessBot(mapURLs, {
                 printPageErrors: false,
                 printPageConsoleLog: false,
-                logRequests
+                logRequests,
+                loadTimeout
             });
         } else {
             bot = new HeadlessBot({
                 printPageErrors: false,
                 printPageConsoleLog: false,
-                logRequests
+                logRequests,
+                loadTimeout
             });
         }
 

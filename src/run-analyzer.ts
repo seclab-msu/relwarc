@@ -32,6 +32,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         choices: validDomainFilteringModeValues,
         default: 'subdomain'
     });
+    parser.add_argument('--load-timeout', { type: Number });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -45,7 +46,8 @@ async function main(argc: number, argv: string[]): Promise<number> {
         logRequests: args.log_requests,
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
-        mineDynamicDEPs: !args.no_dynamic_deps as boolean
+        mineDynamicDEPs: !args.no_dynamic_deps as boolean,
+        loadTimeout: args.load_timeout || undefined
     };
 
     if (args.tar_page) {
