@@ -98,19 +98,30 @@ function compareDEPs(har1: HAR, har2: HAR): boolean {
     return true;
 }
 
-function uniteDEPs(har1: HAR, har2: HAR): HAR {
-    const newURL = new URL(har1.url);
-
-    har1.queryString.forEach(qsParam => {
-        if (undefinedValues.includes(qsParam.value)) {
-            const sameParam = har2.queryString.find(param => {
-                return param.name === qsParam.name;
+function updateUndefinedParams(
+    params1: KeyValue[],
+    params2: KeyValue[]
+): KeyValue[] {
+    params1.forEach(param1 => {
+        if (undefinedValues.includes(param1.value)) {
+            const sameParam = params2.find(param2=> {
+                return param1.name === param2.name;
             });
             if (sameParam !== undefined) {
-                qsParam.value = sameParam.value;
+                param1.value = sameParam.value;
             }
         }
     });
+    return params1;
+}
+
+function uniteDEPs(har1: HAR, har2: HAR): HAR {
+    const newURL = new URL(har1.url);
+
+    har1.queryString = updateUndefinedParams(
+        har1.queryString,
+        har2.queryString
+    );
 
     const newQs = har1.queryString.map(param => {
         return param.name + '=' + param.value;
@@ -125,24 +136,17 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
         return har1;
     }
 
-    const params1 = postData1.params;
-    const params2 = postData2.params;
+    if (postData1.params && postData2.params) {
+        postData1.params = updateUndefinedParams(
+            postData1.params,
+            postData2.params
+        );
 
-    if (params1 && params2) {
-        params1.forEach(dataParam => {
-            if (undefinedValues.includes(dataParam.value)) {
-                const sameParam = params2.find(param => {
-                    return param.name === dataParam.name;
-                });
-                if (sameParam !== undefined) {
-                    dataParam.value = sameParam.value;
-                }
-            }
-        });
-        const newPostData = params1.map(param => {
+        const newPostData = postData1.params.map(param => {
             return param.name + '=' + param.value;
         }).join('&');
-        har1.setPostData(newPostData, false, params1);
+
+        har1.setPostData(newPostData, false, postData1.params);
     }
 
     return har1;
