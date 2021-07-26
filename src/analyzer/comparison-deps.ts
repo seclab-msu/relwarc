@@ -1,8 +1,10 @@
 import { HAR, KeyValue } from './har';
 
 const undefinedValues = ['UNKNOWN', ''];
-const importantParams = ['route', 'action', 'type'];
+const importantParams = ['route', 'action', 'type', 'r'];
 const importantHeaders = ['Content-Type', 'Host'];
+const urlMarkers = ['/', '%2F'];
+const urlStarts = ['//', 'HTTPS://', 'HTTP://'];
 
 function compareKeys(a: KeyValue[], b: KeyValue[]): boolean {
     const aKeys = a.map(param => param.name).sort();
@@ -17,13 +19,36 @@ function checkImportantParams(
     return importantParams.some(value => {
         const impParam1 = params1.find(param => param.name === value);
         const impParam2 = params2.find(param => param.name === value);
-        return (
+        if (
             impParam1 &&
             impParam2 &&
             !undefinedValues.includes(impParam1.value) &&
             !undefinedValues.includes(impParam2.value) &&
             impParam1.value !== impParam2.value
-        );
+        ) {
+            if (value === 'r') {
+                const impValue1 = impParam1.value.toUpperCase();
+                const impValue2 = impParam2.value.toUpperCase();
+                return (
+                    !urlStarts.some(el => {
+                        return (
+                            impValue1.startsWith(el) ||
+                            impValue2.startsWith(el) ||
+                            impValue1.startsWith(encodeURIComponent(el)) ||
+                            impValue2.startsWith(encodeURIComponent(el))
+                        );
+                    }) &&
+                    urlMarkers.some(el => {
+                        return (
+                            impValue1.includes(el) ||
+                            impValue2.includes(el)
+                        );
+                    })
+                );
+            }
+            return true;
+        }
+        return false;
     });
 }
 
