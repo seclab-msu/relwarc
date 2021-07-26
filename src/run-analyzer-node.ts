@@ -4,7 +4,7 @@ import { ArgumentParser } from 'argparse';
 
 import { Analyzer } from './analyzer/analyzer';
 
-import { deduplicateDEPs } from './analyzer/comparsion-deps';
+import { deduplicateDEPs } from './analyzer/comparison-deps';
 
 async function main(): Promise<number> {
     const parser = new ArgumentParser();

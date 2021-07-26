@@ -1,4 +1,4 @@
-import { deduplicateDEPs } from '../../../src/analyzer/comparsion-deps';
+import { deduplicateDEPs } from '../../../src/analyzer/comparison-deps';
 import { makeAndRunSimple } from '../utils/utils';
 
 import * as fs from 'fs';

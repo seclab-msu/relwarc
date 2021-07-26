@@ -1,7 +1,7 @@
 import { Analyzer } from './analyzer';
 import { HeadlessBot } from './browser/headless-bot';
 import { OfflineHeadlessBot } from './browser/offline-headless-bot';
-import { deduplicateDEPs } from './comparsion-deps';
+import { deduplicateDEPs } from './comparison-deps';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
 import { requestToHar } from './dynamic-deps';
