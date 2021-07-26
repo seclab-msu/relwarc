@@ -98,7 +98,7 @@ export function deduplicateDEPs(hars: HAR[]): HAR[] {
         for (let i = id + 1; i < hars.length; i++) {
             if (compareDEPs(har, hars[i])) {
                 har = uniteDEPs(har, hars[i]);
-                hars.splice(i, 1);
+                hars.splice(i--, 1);
             }
         }
     });
