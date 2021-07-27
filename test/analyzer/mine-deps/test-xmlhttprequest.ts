@@ -1,4 +1,5 @@
-import { runSingleTestHAR } from '../utils/utils';
+import { runSingleTestHAR, runSingleTestHARFromFile } from '../utils/utils';
+import * as fs from 'fs';
 
 
 describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
@@ -149,6 +150,17 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
                 },
                 httpVersion: 'HTTP/1.1'
             },
+            'http://example.com/',
+        );
+    });
+
+    it('test with call in DOM event handler', () => {
+        const scripts = [
+            fs.readFileSync(__dirname + '/../data/22.js').toString()
+        ];
+        runSingleTestHARFromFile(
+            scripts,
+            __dirname + '/../data/22.json',
             'http://example.com/',
         );
     });
