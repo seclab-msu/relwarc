@@ -453,20 +453,32 @@ export class Analyzer {
     ): Value {
         const ob = callee.object;
         const prop = callee.property;
-
-        if (ob.type === 'Identifier' && prop.type === 'Identifier') {
-            if (ob.name === 'JSON' && prop.name === 'stringify') {
+        let propIsIdentifier = false;
+        let propName = '';
+        if (prop.type === 'Identifier') {
+            propIsIdentifier = true;
+            propName = prop.name;
+        }
+        if (ob.type === 'Identifier' && propIsIdentifier) {
+            if (ob.name === 'JSON' && propName === 'stringify') {
                 return JSON.stringify(this.valueFromASTNode(args[0]));
             }
-            if (ob.name === 'Math' && prop.name === 'random') {
+            if (ob.name === 'Math' && propName === 'random') {
                 return 0.8782736846632295;
             }
-            const obValue = this.valueFromASTNode(ob);
-
-            if (typeof obValue === 'string') {
-                return this.processStringMethod(obValue, prop.name, args);
-            }
         }
+        const obValue = this.valueFromASTNode(ob);
+
+        if (typeof obValue === 'string') {
+            let propStr: string;
+            if (propIsIdentifier) {
+                propStr = propName;
+            } else {
+                propStr = String(this.valueFromASTNode(prop));
+            }
+            return this.processStringMethod(obValue, propStr, args);
+        }
+
         return UNKNOWN_FROM_FUNCTION;
     }
 
