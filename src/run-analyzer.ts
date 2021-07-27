@@ -25,7 +25,10 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--tar-page', { type: String });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
-    parser.add_argument('--deduplicate-deps', { action: 'store_true' });
+    parser.add_argument('--deduplicate-deps', {
+        choices: ['default', 'extended', 'none'],
+        default: 'none'
+    });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
     parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--only-js-dynamic-deps', { action: 'store_true' });

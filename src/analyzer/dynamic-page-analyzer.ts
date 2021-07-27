@@ -138,10 +138,10 @@ export class DynamicPageAnalyzer {
         return har;
     }
 
-    getAllDeps(unique = false): HAR[] {
+    getAllDeps(deduplicationMode: string): HAR[] {
         return deduplicateDEPs(
             this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs),
-            unique
+            deduplicationMode
         );
     }
 }

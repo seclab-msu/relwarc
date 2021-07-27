@@ -18,7 +18,7 @@ describe('Tests for default comparison hars', () => {
             true
         );
 
-        const hars = deduplicateDEPs(analyzer.hars, false).map(JSONObjectFromHAR);
+        const hars = deduplicateDEPs(analyzer.hars, 'default').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
     });
 
@@ -32,7 +32,7 @@ describe('Tests for default comparison hars', () => {
             true
         );
 
-        const hars = deduplicateDEPs(analyzer.hars, false).map(JSONObjectFromHAR);
+        const hars = deduplicateDEPs(analyzer.hars, 'default').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
         expect(hars).toContain(jasmine.objectContaining({
             'method': 'GET',
@@ -66,10 +66,10 @@ describe('Tests for default comparison hars', () => {
             true
         );
 
-        let hars = deduplicateDEPs(analyzer.hars, false).map(JSONObjectFromHAR);
+        let hars = deduplicateDEPs(analyzer.hars, 'default').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
     });
 });

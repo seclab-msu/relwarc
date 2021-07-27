@@ -14,7 +14,10 @@ async function main(): Promise<number> {
     parser.add_argument('base_url', { nargs: '?' });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
-    parser.add_argument('--deduplicate-deps', { action: 'store_true' });
+    parser.add_argument('--deduplicate-deps', {
+        choices: ['default', 'extended', 'none'],
+        default: 'none'
+    });
 
     const args = parser.parse_args();
 

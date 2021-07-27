@@ -21,7 +21,7 @@ describe('Tests for extended comparison hars', () => {
         let hars = analyzer.hars.map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
 
         expect(hars).toContain(jasmine.objectContaining({
@@ -51,7 +51,7 @@ describe('Tests for extended comparison hars', () => {
         let hars = analyzer.hars.map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
 
         expect(hars).toContain(jasmine.objectContaining({
@@ -90,7 +90,7 @@ describe('Tests for extended comparison hars', () => {
         let hars = analyzer.hars.map(JSONObjectFromHAR);
         expect(hars.length).toEqual(3);
 
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
 
         expect(hars).toContain(jasmine.objectContaining({
@@ -128,7 +128,7 @@ describe('Tests for extended comparison hars', () => {
         let hars = analyzer.hars.map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
     });
 
@@ -145,7 +145,7 @@ describe('Tests for extended comparison hars', () => {
         let hars = analyzer.hars.map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
         expect(hars).toContain(jasmine.objectContaining({
@@ -184,7 +184,7 @@ describe('Tests for extended comparison hars', () => {
             true
         );
 
-        const hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        const hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(2);
 
         expect(hars).toContain(jasmine.objectContaining({
@@ -231,7 +231,7 @@ describe('Tests for extended comparison hars', () => {
             true
         );
 
-        const hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
+        const hars = deduplicateDEPs(analyzer.hars, 'extended').map(JSONObjectFromHAR);
         expect(hars.length).toEqual(1);
 
         expect(hars).toContain(jasmine.objectContaining({

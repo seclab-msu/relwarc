@@ -190,11 +190,14 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
 
 export function deduplicateDEPs(
     hars: HAR[],
-    extendedMode = false
+    workMode: string
 ): HAR[] {
+    if (workMode === 'none') {
+        return hars;
+    }
     hars.forEach((har, id, hars) => {
         for (let i = id + 1; i < hars.length; i++) {
-            if (compareDEPs(har, hars[i], extendedMode)) {
+            if (compareDEPs(har, hars[i], workMode === 'extended')) {
                 har = uniteDEPs(har, hars[i]);
                 hars.splice(i--, 1);
             }
