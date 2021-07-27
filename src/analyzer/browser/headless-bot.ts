@@ -55,7 +55,6 @@ interface Webpage {
     onResourceRequested: (req: ResourceRequest, netReq: NetworkRequest) => void;
     onResourceReceived: (response: ResourceResponse) => void;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
-    onLoadFinished: () => void;
     evaluate: (callback: () => void) => void;
 }
 
@@ -124,7 +123,6 @@ export class HeadlessBot {
 
         this.webpage.onResourceRequested = this.handleRequest.bind(this);
         this.webpage.onResourceReceived = this.handleResponse.bind(this);
-        this.webpage.onLoadFinished = this.getDOMAttributeValues.bind(this);
 
         this.webpage.onError = (message, stack) => {
             if (this.printPageErrors) {
@@ -136,7 +134,7 @@ export class HeadlessBot {
         };
     }
 
-    protected getDOMAttributeValues(): void {
+    triggerParsingOfEventHandlerAttributes(): void {
         this.webpage.evaluate(() => {
             const allElements = document.querySelectorAll('*');
 
