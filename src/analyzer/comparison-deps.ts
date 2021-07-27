@@ -20,10 +20,10 @@ for (const k of Object.keys(DeduplicationMode)) {
 }
 
 export function deduplicationModeFromString(s: string): DeduplicationMode {
-    if (hasattr(DeduplicationMode, s)) {
+    if (hasattr(reverseDeduplicationMode, s)) {
         return reverseDeduplicationMode[s];
     }
-    throw new Error('Unexpected string value of deduplication mode:' + s);
+    throw new Error('Unexpected string value of deduplication mode: ' + s);
 }
 
 export const validDeduplicationModeValues = Object.keys(
