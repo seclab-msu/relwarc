@@ -27,6 +27,7 @@ export class DynamicPageAnalyzer {
         mapURLs=(null as object | null),
         domainFilteringMode=DomainFilteringMode.Any,
         mineDynamicDEPs=true,
+        onlyJSDynamicDEPs=false,
         loadTimeout=(undefined as number | undefined)
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
@@ -59,6 +60,9 @@ export class DynamicPageAnalyzer {
 
         if (mineDynamicDEPs) {
             bot.requestCallback = req => {
+                if (onlyJSDynamicDEPs && (!req.isXHR && !req.isFetch)) {
+                    return;
+                }
                 this.dynamicDEPs.push(requestToHar(req));
             };
         }

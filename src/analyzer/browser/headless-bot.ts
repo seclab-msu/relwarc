@@ -30,6 +30,8 @@ export interface ResourceRequest {
     method: string;
     headers: KeyValue[];
     postData: string;
+    isXHR: boolean;
+    isFetch: boolean;
 }
 
 // TODO: replace with type definitions for slimerjs

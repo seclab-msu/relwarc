@@ -28,6 +28,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--deduplicate-deps', { action: 'store_true' });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
     parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
+    parser.add_argument('--only-js-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--log-requests', { action: 'store_true' });
     parser.add_argument('--domain-scope', {
         choices: validDomainFilteringModeValues,
@@ -48,6 +49,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
         mineDynamicDEPs: !args.no_dynamic_deps as boolean,
+        onlyJSDynamicDEPs: args.only_js_dynamic_deps as boolean,
         loadTimeout: args.load_timeout || undefined
     };
 
