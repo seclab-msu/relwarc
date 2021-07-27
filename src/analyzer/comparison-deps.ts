@@ -1,10 +1,34 @@
 import { HAR, KeyValue } from './har';
+import { hasattr } from './utils/common';
 
 const undefinedValues = ['UNKNOWN', ''];
 const importantParams = ['route', 'action', 'type', 'r'];
 const importantHeaders = ['Content-Type', 'Host'];
 const urlMarkers = ['/', '%2F'];
 const urlStarts = ['//', 'https://', 'http://'];
+
+export enum DeduplicationMode {
+    Default = 'default',
+    Extended = 'extended',
+    None = 'none'
+}
+
+const reverseDeduplicationMode: Record<string, DeduplicationMode> = {};
+
+for (const k of Object.keys(DeduplicationMode)) {
+    reverseDeduplicationMode[DeduplicationMode[k]] = DeduplicationMode[k];
+}
+
+export function deduplicationModeFromString(s: string): DeduplicationMode {
+    if (hasattr(DeduplicationMode, s)) {
+        return reverseDeduplicationMode[s];
+    }
+    throw new Error('Unexpected string value of deduplication mode:' + s);
+}
+
+export const validDeduplicationModeValues = Object.keys(
+    reverseDeduplicationMode
+);
 
 function compareKeys(a: KeyValue[], b: KeyValue[]): boolean {
     const aKeys = a.map(param => param.name).sort();
@@ -121,10 +145,12 @@ function compareDEPs(har1: HAR, har2: HAR, extendedMode: boolean): boolean {
 
     if (postData1 && postData2) {
         if (postData1.params && postData2.params) {
-            if (checkParamValues(
-                postData1.params,
-                postData2.params,
-                extendedMode)
+            if (
+                checkParamValues(
+                    postData1.params,
+                    postData2.params,
+                    extendedMode
+                )
             ) {
                 return false;
             }
@@ -190,14 +216,20 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
 
 export function deduplicateDEPs(
     hars: HAR[],
-    workMode: string
+    workMode: DeduplicationMode
 ): HAR[] {
-    if (workMode === 'none') {
+    if (workMode === DeduplicationMode.None) {
         return hars;
     }
     hars.forEach((har, id, hars) => {
         for (let i = id + 1; i < hars.length; i++) {
-            if (compareDEPs(har, hars[i], workMode === 'extended')) {
+            if (
+                compareDEPs(
+                    har,
+                    hars[i],
+                    workMode === DeduplicationMode.Extended
+                )
+            ) {
                 har = uniteDEPs(har, hars[i]);
                 hars.splice(i--, 1);
             }

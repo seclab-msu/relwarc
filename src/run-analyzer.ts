@@ -13,6 +13,10 @@ import {
     domainFilteringModeFromString,
     validDomainFilteringModeValues
 } from './analyzer/domain-filtering';
+import {
+    deduplicationModeFromString,
+    validDeduplicationModeValues
+} from './analyzer/comparison-deps';
 
 import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
 console.log('');
@@ -26,7 +30,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--deduplicate-deps', {
-        choices: ['default', 'extended', 'none'],
+        choices: validDeduplicationModeValues,
         default: 'none'
     });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
@@ -74,7 +78,9 @@ async function main(argc: number, argv: string[]): Promise<number> {
         }
     } else {
         // hars
-        const deps = analyzer.getAllDeps(args.deduplicate_deps);
+        const deps = analyzer.getAllDeps(
+            deduplicationModeFromString(args.deduplicate_deps)
+        );
 
         if (stdoutIsTTY()) {
             console.log('\nDEPS (' + deps.length + '):');

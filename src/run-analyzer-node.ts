@@ -5,7 +5,11 @@ import { ArgumentParser } from 'argparse';
 import { Analyzer } from './analyzer/analyzer';
 
 import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
-import { deduplicateDEPs } from './analyzer/comparison-deps';
+import {
+    deduplicationModeFromString,
+    validDeduplicationModeValues,
+    deduplicateDEPs
+} from './analyzer/comparison-deps';
 
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
@@ -15,7 +19,7 @@ async function main(): Promise<number> {
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--deduplicate-deps', {
-        choices: ['default', 'extended', 'none'],
+        choices: validDeduplicationModeValues,
         default: 'none'
     });
 
@@ -37,7 +41,10 @@ async function main(): Promise<number> {
         }
     } else {
         // hars
-        const deps = deduplicateDEPs(analyzer.hars, args.deduplicate_deps);
+        const deps = deduplicateDEPs(
+            analyzer.hars,
+            deduplicationModeFromString(args.deduplicate_deps)
+        );
 
         if (stdoutIsTTY()) {
             console.log('\nDEPS (' + deps.length + '):');
