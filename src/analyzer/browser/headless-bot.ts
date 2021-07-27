@@ -139,10 +139,12 @@ export class HeadlessBot {
     protected getDOMAttributeValues(): void {
         this.webpage.evaluate(() => {
             const allElements = document.querySelectorAll('*');
-            const allEventHandlers = Object.keys(window).filter(k => !k.indexOf('on'));
 
             allElements.forEach(elem => {
-                for (const eventHandler of allEventHandlers) {
+                const eventHandlers = elem.getAttributeNames().filter(name => {
+                    return !name.indexOf('on');
+                });
+                for (const eventHandler of eventHandlers) {
                     elem[eventHandler];
                 }
             });
