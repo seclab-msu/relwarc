@@ -3,7 +3,8 @@ import { hasattr } from './utils/common';
 export enum DomainFilteringMode {
     Same = 'same',
     Subdomain = 'subdomain',
-    Any = 'any'
+    Any = 'any',
+    Foreign = 'foreign'
 }
 
 const reverseDomainFilteringMode: Record<string, DomainFilteringMode> = {};
@@ -30,6 +31,10 @@ export function filterByDomain(
 ): boolean {
     if (mode === DomainFilteringMode.Any) {
         return true;
+    }
+
+    if (mode === DomainFilteringMode.Foreign) {
+        return !filterByDomain(url, baseURL, DomainFilteringMode.Subdomain);
     }
 
     const urlDomain = (new URL(url)).hostname;
