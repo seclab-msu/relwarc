@@ -7,7 +7,7 @@ function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
 }
 
-describe('Tests for comparison library', () => {
+describe('Tests for extended comparison hars', () => {
     it('unknown and defined param value in two calls', async () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/test-deduplication1.js').toString()
@@ -132,7 +132,7 @@ describe('Tests for comparison library', () => {
         expect(hars.length).toEqual(2);
     });
 
-    it('extended comparison: different values of important params', async () => {
+    it('different values of important params', async () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/test-deduplication5.js').toString()
         ];
@@ -174,7 +174,7 @@ describe('Tests for comparison library', () => {
         }));
     });
 
-    it('extended comparison: routing param "r"', async () => {
+    it('routing param "r"', async () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/test-deduplication6.js').toString()
         ];
@@ -221,7 +221,7 @@ describe('Tests for comparison library', () => {
         }));
     });
 
-    it('extended comparison: param "r" with string value', async () => {
+    it('param "r" with string value', async () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/test-deduplication7.js').toString()
         ];
@@ -250,70 +250,5 @@ describe('Tests for comparison library', () => {
             ],
             'bodySize': 0
         }));
-    });
-
-    it('default comparison: hars with numeric values', async () => {
-        const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication8.js').toString()
-        ];
-
-        const analyzer = makeAndRunSimple(
-            scripts,
-            true
-        );
-
-        const hars = deduplicateDEPs(analyzer.hars, false).map(JSONObjectFromHAR);
-        expect(hars.length).toEqual(1);
-    });
-
-    it('default comparison: hars with UNKNOWN and numeric values', async () => {
-        const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication9.js').toString()
-        ];
-
-        const analyzer = makeAndRunSimple(
-            scripts,
-            true
-        );
-
-        const hars = deduplicateDEPs(analyzer.hars, false).map(JSONObjectFromHAR);
-        expect(hars.length).toEqual(1);
-        expect(hars).toContain(jasmine.objectContaining({
-            'method': 'GET',
-            'url': 'http://test.com/example/test.php?r=test&a=123&c=789',
-            'httpVersion': 'HTTP/1.1',
-            'queryString': [
-                {
-                    name: 'r',
-                    value: 'test'
-                },
-                {
-                    name: 'a',
-                    value: '123'
-                },
-                {
-                    name: 'c',
-                    value: '789'
-                }
-            ],
-            'bodySize': 0
-        }));
-    });
-
-    it('different types of param value', async () => {
-        const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication10.js').toString()
-        ];
-
-        const analyzer = makeAndRunSimple(
-            scripts,
-            true
-        );
-
-        let hars = deduplicateDEPs(analyzer.hars, false).map(JSONObjectFromHAR);
-        expect(hars.length).toEqual(2);
-
-        hars = deduplicateDEPs(analyzer.hars, true).map(JSONObjectFromHAR);
-        expect(hars.length).toEqual(1);
     });
 });
