@@ -20,35 +20,35 @@ function extendedComparison(
         const impParam1 = params1.find(param => param.name === value);
         const impParam2 = params2.find(param => param.name === value);
         if (
-            impParam1 &&
-            impParam2 &&
-            !undefinedValues.includes(impParam1.value) &&
-            !undefinedValues.includes(impParam2.value) &&
-            impParam1.value !== impParam2.value
+            !impParam1 ||
+            !impParam2 ||
+            undefinedValues.includes(impParam1.value) ||
+            undefinedValues.includes(impParam2.value) ||
+            impParam1.value === impParam2.value
         ) {
-            if (value === 'r') {
-                const impValue1 = impParam1.value;
-                const impValue2 = impParam2.value;
-                return (
-                    !urlStarts.some(el => {
-                        return (
-                            impValue1.startsWith(el) ||
-                            impValue2.startsWith(el) ||
-                            impValue1.startsWith(encodeURIComponent(el)) ||
-                            impValue2.startsWith(encodeURIComponent(el))
-                        );
-                    }) &&
-                    urlMarkers.some(el => {
-                        return (
-                            impValue1.includes(el) ||
-                            impValue2.includes(el)
-                        );
-                    })
-                );
-            }
+            return false;
+        }
+        if (value !== 'r') {
             return true;
         }
-        return false;
+        const impValue1 = impParam1.value;
+        const impValue2 = impParam2.value;
+        return (
+            !urlStarts.some(el => {
+                return (
+                    impValue1.startsWith(el) ||
+                    impValue2.startsWith(el) ||
+                    impValue1.startsWith(encodeURIComponent(el)) ||
+                    impValue2.startsWith(encodeURIComponent(el))
+                );
+            }) &&
+            urlMarkers.some(el => {
+                return (
+                    impValue1.includes(el) ||
+                    impValue2.includes(el)
+                );
+            })
+        );
     });
 }
 
