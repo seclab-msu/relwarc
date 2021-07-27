@@ -78,6 +78,8 @@ export class DynamicPageAnalyzer {
         log(`Navigating to URL: ${url}`);
         await this.bot.navigate(url);
 
+        this.bot.triggerParsingOfEventHandlerAttributes();
+
         // this.bot.webpage.render("/tmp/page.png");
 
         log(`Opened URL ${url}, now run analyzer`);

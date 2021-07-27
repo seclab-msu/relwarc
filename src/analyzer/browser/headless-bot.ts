@@ -55,6 +55,7 @@ interface Webpage {
     onResourceRequested: (req: ResourceRequest, netReq: NetworkRequest) => void;
     onResourceReceived: (response: ResourceResponse) => void;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
+    evaluate: (callback: () => void) => void;
 }
 
 export interface HeadlessBotOptions {
@@ -131,6 +132,21 @@ export class HeadlessBot {
                 );
             }
         };
+    }
+
+    triggerParsingOfEventHandlerAttributes(): void {
+        this.webpage.evaluate(() => {
+            const allElements = document.querySelectorAll('*');
+
+            allElements.forEach(elem => {
+                const eventHandlers = elem.getAttributeNames().filter(name => {
+                    return !name.indexOf('on');
+                });
+                for (const eventHandler of eventHandlers) {
+                    elem[eventHandler];
+                }
+            });
+        });
     }
 
     protected handleRequest(req: ResourceRequest): void {
