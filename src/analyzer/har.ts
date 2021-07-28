@@ -68,10 +68,12 @@ export class HAR {
             'text': postData
         };
         this.bodySize = postData.length;
-        this.headers.push({
-            'name': 'Content-Length',
-            'value': '' + postData.length
-        });
+        if (!hasHeader(this.headers, 'content-length')) {
+            this.headers.push({
+                'name': 'Content-Length',
+                'value': '' + postData.length
+            });
+        }
         let ct, ctParts, ctType;
         if (hasHeader(this.headers, 'content-type')) {
             ct = this.getHeader('content-type');
