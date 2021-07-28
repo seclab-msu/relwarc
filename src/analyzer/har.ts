@@ -106,6 +106,20 @@ export class HAR {
     getPostData(): PostData | undefined {
         return this.postData;
     }
+
+    static fromJSON(jsonHAR: ReturnType<JSON['parse']>): HAR {
+        const har = new HAR(jsonHAR['url']);
+        har.httpVersion = jsonHAR['httpVersion'];
+        har.method = jsonHAR['method'];
+        har.bodySize = jsonHAR['bodySize'];
+        har.headers = jsonHAR['headers'];
+        har.queryString = jsonHAR['queryString'];
+        if (jsonHAR['postData']) {
+            har.postData = jsonHAR['postData'];
+        }
+
+        return har;
+    }
 }
 function getQueryNameValue(q: string): [string, string] {
     const arr = q.split('=');
