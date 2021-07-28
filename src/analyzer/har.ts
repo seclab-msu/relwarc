@@ -115,7 +115,7 @@ export class HAR {
         har.bodySize = jsonHAR['bodySize'];
         har.headers = jsonHAR['headers'];
         har.queryString = jsonHAR['queryString'];
-        har.originURL = jsonHAR['originUrl'];
+        har.originURL = jsonHAR['originURL'];
         if (jsonHAR['postData']) {
             har.postData = jsonHAR['postData'];
         }

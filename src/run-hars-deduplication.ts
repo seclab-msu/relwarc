@@ -2,10 +2,10 @@ import { deduplicateDEPs } from './analyzer/comparison-deps';
 import { HAR } from './analyzer/har';
 import { readFileSync } from 'fs';
 
-const STDIN_FILENO = '/dev/stdin';
+const STDIN_PATH = '/dev/stdin';
 
 const parsedHARs = JSON.parse(
-    readFileSync(STDIN_FILENO).toString()
+    readFileSync(STDIN_PATH).toString()
 );
 
 const hars: HAR[] = [];
