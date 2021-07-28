@@ -1076,8 +1076,8 @@ export class Analyzer {
                 }
                 if (
                     this.functionsStack.length > 0 &&
-                    node.type === 'VariableDeclarator' ||
-                    node.type === 'AssignmentExpression'
+                    (node.type === 'VariableDeclarator' ||
+                    node.type === 'AssignmentExpression')
                 ) {
                     this.setVariable(path);
                 }
