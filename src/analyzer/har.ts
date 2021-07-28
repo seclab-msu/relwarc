@@ -20,6 +20,7 @@ export class HAR {
     headers: KeyValue[];
     queryString: KeyValue[];
     bodySize: number;
+    originURL?: string;
 
     private postData?: PostData;
 
@@ -107,6 +108,21 @@ export class HAR {
 
     getPostData(): PostData | undefined {
         return this.postData;
+    }
+
+    static fromJSON(jsonHAR: ReturnType<JSON['parse']>): HAR {
+        const har = new HAR(jsonHAR['url']);
+        har.httpVersion = jsonHAR['httpVersion'];
+        har.method = jsonHAR['method'];
+        har.bodySize = jsonHAR['bodySize'];
+        har.headers = jsonHAR['headers'];
+        har.queryString = jsonHAR['queryString'];
+        har.originURL = jsonHAR['originURL'];
+        if (jsonHAR['postData']) {
+            har.postData = jsonHAR['postData'];
+        }
+
+        return har;
     }
 }
 function getQueryNameValue(q: string): [string, string] {
