@@ -20,6 +20,7 @@ export class HAR {
     headers: KeyValue[];
     queryString: KeyValue[];
     bodySize: number;
+    originURL?: string;
 
     private postData?: PostData;
 
@@ -114,6 +115,7 @@ export class HAR {
         har.bodySize = jsonHAR['bodySize'];
         har.headers = jsonHAR['headers'];
         har.queryString = jsonHAR['queryString'];
+        har.originURL = jsonHAR['originUrl'];
         if (jsonHAR['postData']) {
             har.postData = jsonHAR['postData'];
         }
