@@ -141,7 +141,7 @@ export class DynamicPageAnalyzer {
         return har;
     }
 
-    getAllDeps(deduplicationMode: DeduplicationMode): HAR[] {
+    getAllDeps(deduplicationMode = DeduplicationMode.None): HAR[] {
         return deduplicateDEPs(
             this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs),
             deduplicationMode
