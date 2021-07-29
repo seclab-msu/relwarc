@@ -415,10 +415,14 @@ export class Analyzer {
         if (!hasattr(STRING_METHODS, methodName)) {
             return UNKNOWN;
         }
-        const args = this.valuesForArgs(argNodes);
+        let args = this.valuesForArgs(argNodes);
 
-        if (!args.every(v => !isUnknown(v))) {
-            return UNKNOWN;
+        if (methodName === 'concat') {
+            args = args.map(arg => String(arg));
+        } else {
+            if (!args.every(v => !isUnknown(v))) {
+                return UNKNOWN;
+            }
         }
 
         const method = STRING_METHODS[methodName];

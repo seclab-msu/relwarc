@@ -29,4 +29,18 @@ describe('Analyzer processes args came from String.prototype methods', () => {
             } as SinkCall,
         );
     });
+    it('works with String.prototype.concat with unknown argument', function () {
+        const scripts = [
+            `function f(x) {
+                axios.get("https://support.freshbooks.com/api/v2/search.json?query=".concat(x));
+            }`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'axios.get',
+                'args': ['https://support.freshbooks.com/api/v2/search.json?query=UNKNOWN']
+            } as SinkCall,
+        );
+    });
 });
