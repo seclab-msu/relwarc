@@ -13,6 +13,10 @@ import {
     domainFilteringModeFromString,
     validDomainFilteringModeValues
 } from './analyzer/domain-filtering';
+import {
+    deduplicationModeFromString,
+    validDeduplicationModeValues
+} from './analyzer/dep-comparison';
 
 import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
 console.log('');
@@ -25,7 +29,10 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--tar-page', { type: String });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
-    parser.add_argument('--deduplicate-deps', { action: 'store_true' });
+    parser.add_argument('--dep-deduplication', {
+        choices: validDeduplicationModeValues,
+        default: 'none'
+    });
     parser.add_argument('--no-html-deps', { action: 'store_true' });
     parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--only-js-dynamic-deps', { action: 'store_true' });
@@ -71,7 +78,9 @@ async function main(argc: number, argv: string[]): Promise<number> {
         }
     } else {
         // hars
-        const deps = analyzer.getAllDeps(args.deduplicate_deps);
+        const deps = analyzer.getAllDeps(
+            deduplicationModeFromString(args.dep_deduplication)
+        );
 
         if (stdoutIsTTY()) {
             console.log('\nDEPS (' + deps.length + '):');
