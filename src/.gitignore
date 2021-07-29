@@ -2,4 +2,4 @@ run-analyzer.js
 run-analyzer-managed.js
 run-analyzer-node.js
 read-tar.js
-run-hars-deduplication.js
+filter-hars.js
