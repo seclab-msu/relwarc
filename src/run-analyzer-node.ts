@@ -18,7 +18,7 @@ async function main(): Promise<number> {
     parser.add_argument('base_url', { nargs: '?' });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
-    parser.add_argument('--deduplicate-deps', {
+    parser.add_argument('--dep-deduplication', {
         choices: validDeduplicationModeValues,
         default: 'none'
     });
@@ -43,7 +43,7 @@ async function main(): Promise<number> {
         // hars
         const deps = deduplicateDEPs(
             analyzer.hars,
-            deduplicationModeFromString(args.deduplicate_deps)
+            deduplicationModeFromString(args.dep_deduplication)
         );
 
         if (stdoutIsTTY()) {

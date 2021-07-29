@@ -29,7 +29,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--tar-page', { type: String });
     parser.add_argument('--uncomment', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
-    parser.add_argument('--deduplicate-deps', {
+    parser.add_argument('--dep-deduplication', {
         choices: validDeduplicationModeValues,
         default: 'none'
     });
@@ -79,7 +79,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     } else {
         // hars
         const deps = analyzer.getAllDeps(
-            deduplicationModeFromString(args.deduplicate_deps)
+            deduplicationModeFromString(args.dep_deduplication)
         );
 
         if (stdoutIsTTY()) {
