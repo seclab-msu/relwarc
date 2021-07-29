@@ -1,12 +1,12 @@
 import type { Value } from './generic';
 
-type FromDataData = { [key: string]: Value };
+type FormDataData = { [key: string]: Value };
 
 
 export class FormDataModel {
-    private readonly data: FromDataData;
+    private readonly data: FormDataData;
 
-    constructor(data?: FromDataData) {
+    constructor(data?: FormDataData) {
         this.data = data || {};
     }
 
@@ -15,7 +15,7 @@ export class FormDataModel {
         this.data[k] = v;
     }
 
-    getData(): FromDataData {
+    getData(): FormDataData {
         return this.data;
     }
 
