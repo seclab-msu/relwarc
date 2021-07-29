@@ -1,7 +1,7 @@
 import {
     deduplicateDEPs,
     DeduplicationMode
-} from '../../../src/analyzer/comparison-deps';
+} from '../../../src/analyzer/dep-comparison';
 import { makeAndRunSimple } from '../utils/utils';
 
 import * as fs from 'fs';

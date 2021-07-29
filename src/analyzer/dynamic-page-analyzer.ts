@@ -13,7 +13,7 @@ import {
 import {
     deduplicateDEPs,
     DeduplicationMode
-} from './comparison-deps';
+} from './dep-comparison';
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];

@@ -16,7 +16,7 @@ import {
 import {
     deduplicationModeFromString,
     validDeduplicationModeValues
-} from './analyzer/comparison-deps';
+} from './analyzer/dep-comparison';
 
 import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
 console.log('');

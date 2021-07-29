@@ -9,7 +9,7 @@ import {
     deduplicationModeFromString,
     validDeduplicationModeValues,
     deduplicateDEPs
-} from './analyzer/comparison-deps';
+} from './analyzer/dep-comparison';
 
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
