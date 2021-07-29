@@ -4,8 +4,6 @@ import {
 } from '../../../src/analyzer/dep-comparison';
 import { makeAndRunSimple } from '../utils/utils';
 
-import * as fs from 'fs';
-
 function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
 }
@@ -13,7 +11,12 @@ function JSONObjectFromHAR(har: object): object {
 describe('Tests for default comparison hars', () => {
     it('hars with numeric values', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication8.js').toString()
+            `$.ajax({
+                url: 'example/test.php?r=124'
+            });
+            $.ajax({
+                url: 'example/test.php?r=0xa1b'
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -31,7 +34,12 @@ describe('Tests for default comparison hars', () => {
 
     it('hars with unknown and numeric values', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication9.js').toString()
+            `$.ajax({
+                url: 'example/test.php?r=UNKNOWN&a=123&c=789'
+            });
+            $.ajax({
+                url: 'example/test.php?r=test&a=456&c=UNKNOWN'
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -69,7 +77,12 @@ describe('Tests for default comparison hars', () => {
 
     it('different types of param value', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication10.js').toString()
+            `$.ajax({
+                url: 'example/test.php?a=123&b=test1'
+            });
+            $.ajax({
+                url: 'example/test.php?a=test&b=test1'
+            });`
         ];
 
         const analyzer = makeAndRunSimple(

@@ -4,8 +4,6 @@ import {
 } from '../../../src/analyzer/dep-comparison';
 import { makeAndRunSimple } from '../utils/utils';
 
-import * as fs from 'fs';
-
 function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
 }
@@ -13,7 +11,13 @@ function JSONObjectFromHAR(har: object): object {
 describe('Tests for extended comparison hars', () => {
     it('unknown and defined param value in two calls', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication1.js').toString()
+            `fetch('/testing/test?a=123');
+            $.ajax({
+                url: '/testing/test',
+                data: {
+                    a: unknown
+                }
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -47,7 +51,21 @@ describe('Tests for extended comparison hars', () => {
 
     it('param values are defined in two calls', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication2.js').toString()
+            `$.ajax({
+                method: "POST",
+                url: '/example/test.aspx',
+                data: {
+                    name: "admin",
+                    id: adminId
+                }
+            });
+            $.post({
+                url: '/example/test.aspx',
+                data: {
+                    name: adminName,
+                    id: "123"
+                }
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -90,7 +108,9 @@ describe('Tests for extended comparison hars', () => {
 
     it('param values are defined in three calls', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication3.js').toString()
+            `fetch('/example?a=1&b=' + b + '&c=' + c);
+            fetch('/example?b=test&a=' + a + '&c=' + c);
+            fetch('/example?c=3&b=' + b + '&a=' + a);`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -132,7 +152,19 @@ describe('Tests for extended comparison hars', () => {
 
     it('different content-type in calls', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication4.js').toString()
+            `$.post({
+                url: "/example",
+                data: {
+                    a: "testing"
+                },
+                contentType: "application/json"
+            });
+            $.post({
+                url: "/example",
+                data: {
+                    a: "testing"
+                }
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -153,7 +185,18 @@ describe('Tests for extended comparison hars', () => {
 
     it('different values of important params', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication5.js').toString()
+            `$.ajax({
+                url: "/test",
+                data: {
+                    route: "test"
+                },
+            });
+            $.ajax({
+                url: "/test",
+                data: {
+                    route: "example"
+                }
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -199,7 +242,18 @@ describe('Tests for extended comparison hars', () => {
 
     it('routing param "r"', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication6.js').toString()
+            `$.ajax({
+                url: 'auto/index.php?r=/order/test',
+                data: {
+                    pserid: '4907'
+                }
+            });
+            $.ajax({
+                url: 'auto/index.php?r=%2Ftest%2Fexample',
+                data: {
+                    pserid: '4907'
+                }
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
@@ -250,7 +304,18 @@ describe('Tests for extended comparison hars', () => {
 
     it('param "r" with string value', async () => {
         const scripts = [
-            fs.readFileSync(__dirname + '/../data/test-deduplication7.js').toString()
+            `$.ajax({
+                url: 'auto/index.php?r=testing',
+                data: {
+                    pserid: '4907'
+                }
+            });
+            $.ajax({
+                url: 'auto/index.php?r=test',
+                data: {
+                    pserid: '4907'
+                }
+            });`
         ];
 
         const analyzer = makeAndRunSimple(
