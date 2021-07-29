@@ -19,7 +19,6 @@ import {
 } from './analyzer/dep-comparison';
 
 import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
-console.log('');
 
 /* eslint max-lines-per-function:off */
 async function main(argc: number, argv: string[]): Promise<number> {
