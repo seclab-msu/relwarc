@@ -1,8 +1,11 @@
+import * as psl from 'psl';
+
 import { hasattr } from './utils/common';
 
 export enum DomainFilteringMode {
     Same = 'same',
     Subdomain = 'subdomain',
+    SecondLevel = 'second-level',
     Any = 'any',
     Foreign = 'foreign'
 }
@@ -34,7 +37,7 @@ export function filterByDomain(
     }
 
     if (mode === DomainFilteringMode.Foreign) {
-        return !filterByDomain(url, baseURL, DomainFilteringMode.Subdomain);
+        return !filterByDomain(url, baseURL, DomainFilteringMode.SecondLevel);
     }
 
     const urlDomain = (new URL(url)).hostname;
@@ -52,6 +55,11 @@ export function filterByDomain(
             return true;
         }
         return urlDomain[urlDomain.length - baseDomain.length - 1] === '.';
+    case DomainFilteringMode.SecondLevel: {
+        const urlDomainInfo = psl.parse(urlDomain);
+        const baseDomainInfo = psl.parse(baseDomain);
+        return urlDomainInfo.domain === baseDomainInfo.domain;
+    }
     default:
         throw new Error('Unexpected domain filtering mode: ' + mode);
     }

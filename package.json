@@ -13,6 +13,7 @@
     "jasmine": "3.5.0",
     "jasmine-terminal-reporter": "^1.0.3",
     "json-stable-stringify": "^1.0.1",
+    "psl": "^1.8.0",
     "tar-stream": "^2.2.0"
   },
   "devDependencies": {

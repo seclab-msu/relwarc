@@ -39,7 +39,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--log-requests', { action: 'store_true' });
     parser.add_argument('--domain-scope', {
         choices: validDomainFilteringModeValues,
-        default: 'subdomain'
+        default: 'second-level'
     });
     parser.add_argument('--load-timeout', { type: Number });
 
