@@ -1,4 +1,10 @@
-import { HAR, queryStringFromObject, replaceQuery, KeyValue } from '../../har';
+import {
+    HAR,
+    queryStringFromObject,
+    replaceQuery,
+    KeyValue,
+    headersFromMap
+} from '../../har';
 import { isUnknown, UNKNOWN_FUNCTION } from '../../types/unknown';
 import { FormDataModel } from '../../types/form-data';
 
@@ -45,8 +51,14 @@ function getMethod(funcName, settings) {
     return method;
 }
 
-function setCt(har, explicitCt, isMultipart, qs) {
-    if (explicitCt) {
+function setCt(har: HAR, explicitCt, isMultipart, qs) {
+    if (
+        har.headers.find(header => {
+            return header.name.toLowerCase() === 'content-type';
+        })
+    ) {
+        return;
+    } else if (explicitCt) {
         har.headers.push({
             'name': 'Content-Type',
             'value': explicitCt
@@ -97,6 +109,11 @@ function setData(har, isMultipart, data, qs) {
     }
 }
 
+function setHeaders(har: HAR, settings: Record<string, string>) {
+    const headers = settings.headers || {};
+    har.headers.push(...headersFromMap(headers));
+}
+
 function makeHARJQuery(
     funcName: string,
     args: Value[],
@@ -118,6 +135,8 @@ function makeHARJQuery(
     const har = new HAR(url, baseURL);
 
     data = data || settings.data;
+
+    setHeaders(har, settings);
 
     const method = getMethod(funcName, settings);
     har.method = method;
