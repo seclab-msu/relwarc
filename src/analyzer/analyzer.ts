@@ -11,7 +11,7 @@ import {
     Function as FunctionASTNode,
     CallExpression, BinaryExpression, UnaryExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
-    Literal, ObjectExpression, Identifier, TemplateLiteral,
+    Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction
@@ -43,6 +43,8 @@ import {
     combineComments,
     parseComments
 } from './uncommenter';
+
+import { LoadType } from './load-type';
 
 import {
     matchFreeStandingCallSignature,
@@ -97,6 +99,7 @@ interface CallConfig {
 export interface SinkCall {
     funcName: string;
     args: Value[];
+    location?: SourceLocation|null;
 }
 
 enum AnalysisPhase {
@@ -838,7 +841,10 @@ export class Analyzer {
         }
     }
 
-    private saveResult(result: SinkCall): void {
+    private saveResult(
+        result: SinkCall,
+        location: SourceLocation|null
+    ): void {
         const resultStringified = stableStringify(result);
 
         // deduplicate results
@@ -846,10 +852,15 @@ export class Analyzer {
             return;
         }
         this.resultsAlready.add(resultStringified);
+        result.location = location;
         this.results.push(result);
     }
 
-    private extractDEPFromArgs(funcName: string, args: ASTNode[]): void {
+    private extractDEPFromArgs(
+        funcName: string,
+        args: ASTNode[],
+        location: SourceLocation|null
+    ): void {
         let argsDependOnFormalArg = false;
 
         this.argsStackOffset = null;
@@ -873,7 +884,7 @@ export class Analyzer {
             return v;
         });
 
-        this.saveResult({ funcName, args: argValues });
+        this.saveResult({ funcName, args: argValues }, location);
 
         if (argsDependOnFormalArg) {
             this.buildCallChainsForMissingArgs();
@@ -968,7 +979,11 @@ export class Analyzer {
         }
 
         if (matchFreeStandingCallSignature(calleeName)) {
-            this.extractDEPFromArgs(calleeName, node.arguments);
+            this.extractDEPFromArgs(
+                calleeName,
+                node.arguments,
+                node.callee.loc
+            );
         }
     }
 
@@ -991,7 +1006,8 @@ export class Analyzer {
     private tryContinueCallSequence(
         ob: ASTNode,
         funcName: string,
-        args: ASTNode[]
+        args: ASTNode[],
+        location: SourceLocation|null
     ): boolean {
         if (!callSequenceMethodNames.has(funcName)) {
             return false;
@@ -1023,7 +1039,8 @@ export class Analyzer {
             this.extractDEPFromArgs(
                 sequence.name + '.' + funcName,
                 // hack
-                wrapSeqInObjectExpressions(calls)
+                wrapSeqInObjectExpressions(calls),
+                location
             );
         }
         return true;
@@ -1040,7 +1057,12 @@ export class Analyzer {
             return;
         }
 
-        const isCallSeqPart = this.tryContinueCallSequence(ob, prop.name, args);
+        const isCallSeqPart = this.tryContinueCallSequence(
+            ob,
+            prop.name,
+            args,
+            callee.loc
+        );
 
         if (isCallSeqPart) {
             return;
@@ -1066,7 +1088,7 @@ export class Analyzer {
 
         const obName: string = obDescr;
 
-        this.extractDEPFromArgs(obName + '.' + prop.name, args);
+        this.extractDEPFromArgs(obName + '.' + prop.name, args, callee.loc);
     }
 
     private extractDEPsFromCall(node: CallExpression, scope: Scope): void {
@@ -1256,6 +1278,13 @@ export class Analyzer {
                 continue;
             }
             harsAlready.add(harStringified);
+            if (result.location) {
+                har.initiator = {
+                    type: LoadType.XHR,
+                    lineNumber: result.location.start.line,
+                    columnNumber: result.location.start.column
+                };
+            }
 
             this.newHARCallback(har);
         }
