@@ -104,4 +104,55 @@ describe('Tests for default comparison hars', () => {
 
         expect(hars.length).toEqual(1);
     });
+
+    it('combine headers', async () => {
+        const scripts = [
+            `axios({
+                url: 'example/test.php',
+                headers: {
+                    'X-CSRF-TOKEN':'token'
+                },
+            });
+            axios({
+                url: 'example/test.php',
+                headers: {
+                    'Authorization':'authorization',
+                }
+            });`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(1);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/example/test.php',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'X-CSRF-TOKEN',
+                    value: 'token'
+                },
+                {
+                    name: 'Authorization',
+                    value: 'authorization'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 0
+        }));
+    });
 });
