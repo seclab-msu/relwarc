@@ -14,6 +14,11 @@ export interface PostData {
     mimeType?: string;
 }
 
+export interface HTMLInfo {
+    outerHTML: string,
+    selector: string | null,
+}
+
 export class HAR {
     method: string;
     url: string;
@@ -23,6 +28,7 @@ export class HAR {
     bodySize: number;
     originURL?: string;
     loadType?: LoadType;
+    htmlInfo?: HTMLInfo;
 
     private postData?: PostData;
 

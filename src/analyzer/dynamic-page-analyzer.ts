@@ -14,6 +14,7 @@ import {
     deduplicateDEPs,
     DeduplicationMode
 } from './dep-comparison';
+import { trackHTMLDynamicDEP } from './html-deps-tracking';
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
@@ -76,7 +77,8 @@ export class DynamicPageAnalyzer {
     async run(
         url: string,
         uncomment?: boolean,
-        mineHTMLDEPs=true
+        mineHTMLDEPs=true,
+        trackHtmlDynamicDEPs=false
     ): Promise<void> {
         this.analyzer.harFilter = (har: HAR): boolean => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
@@ -103,25 +105,43 @@ export class DynamicPageAnalyzer {
 
         const bot = this.bot;
         if (bot instanceof OfflineHeadlessBot) {
-            this.analyzerDEPs = this.analyzerDEPs.filter(har => {
-                return this.changeLocalURL(har, url, bot.getServerPort());
-            });
-
-            this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                return this.changeLocalURL(har, url, bot.getServerPort());
-            });
-
-            this.htmlDEPs = this.htmlDEPs.filter(har => {
-                return this.changeLocalURL(har, url, bot.getServerPort());
-            });
+            this.fixLocalURLForOfflineMode(url, bot);
         }
 
+        this.filterDEPsByDomain(url);
+
+        if (trackHtmlDynamicDEPs) {
+            log('HTML DEPs mining done, now build CSS Selectors for html dynamic DEPs');
+            this.dynamicDEPs = this.dynamicDEPs.filter(har => {
+                return trackHTMLDynamicDEP(har, this.bot.webpage);
+            });
+        }
+    }
+
+    private filterDEPsByDomain(url: string): void {
         this.dynamicDEPs = this.dynamicDEPs.filter(har => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
         });
 
         this.htmlDEPs = this.htmlDEPs.filter(har => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
+        });
+    }
+
+    private fixLocalURLForOfflineMode(
+        url: string,
+        bot: OfflineHeadlessBot
+    ): void {
+        this.analyzerDEPs = this.analyzerDEPs.filter(har => {
+            return this.changeLocalURL(har, url, bot.getServerPort());
+        });
+
+        this.dynamicDEPs = this.dynamicDEPs.filter(har => {
+            return this.changeLocalURL(har, url, bot.getServerPort());
+        });
+
+        this.htmlDEPs = this.htmlDEPs.filter(har => {
+            return this.changeLocalURL(har, url, bot.getServerPort());
         });
     }
 
