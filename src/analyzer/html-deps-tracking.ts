@@ -40,21 +40,21 @@ function getHTMLElementInfo(
                     return {
                         outerHTML: elem.outerHTML,
                         selector: findCssSelector(elem)
-                    } as HTMLInfo;
+                    };
                 }
             } else if (elem instanceof HTMLLinkElement) {
                 if (elem.href === url) {
                     return {
                         outerHTML: elem.outerHTML,
                         selector: findCssSelector(elem)
-                    } as HTMLInfo;
+                    };
                 }
             } else if (elem instanceof HTMLSourceElement) {
                 if (elem.srcset === url || elem.src === url) {
                     return {
                         outerHTML: elem.outerHTML,
                         selector: findCssSelector(elem)
-                    } as HTMLInfo;
+                    };
                 }
             }
         }
@@ -64,8 +64,12 @@ function getHTMLElementInfo(
 export function trackHTMLDynamicDEP(har: HAR, webpage: object): HAR {
     const window: Window = getWrappedWindow(webpage);
     const document = window.document;
-    if (har.loadType && har.loadType in LoadTypeTagAssociation) {
-        har.htmlInfo = getHTMLElementInfo(har.url, document, har.loadType);
+    if (har.initiator?.type && har.initiator.type in LoadTypeTagAssociation) {
+        har.initiator.htmlInfo = getHTMLElementInfo(
+            har.url,
+            document,
+            har.initiator.type
+        );
     }
     return har;
 }
