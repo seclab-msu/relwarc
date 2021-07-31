@@ -52,7 +52,7 @@ function prettyPrintQueryString(qs: string): void {
 }
 
 export function prettyPrintHAR(har: HAR): void {
-    const lt = har.loadType;
+    const lt = har.initiator?.type;
 
     if (typeof lt !== 'undefined') {
         colorPrinter.red().write('[' + String(lt) + ']').reset().write(' ');

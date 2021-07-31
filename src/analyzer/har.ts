@@ -19,6 +19,15 @@ export interface HTMLInfo {
     selector: string | null,
 }
 
+export interface Initiator {
+    type: LoadType,
+    stack?: [],
+    url?: string,
+    lineNumber?: number,
+    columnNumber?: number,
+    htmlInfo?: HTMLInfo
+}
+
 export class HAR {
     method: string;
     url: string;
@@ -27,8 +36,7 @@ export class HAR {
     queryString: KeyValue[];
     bodySize: number;
     originURL?: string;
-    loadType?: LoadType;
-    htmlInfo?: HTMLInfo;
+    initiator?: Initiator;
 
     private postData?: PostData;
 
