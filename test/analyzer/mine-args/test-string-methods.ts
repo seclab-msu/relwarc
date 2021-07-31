@@ -43,4 +43,32 @@ describe('Analyzer processes args came from String.prototype methods', () => {
             } as SinkCall,
         );
     });
+    it('works with String.prototype.replace', function () {
+        const scripts = [
+            `secret_token = {};
+            secret_token.value = 'sdi39dkan22fsd'
+            admin_url = 'http://url.com/admin?token=%%TOKEN%%';
+            axios.get(admin_url.replace('%%TOKEN%%', secret_token.value));`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'axios.get',
+                'args': ['http://url.com/admin?token=sdi39dkan22fsd']
+            } as SinkCall,
+        );
+    });
+    it('works with String.prototype.replace with unknown second argument', function () {
+        const scripts = [
+            `admin_url = 'http://url.com/admin?token=%%TOKEN%%';
+            axios.get(admin_url.replace('%%TOKEN%%', secret_token.value));`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'axios.get',
+                'args': ['http://url.com/admin?token=UNKNOWN']
+            } as SinkCall,
+        );
+    });
 });

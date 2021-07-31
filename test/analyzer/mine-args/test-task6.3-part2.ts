@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTestSinkCall } from '../utils/utils';
+import { runSingleTestSinkCall, getArgsFromFile, removeEmpty, makeAndRunSimple } from '../utils/utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 import * as fs from 'fs';
 
@@ -28,11 +28,32 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/9.js').toString()
         ];
-        runSingleTestSinkCall(
-            scripts,
-            __dirname + '/../data/6_3task_tests/args9.json',
-            'http://js-training.seclab/js-dep/func-args/samples/computed/9.html',
-        );
+        const url = 'http://js-training.seclab/js-dep/func-args/samples/computed/9.html';
+        const analyzer = makeAndRunSimple(scripts, false, url);
+        const checkingObj = __dirname + '/../data/6_3task_tests/args9.json';
+        const checkingObjWithRegexUrl = __dirname + '/../data/6_3task_tests/args9-regexurl.json';
+        const argsFromFile = getArgsFromFile(checkingObj);
+        const argsFromFileWithRegexUrl = getArgsFromFile(checkingObjWithRegexUrl);
+        const results = removeEmpty(analyzer.results);
+        for (let i = 0; i < argsFromFile.length; i++) {
+            expect(results).toContain(argsFromFile[i] as SinkCall);
+        }
+        argsFromFileWithRegexUrl.forEach(function (test) {
+            let isMatched = false;
+            const testUrlRegex = new RegExp(String(test.args[0]));
+            results.forEach(function (result) {
+                const resultUrl = String(result.args[0]);
+                if (testUrlRegex.test(resultUrl)) {
+                    isMatched = true;
+                    delete result.args[0];
+                    delete test.args[0];
+                    expect(result).toEqual(test);
+                }
+            });
+            if (!isMatched) {
+                fail(`Expected to find an url that matches with ${testUrlRegex}`);
+            }
+        });
     });
 
     it('task6.3 10-th test', () => {

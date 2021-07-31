@@ -1,4 +1,4 @@
-import { runSingleTestHAR, runSingleTestHARFromFile } from '../utils/utils';
+import { runSingleTestHAR, runSingleTestHARFromFile, makeAndRunSimple, makeUnorderedHARS } from '../utils/utils';
 import * as fs from 'fs';
 
 describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 2', () => {
@@ -38,11 +38,40 @@ describe('Analyzer mining HARs for JS DEPs (from task 6.3) - part 2', () => {
         const scripts = [
             fs.readFileSync(__dirname + '/../data/6_3task_tests/9.js').toString()
         ];
-        runSingleTestHARFromFile(
-            scripts,
-            __dirname + '/../data/6_3task_tests/9.json',
-            'http://js-training.seclab/js-dep/func-args/samples/computed/9.html',
+        const url = 'http://js-training.seclab/js-dep/func-args/samples/computed/9.html';
+        const checkingHAR = __dirname + '/../data/6_3task_tests/9.json';
+        const checkingHARWithRegexUrl = __dirname + '/../data/6_3task_tests/9-regexurl.json';
+        const analyzer = makeAndRunSimple(scripts, true, url);
+        let convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
+        convertedHars = makeUnorderedHARS(convertedHars);
+        let harsForCheck = JSON.parse(
+            fs.readFileSync(checkingHAR).toString()
         );
+        harsForCheck = makeUnorderedHARS(harsForCheck);
+        let harsForCheckWithRegexUrl = JSON.parse(
+            fs.readFileSync(checkingHARWithRegexUrl).toString()
+        );
+        harsForCheckWithRegexUrl = makeUnorderedHARS(harsForCheckWithRegexUrl);
+
+        for (let i = 0; i < harsForCheck.length; i++) {
+            expect(convertedHars).toContain(harsForCheck[i]);
+        }
+        harsForCheckWithRegexUrl.forEach(function (testHAR) {
+            let isMatched = false;
+            const testUrlRegex = new RegExp(testHAR.url);
+            convertedHars.forEach(function (resultHAR) {
+                const resultUrl = resultHAR.url;
+                if (testUrlRegex.test(resultUrl)) {
+                    isMatched = true;
+                    delete resultHAR.url;
+                    delete testHAR.url;
+                    expect(resultHAR).toEqual(testHAR);
+                }
+            });
+            if (!isMatched) {
+                fail(`Expected to find an url that matches with ${testUrlRegex}`);
+            }
+        });
     });
 
     it('task6.3 10-th test', () => {
