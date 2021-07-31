@@ -41,6 +41,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         default: 'second-level'
     });
     parser.add_argument('--load-timeout', { type: Number });
+    parser.add_argument('--track-html-dynamic-deps', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -69,7 +70,14 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const mineHTMLDEPs = !args.no_html_deps;
 
-    await analyzer.run(targetURL, args.uncomment, mineHTMLDEPs);
+    const trackHtmlDynamicDEPs = args.track_html_dynamic_deps as boolean;
+
+    await analyzer.run(
+        targetURL,
+        args.uncomment,
+        mineHTMLDEPs,
+        trackHtmlDynamicDEPs
+    );
 
     if (args.args) {
         for (const result of analyzer.analyzer.results) {

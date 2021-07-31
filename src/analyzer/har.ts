@@ -1,4 +1,5 @@
 import { Unknown } from './types/unknown';
+import { LoadType } from './load-type';
 
 import { hasattr } from './utils/common';
 
@@ -7,10 +8,15 @@ export interface KeyValue {
     value: string;
 }
 
-interface PostData {
+export interface PostData {
     text: string|null;
     params?: KeyValue[];
     mimeType?: string;
+}
+
+export interface HTMLInfo {
+    outerHTML: string,
+    selector: string | null,
 }
 
 export class HAR {
@@ -21,6 +27,8 @@ export class HAR {
     queryString: KeyValue[];
     bodySize: number;
     originURL?: string;
+    loadType?: LoadType;
+    htmlInfo?: HTMLInfo;
 
     private postData?: PostData;
 

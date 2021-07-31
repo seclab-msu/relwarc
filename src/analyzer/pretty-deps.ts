@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as ansi from 'ansi';
 import { Writable } from 'stream';
 
-import { HAR } from './har';
+import { HAR, PostData } from './har';
 
 let colorPrinter: ansi.Cursor;
 
@@ -52,6 +52,12 @@ function prettyPrintQueryString(qs: string): void {
 }
 
 export function prettyPrintHAR(har: HAR): void {
+    const lt = har.loadType;
+
+    if (typeof lt !== 'undefined') {
+        colorPrinter.red().write('[' + String(lt) + ']').reset().write(' ');
+    }
+
     const qsIndex = har.url.indexOf('?');
 
     const urlBeforeQS = qsIndex >= 0 ? har.url.substring(0, qsIndex) : har.url;
@@ -82,25 +88,29 @@ export function prettyPrintHAR(har: HAR): void {
     }
     const postData = har.getPostData();
     if (postData) {
-        colorPrinter.reset().write('\n');
-        if (postData.text) {
-            if (isForm) {
-                prettyPrintQueryString(postData.text);
-            } else {
-                colorPrinter.write(postData.text);
-            }
-        } else if (postData.params) {
-            for (const p of postData.params) {
-                colorPrinter
-                    .green()
-                    .write('---- ' + p.name + ' ----')
-                    .write('\n')
-                    .blue()
-                    .write('\n' + p.value + '\n');
-            }
-        } else {
-            colorPrinter.red().write('N/A');
-        }
+        prettyPrintPostData(postData, isForm);
     }
     colorPrinter.reset().write('\n');
+}
+
+function prettyPrintPostData(postData: PostData, isForm: boolean): void {
+    colorPrinter.reset().write('\n');
+    if (postData.text) {
+        if (isForm) {
+            prettyPrintQueryString(postData.text);
+        } else {
+            colorPrinter.write(postData.text);
+        }
+    } else if (postData.params) {
+        for (const p of postData.params) {
+            colorPrinter
+                .green()
+                .write('---- ' + p.name + ' ----')
+                .write('\n')
+                .blue()
+                .write('\n' + p.value + '\n');
+        }
+    } else {
+        colorPrinter.red().write('N/A');
+    }
 }
