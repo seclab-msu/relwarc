@@ -135,7 +135,11 @@ export class DynamicPageAnalyzer {
         if (trackHtmlDynamicDEPs) {
             log('HTML DEPs mining done, now build CSS Selectors for html dynamic DEPs');
             this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                return trackHTMLDynamicDEP(har, this.bot.webpage);
+                return trackHTMLDynamicDEP(
+                    har,
+                    this.bot.webpage,
+                    this.bot.getInitialContent()
+                );
             });
         }
     }
