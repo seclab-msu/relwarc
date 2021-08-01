@@ -107,10 +107,16 @@ enum AnalysisPhase {
     DEPExtracting
 }
 
+interface Script {
+    sourceText: string;
+    startLine?: number;
+    url?: string;
+}
+
 export class Analyzer {
     readonly parsedScripts: AST[];
     readonly results: SinkCall[];
-    readonly scripts: Set<string>;
+    readonly scripts: Script[];
     readonly hars: HAR[];
 
     private readonly dynamic: DynamicAnalyzer | null;
@@ -147,7 +153,7 @@ export class Analyzer {
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
-        this.scripts = new Set();
+        this.scripts = [];
 
         this.dynamic = dynamicAnalyzer;
 
@@ -184,11 +190,16 @@ export class Analyzer {
         this.trackedCallSequencesStack = [new Map()];
     }
 
-    addScript(source: string): void {
-        if (this.scripts.has(source)) {
+    addScript(sourceText: string, startLine?: number, url?: string): void {
+        if (this.scripts.find(scr => scr.sourceText === sourceText)) {
             return;
         }
-        this.scripts.add(source);
+
+        this.scripts.push({
+            sourceText,
+            startLine,
+            url
+        } as Script);
     }
 
     private addFunctionBinding(
@@ -853,6 +864,12 @@ export class Analyzer {
         }
         this.resultsAlready.add(resultStringified);
         result.location = location;
+
+        if (result.location) {
+            // for 0-based lineNumber
+            result.location.start.line--;
+        }
+
         this.results.push(result);
     }
 
@@ -1203,7 +1220,13 @@ export class Analyzer {
     private parseCode(): void {
         for (const script of this.scripts) {
             try {
-                this.parsedScripts.push(parser.parse(script));
+                this.parsedScripts.push(parser.parse(
+                    script.sourceText,
+                    {
+                        startLine: script.startLine,
+                        sourceFilename: script.url,
+                    }
+                ));
             } catch (err) {
                 log('Script parsing error: ' + err + '\n');
             }
@@ -1216,10 +1239,14 @@ export class Analyzer {
     }
 
     private addCommentedCode(): void {
-        for (let script of this.scripts) {
-            script = script.replace(/^\s*[\r\n]/gm, '');
-            const combComments = combineComments(parser.parse(script).comments);
-            const parsedComments = parseComments(combComments);
+        for (const script of this.scripts) {
+            const srcTxt = script.sourceText.replace(/^\s*[\r\n]/gm, '');
+            const combComments = combineComments(parser.parse(srcTxt).comments);
+            const parsedComments = parseComments(
+                combComments,
+                script.startLine,
+                script.url
+            );
             this.parsedScripts.push(...parsedComments);
         }
     }
@@ -1281,6 +1308,7 @@ export class Analyzer {
             if (result.location) {
                 har.initiator = {
                     type: LoadType.XHR,
+                    url: result.location['filename'],
                     lineNumber: result.location.start.line,
                     columnNumber: result.location.start.column
                 };
