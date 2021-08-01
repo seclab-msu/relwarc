@@ -71,4 +71,32 @@ describe('Analyzer processes args came from String.prototype methods', () => {
             } as SinkCall,
         );
     });
+    it('works with String.prototype.replace', function () {
+        const scripts = [
+            `secret_token = {};
+            secret_token.value = 'pl23ff9aksxz71'
+            admin_url = 'http://url.com/admin?token=%replaceHERE%';
+            axios.get(admin_url.replace('%replaceHERE%', secret_token.value));`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'axios.get',
+                'args': ['http://url.com/admin?token=pl23ff9aksxz71']
+            } as SinkCall,
+        );
+    });
+    it('works with String.prototype.replaceAll with unknown second argument', function () {
+        const scripts = [
+            `admin_url = 'http://url.com/admin?token=%replaceHERE%';
+            axios.get(admin_url.replace('%replaceHERE%', secret_token.value));`
+        ];
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'axios.get',
+                'args': ['http://url.com/admin?token=UNKNOWN']
+            } as SinkCall,
+        );
+    });
 });
