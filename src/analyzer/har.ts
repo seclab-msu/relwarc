@@ -1,5 +1,6 @@
 import { Unknown } from './types/unknown';
 import { LoadType } from './load-type';
+import type { StackFrame } from './browser/stack-frame';
 
 import { hasattr } from './utils/common';
 
@@ -20,12 +21,12 @@ export interface HTMLInfo {
 }
 
 export interface Initiator {
-    type: LoadType,
-    stack?: [],
-    url?: string,
-    lineNumber?: number,
-    columnNumber?: number,
-    htmlInfo?: HTMLInfo
+    type: LoadType;
+    stack?: StackFrame[];
+    url?: string;
+    lineNumber?: number;
+    columnNumber?: number;
+    htmlInfo?: HTMLInfo;
 }
 
 export class HAR {

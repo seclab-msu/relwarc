@@ -32,6 +32,7 @@ export class DynamicPageAnalyzer {
         domainFilteringMode=DomainFilteringMode.Any,
         mineDynamicDEPs=true,
         onlyJSDynamicDEPs=false,
+        recordRequestStackTraces=false,
         loadTimeout=(undefined as number | undefined)
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
@@ -40,14 +41,16 @@ export class DynamicPageAnalyzer {
                 printPageErrors: false,
                 printPageConsoleLog: false,
                 logRequests,
-                loadTimeout
+                loadTimeout,
+                recordRequestStackTraces
             });
         } else {
             bot = new HeadlessBot({
                 printPageErrors: false,
                 printPageConsoleLog: false,
                 logRequests,
-                loadTimeout
+                loadTimeout,
+                recordRequestStackTraces
             });
         }
 
@@ -63,15 +66,34 @@ export class DynamicPageAnalyzer {
         this.analyzerDEPs = [];
 
         if (mineDynamicDEPs) {
-            bot.requestCallback = req => {
-                if (onlyJSDynamicDEPs && (!req.isXHR && !req.isFetch)) {
-                    return;
-                }
-                this.dynamicDEPs.push(requestToHar(req));
-            };
+            this.setRequestHandler(onlyJSDynamicDEPs, recordRequestStackTraces);
         }
 
         this.domainFilteringMode = domainFilteringMode;
+    }
+
+    private setRequestHandler(
+        onlyJSDynamicDEPs: boolean,
+        recordRequestStackTraces: boolean
+    ) {
+        this.bot.requestCallback = req => {
+            if (onlyJSDynamicDEPs && (!req.isXHR && !req.isFetch)) {
+                return;
+            }
+            const har = requestToHar(req);
+            if (recordRequestStackTraces && (req.isXHR || req.isFetch)) {
+                if (typeof har.initiator == 'undefined') {
+                    throw new Error('initiator not set by requestToHar');
+                }
+                const stacktrace = req.stacktrace;
+                if (stacktrace !== null) {
+                    har.initiator.stack = stacktrace;
+                } else {
+                    log('warning: no stack not set for request ' + req.url);
+                }
+            }
+            this.dynamicDEPs.push(har);
+        };
     }
 
     async run(

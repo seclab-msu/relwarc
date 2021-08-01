@@ -17,6 +17,7 @@ import {
     deduplicationModeFromString,
     validDeduplicationModeValues
 } from './analyzer/dep-comparison';
+import { HAR } from './analyzer/har';
 
 import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
 
@@ -42,6 +43,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     });
     parser.add_argument('--load-timeout', { type: Number });
     parser.add_argument('--track-html-dynamic-deps', { action: 'store_true' });
+    parser.add_argument('--record-request-stacks', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -57,7 +59,8 @@ async function main(argc: number, argv: string[]): Promise<number> {
         mapURLs: null as (object | null),
         mineDynamicDEPs: !args.no_dynamic_deps as boolean,
         onlyJSDynamicDEPs: args.only_js_dynamic_deps as boolean,
-        loadTimeout: args.load_timeout || undefined
+        loadTimeout: args.load_timeout || undefined,
+        recordRequestStackTraces: args.record_request_stacks,
     };
 
     if (args.tar_page) {
@@ -88,16 +91,19 @@ async function main(argc: number, argv: string[]): Promise<number> {
         const deps = analyzer.getAllDeps(
             deduplicationModeFromString(args.dep_deduplication)
         );
-
-        if (stdoutIsTTY()) {
-            console.log('\nDEPS (' + deps.length + '):');
-            deps.forEach(prettyPrintHAR);
-        } else {
-            console.log(JSON.stringify(deps, null, 4));
-        }
+        outputDEPs(deps);
     }
 
     return 0;
+}
+
+function outputDEPs(deps: HAR[]): void {
+    if (stdoutIsTTY()) {
+        console.log('\nDEPS (' + deps.length + '):');
+        deps.forEach(prettyPrintHAR);
+    } else {
+        console.log(JSON.stringify(deps, null, 4));
+    }
 }
 
 (async () => {

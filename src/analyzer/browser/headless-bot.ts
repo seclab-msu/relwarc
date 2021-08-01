@@ -1,6 +1,7 @@
 const system = require('system');
 
 const { create: createWebpage } = require('webpage');
+const { enableRequestStackTraceRecording } = require('net-log');
 
 const WindowEvents = require('./window-events');
 
@@ -15,6 +16,8 @@ import {
     ErrorStackTraceFrame,
     withTimeout, TimeoutError
 } from '../utils/common';
+
+import type { StackFrame } from './stack-frame';
 
 import { log } from '../logging';
 
@@ -33,6 +36,7 @@ export interface ResourceRequest {
     isXHR: boolean;
     isFetch: boolean;
     loadType: number;
+    stacktrace: StackFrame[] | null;
 }
 
 // TODO: replace with type definitions for slimerjs
@@ -65,6 +69,7 @@ export interface HeadlessBotOptions {
     printPageErrors: boolean;
     printPageConsoleLog: boolean;
     logRequests: boolean;
+    recordRequestStackTraces?: boolean;
     loadTimeout?: number;
 }
 
@@ -89,6 +94,7 @@ export class HeadlessBot {
         printPageErrors=false,
         printPageConsoleLog=true,
         logRequests=false,
+        recordRequestStackTraces=false,
         loadTimeout=DEFAULT_LOAD_TIMEOUT
     }: HeadlessBotOptions) {
         this.webpage = createWebpage();
@@ -111,6 +117,14 @@ export class HeadlessBot {
         this.mutationObserver = null;
         this.lastDOMMutation = null;
 
+        this.setupEventHandlers();
+
+        if (recordRequestStackTraces) {
+            enableRequestStackTraceRecording(true);
+        }
+    }
+
+    private setupEventHandlers() {
         WindowEvents.on(WindowEvents.DOCUMENT_CREATED_EVENT, (win, doc) => {
             if (
                 win === getWrappedWindow(this.webpage) && this.onWindowCreated
