@@ -22,6 +22,7 @@ export enum LoadType {
     Fetch = 'fetch',
     Imageset = 'imageset',
     WebManifest = 'webManifest',
+    FromJSAnalyzer = 'analyzer'
 }
 
 const reverseLoadType: Record<string, LoadType> = {};

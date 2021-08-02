@@ -1307,7 +1307,7 @@ export class Analyzer {
             harsAlready.add(harStringified);
             if (result.location) {
                 har.initiator = {
-                    type: LoadType.XHR,
+                    type: LoadType.FromJSAnalyzer,
                     url: result.location['filename'],
                     lineNumber: result.location.start.line,
                     columnNumber: result.location.start.column

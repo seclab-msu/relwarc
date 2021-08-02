@@ -25,7 +25,7 @@ describe('Tests for DEPs location in JS files', () => {
             'queryString': [],
             'bodySize': 0,
             'initiator': {
-                'type': 'xhr',
+                'type': 'analyzer',
                 'lineNumber': 2,
                 'columnNumber': 8
             }

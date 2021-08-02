@@ -23,7 +23,7 @@ describe('Tests for DEPs location on web page', () => {
             'queryString': [],
             'bodySize': 0,
             'initiator': {
-                'type': 'xhr',
+                'type': 'analyzer',
                 'lineNumber': 4,
                 'columnNumber': 8,
                 'url': testWS.getFullURL('/test-dep-location1.html')
@@ -45,7 +45,7 @@ describe('Tests for DEPs location on web page', () => {
             'queryString': [],
             'bodySize': 0,
             'initiator': {
-                'type': 'xhr',
+                'type': 'analyzer',
                 'lineNumber': 0,
                 'columnNumber': 0,
                 'url': testWS.getFullURL('/test-dep-location2.js')
@@ -68,7 +68,7 @@ describe('Tests for DEPs location on web page', () => {
             'queryString': [],
             'bodySize': 0,
             'initiator': {
-                'type': 'xhr',
+                'type': 'analyzer',
                 'lineNumber': 1,
                 'columnNumber': 0,
                 'url': 'http://test123.com/example.js'
