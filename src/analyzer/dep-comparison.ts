@@ -180,6 +180,15 @@ function updateUndefinedParams(
 function uniteDEPs(har1: HAR, har2: HAR): HAR {
     const newURL = new URL(har1.url);
 
+    har2.headers.forEach(header2 => {
+        const h = har1.headers.find(header1 => {
+            return header2.name === header1.name;
+        });
+        if (h === undefined) {
+            har1.headers.push(header2);
+        }
+    });
+
     har1.queryString = updateUndefinedParams(
         har1.queryString,
         har2.queryString
