@@ -863,9 +863,10 @@ export class Analyzer {
             return;
         }
         this.resultsAlready.add(resultStringified);
-        result.location = location;
 
-        if (result.location) {
+        if (location) {
+            result.location = { ...location, 'start': { ...location.start } };
+
             // for 0-based lineNumber
             result.location.start.line--;
         }
