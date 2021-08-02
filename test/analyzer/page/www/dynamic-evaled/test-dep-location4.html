@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script src="./jquery-2.2.3.js"></script>
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                type : "GET",
+                url  : '/dynamic-evaled/givemescript',
+                async: true,
+                success : function(resp)
+                {
+                    $("#elemforcode").html("");
+                    $("#elemforcode").html(resp);
+                }
+            });
+        });
+    </script>
+    <div id="elemforcode"></div>
+</body>
+</html>

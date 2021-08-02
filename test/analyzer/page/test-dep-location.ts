@@ -75,5 +75,27 @@ describe('Tests for DEPs location on web page', () => {
             }
         }));
     });
+
+    it('dynamic evaled script', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/dynamic-evaled/test-dep-location4.html');
+
+        await dpa.run(url);
+
+        const hars = dpa.analyzerDEPs.map(JSONObjectFromHAR);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': testWS.getFullURL('/test'),
+            'queryString': [],
+            'bodySize': 0,
+            'initiator': {
+                'type': 'analyzer',
+                'lineNumber': 3,
+                'columnNumber': 12,
+                'url': 'dynamically evaled code from script ' + testWS.getFullURL('/dynamic-evaled/jquery-2.2.3.js'),
+            }
+        }));
+    });
 });
 

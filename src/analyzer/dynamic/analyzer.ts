@@ -8,6 +8,8 @@ require('./debugger').addDebuggerToGlobal(global);
 
 interface Source {
     text: string;
+    introductionType: string;
+    introductionScript: Script;
 }
 
 interface Script {
@@ -15,6 +17,8 @@ interface Script {
     startLine: number;
     url: string;
 }
+
+const dynamicEvaled = 'dynamically evaled code from script ';
 
 export class DynamicAnalyzer {
     newScriptCallback: ((
@@ -35,10 +39,15 @@ export class DynamicAnalyzer {
 
         dbg.onNewScript = (script: Script): void => {
             if (this.newScriptCallback) {
+                let url = script.url;
+                if (script.source.introductionType === 'eval') {
+                    url = dynamicEvaled + script.source.introductionScript.url;
+                }
+
                 this.newScriptCallback(
                     script.source.text,
                     script.startLine,
-                    script.url
+                    url
                 );
             }
         };
