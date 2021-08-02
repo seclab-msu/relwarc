@@ -141,4 +141,77 @@ describe('Tests for jQuery library hars', () => {
             },
         );
     });
+
+    it('"headers" in $.ajax options', function () {
+        const scripts = [
+            `$.ajax({
+                url: "/admin",
+                headers: {
+                    "testHeader": "test1"
+                }
+            })`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/admin',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    },
+                    {
+                        name: 'testHeader',
+                        value: 'test1'
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET',
+            }
+        );
+    });
+
+    it('deduplicate "Content-Type" header', function () {
+        const scripts = [
+            `$.post({
+                url: "/admin",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: {
+                    "test": "data"
+                }
+            })`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/admin',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '9'
+                    }
+                ],
+                bodySize: 9,
+                method: 'POST',
+                postData: {
+                    text: 'test=data',
+                    mimeType: 'application/json'
+                }
+            }
+        );
+    });
 });
