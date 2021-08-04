@@ -138,7 +138,7 @@ export class DynamicPageAnalyzer {
                 return trackHTMLDynamicDEP(
                     har,
                     this.bot.webpage,
-                    this.bot.getInitialContent()
+                    this.bot.getDecodedInitialContent()
                 );
             });
         }

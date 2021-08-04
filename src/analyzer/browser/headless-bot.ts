@@ -291,7 +291,12 @@ export class HeadlessBot {
         }
     }
 
-    getInitialContent(): string {
-        return this.initialContent;
+    getDecodedInitialContent(): string {
+        const rawContentArray = new Uint8Array(this.initialContent.length);
+        for (let i = 0; i < this.initialContent.length; i++) {
+            rawContentArray[i] = this.initialContent.charCodeAt(i);
+        }
+        const utf8Decoder = new TextDecoder();
+        return utf8Decoder.decode(rawContentArray);
     }
 }
