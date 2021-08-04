@@ -214,4 +214,28 @@ describe('Tests for jQuery library hars', () => {
             }
         );
     });
+
+    it('process callback as 2-nd getJSON param properly', function () {
+        const scripts = [
+            `cb = function() {}
+            $.getJSON("/andrey", cb)
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/andrey',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET',
+            }
+        );
+    });
 });

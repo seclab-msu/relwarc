@@ -80,7 +80,7 @@ export function prettyPrintHAR(har: HAR): void {
             .write(h.name + ':')
             .write(' ')
             .blue()
-            .write(h.value)
+            .write(String(h.value))
             .write('\n');
         if (h.name.toLowerCase() === 'content-type' && h.value === 'application/x-www-form-urlencoded') {
             isForm = true;
