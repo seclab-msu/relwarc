@@ -114,15 +114,25 @@ function setHeaders(har: HAR, settings: Record<string, string>) {
     har.headers.push(...headersFromMap(headers));
 }
 
+function isIllegal(funcName: string, args: Value[]) {
+    if (args[0] === undefined || args[0] === null) {
+        return true;
+    }
+    if (funcName === 'load' && typeof args[0] !== 'string') {
+        // jQuery until 3.0 also had event-handling function .load
+        // See https://api.jquery.com/load/
+        // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
+        return true;
+    }
+    return false;
+}
+
 function makeHARJQuery(
     funcName: string,
     args: Value[],
     baseURL: string
 ): HAR|null {
-    if (funcName === 'load' && typeof args[0] !== 'string') {
-        // jQuery until 3.0 also had event-handling function .load
-        // See https://api.jquery.com/load/
-        // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
+    if (isIllegal(funcName, args)) {
         return null;
     }
 
