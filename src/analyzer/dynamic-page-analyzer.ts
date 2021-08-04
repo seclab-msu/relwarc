@@ -151,7 +151,7 @@ export class DynamicPageAnalyzer {
             parsedURL.hostname === '127.0.0.1' &&
             Number(parsedURL.port) === port
         ) {
-            har.url = this.replaceURL(har.url, baseURL);
+            har.url = this.replaceOrigin(har.url, baseURL);
             const hostPos = har.headers.findIndex((obj => obj.name == 'Host'));
             har.headers[hostPos].value = new URL(har.url).host;
         }
@@ -162,14 +162,17 @@ export class DynamicPageAnalyzer {
                 parsedInitiatorURL.hostname === '127.0.0.1' &&
                 Number(parsedInitiatorURL.port) === port
             ) {
-                har.initiator.url = this.replaceURL(har.initiator.url, baseURL);
+                har.initiator.url = this.replaceOrigin(
+                    har.initiator.url,
+                    baseURL
+                );
             }
         }
 
         return har;
     }
 
-    private replaceURL(baseURL: string, replaceURL: string): string {
+    private replaceOrigin(baseURL: string, replaceURL: string): string {
         const parsedBaseURL = new URL(baseURL);
         const parsedReplaceURL = new URL(replaceURL);
 
