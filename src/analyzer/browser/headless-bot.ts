@@ -44,6 +44,7 @@ interface ResourceResponse {
     stage: string;
     url: string;
     status: number;
+    body: string | null;
 }
 
 // TODO: replace with type definitions for slimerjs
@@ -63,6 +64,7 @@ interface Webpage {
     onResourceReceived: (response: ResourceResponse) => void;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
     evaluate: (callback: () => void) => void;
+    content: string;
 }
 
 export interface HeadlessBotOptions {
@@ -82,6 +84,7 @@ export class HeadlessBot {
     protected readonly printPageErrors: boolean;
     protected readonly logRequests: boolean;
     protected readonly trackDOMMutations: boolean;
+    protected initialContent: string;
 
     protected pendingRequestCount: number;
     protected notifyPageIsLoaded: null | (() => void);
@@ -116,6 +119,7 @@ export class HeadlessBot {
         this.loadedWatchdog = null;
         this.mutationObserver = null;
         this.lastDOMMutation = null;
+        this.initialContent = '';
 
         this.setupEventHandlers();
 
@@ -193,6 +197,9 @@ export class HeadlessBot {
         }
         if (this.pendingRequestCount === 0) {
             this.ensurePageIsLoaded();
+        }
+        if (response.body) {
+            this.initialContent = response.body;
         }
     }
 
@@ -282,5 +289,14 @@ export class HeadlessBot {
                 this.mutationObserver.disconnect();
             }
         }
+    }
+
+    getDecodedInitialContent(): string {
+        const rawContentArray = new Uint8Array(this.initialContent.length);
+        for (let i = 0; i < this.initialContent.length; i++) {
+            rawContentArray[i] = this.initialContent.charCodeAt(i);
+        }
+        const utf8Decoder = new TextDecoder();
+        return utf8Decoder.decode(rawContentArray);
     }
 }
