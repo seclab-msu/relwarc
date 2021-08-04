@@ -54,6 +54,11 @@ function removeEmpty(obj: SinkCall[]): SinkCall[] {
     return obj;
 }
 
+function removeLocation(obj: SinkCall[]): SinkCall[] {
+    obj.forEach(arg => delete arg.location);
+    return obj;
+}
+
 export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://test.com/test', uncomment?: boolean): Analyzer {
     const analyzer = new Analyzer();
     scripts.forEach(script => {
@@ -110,11 +115,11 @@ export function runSingleTestSinkCall(
     const analyzer = makeAndRunSimple(scripts, false, url);
     if (typeof checkingObj === 'string') {
         const argsFromFile = getArgsFromFile(checkingObj);
-        const results = removeEmpty(analyzer.results);
+        const results = removeLocation(removeEmpty(analyzer.results));
         for (let i = 0; i < argsFromFile.length; i++) {
             expect(results).toContain(argsFromFile[i] as SinkCall);
         }
     } else {
-        expect(analyzer.results).toContain(checkingObj);
+        expect(removeLocation(analyzer.results)).toContain(checkingObj);
     }
 }

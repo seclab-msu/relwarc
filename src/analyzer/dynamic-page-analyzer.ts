@@ -169,18 +169,40 @@ export class DynamicPageAnalyzer {
 
     private changeLocalURL(har: HAR, baseURL: string, port: number): HAR {
         const parsedURL = new URL(har.url);
-
-        if (parsedURL.hostname === '127.0.0.1' && Number(parsedURL.port) === port) {
-            const parsedBaseURL = new URL(baseURL);
-            parsedURL.protocol = parsedBaseURL.protocol;
-            parsedURL.hostname = parsedBaseURL.hostname;
-            parsedURL.port = parsedBaseURL.port;
-            har.url = parsedURL.href;
-
+        if (
+            parsedURL.hostname === '127.0.0.1' &&
+            Number(parsedURL.port) === port
+        ) {
+            har.url = this.replaceOrigin(har.url, baseURL);
             const hostPos = har.headers.findIndex((obj => obj.name == 'Host'));
-            har.headers[hostPos].value = parsedBaseURL.host;
+            har.headers[hostPos].value = new URL(har.url).host;
         }
+
+        if (har.initiator && har.initiator.url) {
+            const parsedInitiatorURL = new URL(har.initiator.url);
+            if (
+                parsedInitiatorURL.hostname === '127.0.0.1' &&
+                Number(parsedInitiatorURL.port) === port
+            ) {
+                har.initiator.url = this.replaceOrigin(
+                    har.initiator.url,
+                    baseURL
+                );
+            }
+        }
+
         return har;
+    }
+
+    private replaceOrigin(baseURL: string, replaceURL: string): string {
+        const parsedBaseURL = new URL(baseURL);
+        const parsedReplaceURL = new URL(replaceURL);
+
+        parsedBaseURL.protocol = parsedReplaceURL.protocol;
+        parsedBaseURL.hostname = parsedReplaceURL.hostname;
+        parsedBaseURL.port = parsedReplaceURL.port;
+
+        return parsedBaseURL.href;
     }
 
     getAllDeps(deduplicationMode = DeduplicationMode.None): HAR[] {

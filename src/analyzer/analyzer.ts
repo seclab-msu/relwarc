@@ -11,7 +11,7 @@ import {
     Function as FunctionASTNode,
     CallExpression, BinaryExpression, UnaryExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
-    Literal, ObjectExpression, Identifier, TemplateLiteral,
+    Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction
@@ -43,6 +43,8 @@ import {
     combineComments,
     parseComments
 } from './uncommenter';
+
+import { LoadType } from './load-type';
 
 import {
     matchFreeStandingCallSignature,
@@ -97,6 +99,7 @@ interface CallConfig {
 export interface SinkCall {
     funcName: string;
     args: Value[];
+    location?: SourceLocation|null;
 }
 
 enum AnalysisPhase {
@@ -104,10 +107,16 @@ enum AnalysisPhase {
     DEPExtracting
 }
 
+interface Script {
+    sourceText: string;
+    startLine?: number;
+    url?: string;
+}
+
 export class Analyzer {
     readonly parsedScripts: AST[];
     readonly results: SinkCall[];
-    readonly scripts: Set<string>;
+    readonly scripts: Script[];
     readonly hars: HAR[];
 
     private readonly dynamic: DynamicAnalyzer | null;
@@ -144,7 +153,7 @@ export class Analyzer {
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
-        this.scripts = new Set();
+        this.scripts = [];
 
         this.dynamic = dynamicAnalyzer;
 
@@ -181,11 +190,16 @@ export class Analyzer {
         this.trackedCallSequencesStack = [new Map()];
     }
 
-    addScript(source: string): void {
-        if (this.scripts.has(source)) {
+    addScript(sourceText: string, startLine?: number, url?: string): void {
+        if (this.scripts.find(scr => scr.sourceText === sourceText)) {
             return;
         }
-        this.scripts.add(source);
+
+        this.scripts.push({
+            sourceText,
+            startLine,
+            url
+        } as Script);
     }
 
     private addFunctionBinding(
@@ -838,7 +852,10 @@ export class Analyzer {
         }
     }
 
-    private saveResult(result: SinkCall): void {
+    private saveResult(
+        result: SinkCall,
+        location: SourceLocation|null
+    ): void {
         const resultStringified = stableStringify(result);
 
         // deduplicate results
@@ -846,10 +863,22 @@ export class Analyzer {
             return;
         }
         this.resultsAlready.add(resultStringified);
+
+        if (location) {
+            result.location = { ...location, 'start': { ...location.start } };
+
+            // for 0-based lineNumber
+            result.location.start.line--;
+        }
+
         this.results.push(result);
     }
 
-    private extractDEPFromArgs(funcName: string, args: ASTNode[]): void {
+    private extractDEPFromArgs(
+        funcName: string,
+        args: ASTNode[],
+        location: SourceLocation|null
+    ): void {
         let argsDependOnFormalArg = false;
 
         this.argsStackOffset = null;
@@ -873,7 +902,7 @@ export class Analyzer {
             return v;
         });
 
-        this.saveResult({ funcName, args: argValues });
+        this.saveResult({ funcName, args: argValues }, location);
 
         if (argsDependOnFormalArg) {
             this.buildCallChainsForMissingArgs();
@@ -968,7 +997,11 @@ export class Analyzer {
         }
 
         if (matchFreeStandingCallSignature(calleeName)) {
-            this.extractDEPFromArgs(calleeName, node.arguments);
+            this.extractDEPFromArgs(
+                calleeName,
+                node.arguments,
+                node.callee.loc
+            );
         }
     }
 
@@ -991,7 +1024,8 @@ export class Analyzer {
     private tryContinueCallSequence(
         ob: ASTNode,
         funcName: string,
-        args: ASTNode[]
+        args: ASTNode[],
+        location: SourceLocation|null
     ): boolean {
         if (!callSequenceMethodNames.has(funcName)) {
             return false;
@@ -1023,7 +1057,8 @@ export class Analyzer {
             this.extractDEPFromArgs(
                 sequence.name + '.' + funcName,
                 // hack
-                wrapSeqInObjectExpressions(calls)
+                wrapSeqInObjectExpressions(calls),
+                location
             );
         }
         return true;
@@ -1040,7 +1075,12 @@ export class Analyzer {
             return;
         }
 
-        const isCallSeqPart = this.tryContinueCallSequence(ob, prop.name, args);
+        const isCallSeqPart = this.tryContinueCallSequence(
+            ob,
+            prop.name,
+            args,
+            callee.loc
+        );
 
         if (isCallSeqPart) {
             return;
@@ -1066,7 +1106,7 @@ export class Analyzer {
 
         const obName: string = obDescr;
 
-        this.extractDEPFromArgs(obName + '.' + prop.name, args);
+        this.extractDEPFromArgs(obName + '.' + prop.name, args, callee.loc);
     }
 
     private extractDEPsFromCall(node: CallExpression, scope: Scope): void {
@@ -1181,7 +1221,13 @@ export class Analyzer {
     private parseCode(): void {
         for (const script of this.scripts) {
             try {
-                this.parsedScripts.push(parser.parse(script));
+                this.parsedScripts.push(parser.parse(
+                    script.sourceText,
+                    {
+                        startLine: script.startLine,
+                        sourceFilename: script.url,
+                    }
+                ));
             } catch (err) {
                 log('Script parsing error: ' + err + '\n');
             }
@@ -1194,10 +1240,14 @@ export class Analyzer {
     }
 
     private addCommentedCode(): void {
-        for (let script of this.scripts) {
-            script = script.replace(/^\s*[\r\n]/gm, '');
-            const combComments = combineComments(parser.parse(script).comments);
-            const parsedComments = parseComments(combComments);
+        for (const script of this.scripts) {
+            const srcTxt = script.sourceText.replace(/^\s*[\r\n]/gm, '');
+            const combComments = combineComments(parser.parse(srcTxt).comments);
+            const parsedComments = parseComments(
+                combComments,
+                script.startLine,
+                script.url
+            );
             this.parsedScripts.push(...parsedComments);
         }
     }
@@ -1256,6 +1306,14 @@ export class Analyzer {
                 continue;
             }
             harsAlready.add(harStringified);
+            if (result.location) {
+                har.initiator = {
+                    type: LoadType.FromJSAnalyzer,
+                    url: result.location['filename'],
+                    lineNumber: result.location.start.line,
+                    columnNumber: result.location.start.column
+                };
+            }
 
             this.newHARCallback(har);
         }
