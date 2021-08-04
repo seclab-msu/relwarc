@@ -2,6 +2,7 @@ import { HAR, HTMLInfo } from './har';
 import { getWrappedWindow } from './utils/window';
 import { LoadType } from './load-type';
 import { findCssSelector } from './browser/find-css-selector';
+import { parse as parseSrcSet } from 'srcset';
 import * as htmlparser from 'htmlparser2';
 
 const LoadTypeTagAssociation = {
@@ -16,24 +17,32 @@ const LoadTypeTagAssociation = {
 };
 
 const elemWithSrcNames = [
-    'img',
     'script',
     'iframe',
     'audio'
 ];
 
 type ElementWithSrc =
-    | HTMLImageElement
     | HTMLScriptElement
     | HTMLIFrameElement
     | HTMLAudioElement;
 
 
 function isElementWithSrc(elem: Element): elem is ElementWithSrc {
-    return elem instanceof HTMLImageElement ||
-    elem instanceof HTMLScriptElement ||
+    return elem instanceof HTMLScriptElement ||
     elem instanceof HTMLIFrameElement ||
     elem instanceof HTMLAudioElement;
+}
+
+function srcSetContainsURL(url: string, srcSet: string): boolean {
+    const parsedSrcSet = parseSrcSet(srcSet);
+    for (const src of parsedSrcSet) {
+        const fullURL = new URL(src.url, url);
+        if (fullURL.toString() == url) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function getHTMLElementInfo(
@@ -57,13 +66,35 @@ function getHTMLElementInfo(
                         selector: findCssSelector(elem)
                     };
                 }
-            } else if (elem instanceof HTMLSourceElement) {
-                if (elem.srcset === url || elem.src === url) {
+            } else if (
+                elem instanceof HTMLSourceElement ||
+                elem instanceof HTMLImageElement
+            ) {
+                if (elem.src === url || srcSetContainsURL(url, elem.srcset)) {
                     return {
                         outerHTML: elem.outerHTML,
                         selector: findCssSelector(elem)
                     };
                 }
+            }
+        }
+    }
+}
+
+function getURLCandidateForElemWithSet(
+    attribs: {[s: string]: string},
+    url: string
+): URL | undefined {
+    let urlCandidate = new URL(attribs.src, url);
+    if (urlCandidate.toString() === url) {
+        return urlCandidate;
+    }
+    if (typeof attribs.srcset !== 'undefined') {
+        const parsedSrcSet = parseSrcSet(attribs.srcset);
+        for (const src of parsedSrcSet) {
+            urlCandidate = new URL(src.url, url);
+            if (urlCandidate.toString() === url) {
+                return urlCandidate;
             }
         }
     }
@@ -100,13 +131,13 @@ function setElementLocation(har: HAR, content: string): void {
             name: string,
             attribs: {[s: string]: string}
         ): void {
-            let urlCandidate!: URL;
+            let urlCandidate: URL | undefined;
             if (elemWithSrcNames.includes(name)) {
                 urlCandidate = new URL(attribs.src, har.url);
             } else if (name === 'link') {
                 urlCandidate = new URL(attribs.href, har.url);
-            } else if (name === 'source') {
-                urlCandidate = new URL(attribs.src || attribs.srcset, har.url);
+            } else if (name === 'source' || name === 'img') {
+                urlCandidate = getURLCandidateForElemWithSet(attribs, har.url);
             }
             if (
                 typeof urlCandidate !== 'undefined' &&
