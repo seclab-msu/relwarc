@@ -170,4 +170,58 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
             }
         }));
     });
+
+    it('Imageset load type, for resource from srcset attr', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/css-selectors.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'imageset',
+                'htmlInfo': {
+                    'outerHTML': '<img src="/img7.png" srcset="/img5x.png 480w, /img5x.png 800w">',
+                    'selector': 'body > img:nth-child(9)'
+                },
+                'lineNumber': 54,
+                'columnNumber': 8
+            }
+        }));
+    });
+
+    it('Img from page with bad encoding', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/bad-encoding.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'img',
+                'htmlInfo': {
+                    'outerHTML': '<img src="/bad-enc/img.png">',
+                    'selector': 'body > div:nth-child(5) > img:nth-child(1)'
+                },
+                'lineNumber': 17,
+                'columnNumber': 4
+            }
+        }));
+    });
+
+    it('Script from page with bad encoding', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/bad-encoding.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'script',
+                'htmlInfo': {
+                    'outerHTML': '<script src="/bad-enc/script1.js"></script>',
+                    'selector': 'body > div:nth-child(6) > script:nth-child(1)'
+                },
+                'lineNumber': 19,
+                'columnNumber': 33
+            }
+        }));
+    });
 });
