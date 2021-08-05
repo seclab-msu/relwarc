@@ -34,10 +34,14 @@ function isElementWithSrc(elem: Element): elem is ElementWithSrc {
     elem instanceof HTMLAudioElement;
 }
 
-function srcSetContainsURL(url: string, srcSet: string): boolean {
+function srcSetContainsURL(
+    url: string,
+    srcSet: string,
+    originURL: string
+): boolean {
     const parsedSrcSet = parseSrcSet(srcSet);
     for (const src of parsedSrcSet) {
-        const fullURL = new URL(src.url, url);
+        const fullURL = new URL(src.url, originURL);
         if (fullURL.toString() == url) {
             return true;
         }
@@ -70,7 +74,14 @@ function getHTMLElementInfo(
                 elem instanceof HTMLSourceElement ||
                 elem instanceof HTMLImageElement
             ) {
-                if (elem.src === url || srcSetContainsURL(url, elem.srcset)) {
+                if (
+                    elem.src === url ||
+                    srcSetContainsURL(
+                        url,
+                        elem.srcset,
+                        document.location.toString()
+                    )
+                ) {
                     return {
                         outerHTML: elem.outerHTML,
                         selector: findCssSelector(elem)
@@ -83,16 +94,17 @@ function getHTMLElementInfo(
 
 function getURLCandidateForElemWithSet(
     attribs: {[s: string]: string},
-    url: string
+    url: string,
+    originURL: string
 ): URL | undefined {
-    let urlCandidate = new URL(attribs.src, url);
+    let urlCandidate = new URL(attribs.src, originURL);
     if (urlCandidate.toString() === url) {
         return urlCandidate;
     }
     if (typeof attribs.srcset !== 'undefined') {
         const parsedSrcSet = parseSrcSet(attribs.srcset);
         for (const src of parsedSrcSet) {
-            urlCandidate = new URL(src.url, url);
+            urlCandidate = new URL(src.url, originURL);
             if (urlCandidate.toString() === url) {
                 return urlCandidate;
             }
@@ -121,7 +133,7 @@ function startIndexToNumbers(
     };
 }
 
-function setElementLocation(har: HAR, content: string): void {
+function setElementLocation(har: HAR, content: string, originURL:string): void {
     const initiator = har.initiator;
     if (!initiator) {
         return;
@@ -133,11 +145,15 @@ function setElementLocation(har: HAR, content: string): void {
         ): void {
             let urlCandidate: URL | undefined;
             if (elemWithSrcNames.includes(name)) {
-                urlCandidate = new URL(attribs.src, har.url);
+                urlCandidate = new URL(attribs.src, originURL);
             } else if (name === 'link') {
-                urlCandidate = new URL(attribs.href, har.url);
+                urlCandidate = new URL(attribs.href, originURL);
             } else if (name === 'source' || name === 'img') {
-                urlCandidate = getURLCandidateForElemWithSet(attribs, har.url);
+                urlCandidate = getURLCandidateForElemWithSet(
+                    attribs,
+                    har.url,
+                    originURL
+                );
             }
             if (
                 typeof urlCandidate !== 'undefined' &&
@@ -170,7 +186,7 @@ export function trackHTMLDynamicDEP(
             document,
             har.initiator.type
         );
-        setElementLocation(har, content);
+        setElementLocation(har, content, document.location.toString());
     }
     return har;
 }
