@@ -16,6 +16,22 @@ function on(eventType, cb) {
     subscriptions[eventType].push(cb);
 }
 
+function off(eventType, cb) {
+    const subs = subscriptions[eventType];
+
+    if (!subs) {
+        return;
+    }
+
+    const idx = subs.indexOf(cb);
+
+    if (idx === -1) {
+        return;
+    }
+
+    subs.splice(idx, 1);
+}
+
 function emit(eventType, data) {
     if (hasattr(subscriptions, eventType)) {
         for (const cb of subscriptions[eventType]) {
@@ -41,3 +57,4 @@ Services.obs.addObserver(
 
 exports.DOCUMENT_CREATED_EVENT = DOCUMENT_CREATED_EVENT;
 exports.on = on;
+exports.off = off;
