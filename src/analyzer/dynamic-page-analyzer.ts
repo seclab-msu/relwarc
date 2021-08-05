@@ -81,15 +81,13 @@ export class DynamicPageAnalyzer {
                 return;
             }
             const har = requestToHar(req);
-            if (recordRequestStackTraces && (req.isXHR || req.isFetch)) {
+            if (recordRequestStackTraces) {
                 if (typeof har.initiator == 'undefined') {
                     throw new Error('initiator not set by requestToHar');
                 }
                 const stacktrace = req.stacktrace;
                 if (stacktrace !== null) {
                     har.initiator.stack = stacktrace;
-                } else {
-                    log('warning: no stack not set for request ' + req.url);
                 }
             }
             this.dynamicDEPs.push(har);
