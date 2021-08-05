@@ -42,7 +42,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         default: 'second-level'
     });
     parser.add_argument('--load-timeout', { type: Number });
-    parser.add_argument('--track-html-dynamic-deps', { action: 'store_true' });
+    parser.add_argument('--add-dynamic-html-dep-location', { action: 'store_true' });
     parser.add_argument('--record-request-stacks', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
@@ -73,13 +73,14 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const mineHTMLDEPs = !args.no_html_deps;
 
-    const trackHtmlDynamicDEPs = args.track_html_dynamic_deps as boolean;
+    const addHtmlDynamicDEPsLocation =
+        args.add_dynamic_html_dep_location as boolean;
 
     await analyzer.run(
         targetURL,
         args.uncomment,
         mineHTMLDEPs,
-        trackHtmlDynamicDEPs
+        addHtmlDynamicDEPsLocation
     );
 
     if (args.args) {
