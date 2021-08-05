@@ -224,4 +224,76 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
             }
         }));
     });
+
+    it('URL from imgsrc with relative path', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'imageset',
+                'htmlInfo': {
+                    'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
+                    'selector': 'body > img:nth-child(1)'
+                },
+                'lineNumber': 2,
+                'columnNumber': 8
+            }
+        }));
+    });
+
+    it('URL from image with relative path', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'img',
+                'htmlInfo': {
+                    'outerHTML': '<img src="images/img8.png">',
+                    'selector': 'body > img:nth-child(2)'
+                },
+                'lineNumber': 3,
+                'columnNumber': 8
+            }
+        }));
+    });
+
+    it('URL from style with relative path', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'stylesheet',
+                'htmlInfo': {
+                    'outerHTML': '<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">',
+                    'selector': 'body > link:nth-child(3)'
+                },
+                'lineNumber': 4,
+                'columnNumber': 8
+            }
+        }));
+    });
+
+    it('URL from script with relative path', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
+        await dpa.run(url, false, true, true);
+        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'initiator': {
+                'type': 'script',
+                'htmlInfo': {
+                    'outerHTML': '<script src="js/script.js"></script>',
+                    'selector': 'body > script:nth-child(4)'
+                },
+                'lineNumber': 5,
+                'columnNumber': 8
+            }
+        }));
+    });
 });
