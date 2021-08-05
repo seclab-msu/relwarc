@@ -14,7 +14,7 @@ import {
     deduplicateDEPs,
     DeduplicationMode
 } from './dep-comparison';
-import { trackHTMLDynamicDEP } from './html-deps-tracking';
+import { addHTMLDynamicDEPLocation } from './html-dep-location';
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
@@ -98,7 +98,7 @@ export class DynamicPageAnalyzer {
         url: string,
         uncomment?: boolean,
         mineHTMLDEPs=true,
-        trackHtmlDynamicDEPs=false
+        addHtmlDynamicDEPsLocation=false
     ): Promise<void> {
         this.analyzer.harFilter = (har: HAR): boolean => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
@@ -130,10 +130,10 @@ export class DynamicPageAnalyzer {
 
         this.filterDEPsByDomain(url);
 
-        if (trackHtmlDynamicDEPs) {
+        if (addHtmlDynamicDEPsLocation) {
             log('HTML DEPs mining done, now build CSS Selectors for html dynamic DEPs');
             this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                return trackHTMLDynamicDEP(
+                return addHTMLDynamicDEPLocation(
                     har,
                     this.bot.webpage,
                     this.bot.getDecodedInitialContent()

@@ -173,7 +173,7 @@ function setElementLocation(har: HAR, content: string, originURL:string): void {
     parser.end();
 }
 
-export function trackHTMLDynamicDEP(
+export function addHTMLDynamicDEPLocation(
     har: HAR,
     webpage: object,
     content: string
