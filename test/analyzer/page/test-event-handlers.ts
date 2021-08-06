@@ -30,6 +30,7 @@ describe('Test with calls in event handlers', () => {
                 "mimeType": "text/plain"
             }
         }));
+        dpa.close();
     });
 
     it('ajax call in "onkeyup" with argument value from script', async () => {
@@ -54,6 +55,7 @@ describe('Test with calls in event handlers', () => {
             ],
             "bodySize": 0,
         }));
+        dpa.close();
     });
 });
 

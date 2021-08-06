@@ -25,6 +25,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 28
             }
         }));
+        dpa.close();
     });
 
     it('Script nested in not class unique div tags', async () => {
@@ -43,6 +44,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 28
             }
         }));
+        dpa.close();
     });
 
     it('Subdocument via iframe tag', async () => {
@@ -61,6 +63,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 12
             }
         }));
+        dpa.close();
     });
 
     it('Media load type via audio tag', async () => {
@@ -79,6 +82,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 12
             }
         }));
+        dpa.close();
     });
 
     it('Img load type via img tag', async () => {
@@ -97,6 +101,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 16
             }
         }));
+        dpa.close();
     });
 
     it('Imageset load type via img tag', async () => {
@@ -115,6 +120,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 16
             }
         }));
+        dpa.close();
     });
 
     it('Imageset load type via source tag', async () => {
@@ -133,6 +139,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 12
             }
         }));
+        dpa.close();
     });
 
     it('Styleseet load type via link tag', async () => {
@@ -151,6 +158,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
+        dpa.close();
     });
 
     it('Media load type via source tag', async () => {
@@ -169,6 +177,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 12
             }
         }));
+        dpa.close();
     });
 
     it('Imageset load type, for resource from srcset attr', async () => {
@@ -187,6 +196,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
+        dpa.close();
     });
 
     it('Img from page with bad encoding', async () => {
@@ -205,6 +215,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 4
             }
         }));
+        dpa.close();
     });
 
     it('Script from page with bad encoding', async () => {
@@ -223,6 +234,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 33
             }
         }));
+        dpa.close();
     });
 
     it('URL from imgsrc with relative path', async () => {
@@ -241,6 +253,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
+        dpa.close();
     });
 
     it('URL from image with relative path', async () => {
@@ -259,6 +272,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
+        dpa.close();
     });
 
     it('URL from style with relative path', async () => {
@@ -277,6 +291,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
+        dpa.close();
     });
 
     it('URL from script with relative path', async () => {
@@ -295,5 +310,6 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
+        dpa.close();
     });
 });

@@ -29,6 +29,7 @@ describe('Tests for DEPs location on web page', () => {
                 'url': testWS.getFullURL('/test-dep-location1.html')
             }
         }));
+        dpa.close();
     });
 
     it('request in JS file connected to html page', async () => {
@@ -51,6 +52,7 @@ describe('Tests for DEPs location on web page', () => {
                 'url': testWS.getFullURL('/test-dep-location2.js')
             }
         }));
+        dpa.close();
     });
 
     it('correct initiator url in TAR-mode', async () => {
@@ -74,6 +76,7 @@ describe('Tests for DEPs location on web page', () => {
                 'url': 'http://test123.com/example.js'
             }
         }));
+        dpa.close();
     });
 
     it('dynamic evaled script', async () => {
@@ -96,6 +99,7 @@ describe('Tests for DEPs location on web page', () => {
                 'url': 'dynamically evaled code from script ' + testWS.getFullURL('/dynamic-evaled/jquery-2.2.3.js'),
             }
         }));
+        dpa.close();
     });
 });
 

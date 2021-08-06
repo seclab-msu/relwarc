@@ -33,6 +33,7 @@ describe('Analyzing DEPs on educba.com', () => {
                 ]
             }
         }));
+        dpa.close();
     });
 });
 

@@ -52,6 +52,10 @@ export interface NetworkRequest {
     changeUrl: (url: string) => void;
 }
 
+type WindowCreatedCallback = (win: Window, doc: object) => void;
+type ResourceRequestedCallback = (req: ResourceRequest, netReq: NetworkRequest) => void; // eslint-disable-line max-len
+type ResourceReceivedCallback = (response: ResourceResponse) => void;
+
 // TODO: replace with type definitions for slimerjs
 interface Webpage {
     open(url: string): Promise<string>;
@@ -60,11 +64,12 @@ interface Webpage {
         [userAgent: string]: string
     };
     onConsoleMessage: (msg: string) => void;
-    onResourceRequested: (req: ResourceRequest, netReq: NetworkRequest) => void;
-    onResourceReceived: (response: ResourceResponse) => void;
+    onResourceRequested: null | ResourceRequestedCallback;
+    onResourceReceived: null | ResourceReceivedCallback;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
     evaluate: (callback: () => void) => void;
     content: string;
+    close(): void;
 }
 
 export interface HeadlessBotOptions {
@@ -76,7 +81,7 @@ export interface HeadlessBotOptions {
 }
 
 export class HeadlessBot {
-    onWindowCreated: null | ((win: object, doc: object) => void);
+    onWindowCreated: null | WindowCreatedCallback = null;
     requestCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
@@ -92,6 +97,9 @@ export class HeadlessBot {
     protected lastDOMMutation: number | null;
 
     protected mutationObserver: MutationObserver | null;
+
+    private closed: boolean;
+    private windowCreatedCallback: null | WindowCreatedCallback = null;
 
     constructor({
         printPageErrors=false,
@@ -113,7 +121,6 @@ export class HeadlessBot {
         }
 
         this.webpage.settings.userAgent = USER_AGENT;
-        this.onWindowCreated = null;
         this.pendingRequestCount = 0;
         this.notifyPageIsLoaded = null;
         this.loadedWatchdog = null;
@@ -126,10 +133,12 @@ export class HeadlessBot {
         if (recordRequestStackTraces) {
             enableRequestStackTraceRecording(true);
         }
+
+        this.closed = false;
     }
 
     private setupEventHandlers() {
-        WindowEvents.on(WindowEvents.DOCUMENT_CREATED_EVENT, (win, doc) => {
+        this.windowCreatedCallback = (win, doc) => {
             if (
                 win === getWrappedWindow(this.webpage) && this.onWindowCreated
             ) {
@@ -140,8 +149,12 @@ export class HeadlessBot {
                     });
                 }
             }
-        });
+        };
 
+        WindowEvents.on(
+            WindowEvents.DOCUMENT_CREATED_EVENT,
+            this.windowCreatedCallback
+        );
         this.webpage.onResourceRequested = this.handleRequest.bind(this);
         this.webpage.onResourceReceived = this.handleResponse.bind(this);
 
@@ -156,6 +169,10 @@ export class HeadlessBot {
     }
 
     triggerParsingOfEventHandlerAttributes(): void {
+        if (this.closed) {
+            throw new Error('headless bot is already closed');
+        }
+
         this.webpage.evaluate(() => {
             const allElements = document.querySelectorAll('*');
 
@@ -243,6 +260,10 @@ export class HeadlessBot {
     }
 
     async navigate(url: string): Promise<void> {
+        if (this.closed) {
+            throw new Error('can\'t navigate: headless bot is already closed');
+        }
+
         let status: string | null = null;
         try {
             status = await withTimeout(
@@ -298,5 +319,28 @@ export class HeadlessBot {
         }
         const utf8Decoder = new TextDecoder();
         return utf8Decoder.decode(rawContentArray);
+    }
+
+    close(): void {
+        this.closed = true;
+
+        WindowEvents.off(
+            WindowEvents.DOCUMENT_CREATED_EVENT,
+            this.windowCreatedCallback
+        );
+        this.webpage.onResourceRequested = null;
+        this.webpage.onResourceReceived = null;
+        this.onWindowCreated = null;
+        this.requestCallback = null;
+        if (this.notifyPageIsLoaded !== null) {
+            this.notifyPageIsLoaded();
+            this.notifyPageIsLoaded = null;
+        }
+        this.webpage.onError = () => {/* noop */};
+        if (this.mutationObserver !== null) {
+            this.mutationObserver.disconnect();
+            this.mutationObserver = null;
+        }
+        this.webpage.close();
     }
 }
