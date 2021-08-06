@@ -30,6 +30,7 @@ describe('Analyzing HTML DEPs', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('GET form, 1 param test', async () => {
@@ -54,6 +55,7 @@ describe('Analyzing HTML DEPs', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('GET form, 2 params test', async () => {
@@ -81,6 +83,7 @@ describe('Analyzing HTML DEPs', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('GET form with inintial value of param', async () => {
@@ -108,6 +111,7 @@ describe('Analyzing HTML DEPs', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('"a" tag with hex encoded href', async () => {
@@ -131,6 +135,7 @@ describe('Analyzing HTML DEPs', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('simple form POST request', async () => {
@@ -160,6 +165,7 @@ describe('Analyzing HTML DEPs', () => {
                 ]
             }
         }));
+        dpa.close();
     });
 
     it('form POST request with multiple params', async () => {
@@ -197,6 +203,7 @@ describe('Analyzing HTML DEPs', () => {
                 ]
             }
         }));
+        dpa.close();
     });
 
     it('multipart form POST request', async () => {
@@ -234,6 +241,7 @@ describe('Analyzing HTML DEPs', () => {
                 ]
             }
         }));
+        dpa.close();
     });
 });
 

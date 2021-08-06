@@ -30,6 +30,7 @@ describe('Analyzing DEPs on web page', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('works when page links script with "<script src=..."', async () => {
@@ -57,6 +58,7 @@ describe('Analyzing DEPs on web page', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 
     it('works when request info is split between scripts', async () => {
@@ -84,6 +86,7 @@ describe('Analyzing DEPs on web page', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
 });
 

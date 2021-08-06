@@ -33,6 +33,7 @@ describe('Analyzing Dynamic DEPs', () => {
             ],
             "bodySize": 0
         }));
+        dpa.close();
     });
     it('POST request with rename jQuery', async () => {
         const dpa = new DynamicPageAnalyzer({
@@ -67,5 +68,6 @@ describe('Analyzing Dynamic DEPs', () => {
                 ]
             }
         }));
+        dpa.close();
     });
 });

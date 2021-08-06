@@ -28,6 +28,7 @@ describe('Analyzing DEPs from TAR', () => {
             ],
             "bodySize": 0,
         }));
+        dpa.close();
     });
     it('one param in querystring js-script', async () => {
         const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-2.tar');
@@ -51,6 +52,7 @@ describe('Analyzing DEPs from TAR', () => {
             ],
             "bodySize": 0,
         }));
+        dpa.close();
     });
     it('two params in querystring js-script', async () => {
         const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-3.tar');
@@ -74,6 +76,7 @@ describe('Analyzing DEPs from TAR', () => {
             ],
             "bodySize": 0,
         }));
+        dpa.close();
     });
     it('two scripts with different querystring', async () => {
         const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-4.tar');
@@ -108,12 +111,14 @@ describe('Analyzing DEPs from TAR', () => {
             ],
             "bodySize": 0,
         }));
+        dpa.close();
     });
     it('Tar without required js-script', async () => {
         const [url, mapURLs] = await readTar('test/analyzer/page/www/test-tar-5.tar');
 
         const dpa = new DynamicPageAnalyzer({mapURLs});
 
-        await dpa.run(url)
+        await dpa.run(url);
+        dpa.close();
     });
 });

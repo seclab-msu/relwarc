@@ -55,6 +55,7 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
                 ]
             }
         }));
+        dpa.close();
     });
     it('request was made with XMLHttpRequest', async () => {
         const dpa = new DynamicPageAnalyzer({recordRequestStackTraces: true});
@@ -91,6 +92,7 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
                 ]
             }
         }));
+        dpa.close();
     });
     it('call stack grows from event handler', async () => {
         const dpa = new DynamicPageAnalyzer({recordRequestStackTraces: true});
@@ -131,6 +133,7 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
                 }]
             }
         }));
+        dpa.close();
     });
     it('request is made from js file linked by script src', async () => {
         const dpa = new DynamicPageAnalyzer({recordRequestStackTraces: true});
@@ -180,6 +183,7 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
                 }]
             }
         }));
+        dpa.close();
     });
     it('html code is minified into one line', async () => {
         const dpa = new DynamicPageAnalyzer({recordRequestStackTraces: true});
@@ -213,6 +217,7 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
                 }]
             }
         }));
+        dpa.close();
     });
 });
 
