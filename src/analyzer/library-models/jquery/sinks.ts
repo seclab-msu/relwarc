@@ -7,7 +7,7 @@ import {
 } from '../../har';
 import { isUnknown, UNKNOWN_FUNCTION } from '../../types/unknown';
 import { FormDataModel } from '../../types/form-data';
-
+import { FunctionValue } from '../../types/function';
 import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 
@@ -23,7 +23,10 @@ function parseArgs(funcName, args) {
         url = args[0];
         if (funcName === 'ajax' && args.length > 1) {
             settings = args[1];
-        } else if (args[1] === UNKNOWN_FUNCTION) {
+        } else if (args[1] === UNKNOWN_FUNCTION ||
+            funcName === 'getJSON' &&
+            args[1] instanceof FunctionValue
+        ) {
             data = null;
         } else if (
             typeof args[1] === 'object' ||
@@ -143,9 +146,7 @@ function makeHARJQuery(
     }
 
     const har = new HAR(url, baseURL);
-
     data = data || settings.data;
-
     setHeaders(har, settings);
 
     const method = getMethod(funcName, settings);

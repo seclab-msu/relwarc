@@ -1,4 +1,4 @@
-import { Unknown } from './types/unknown';
+import { Unknown, isUnknown } from './types/unknown';
 import { LoadType } from './load-type';
 import type { StackFrame } from './browser/stack-frame';
 
@@ -72,7 +72,7 @@ export class HAR {
         }
     }
 
-    getHeader(name: string): string|undefined {
+    getHeader(name: string): string|Unknown|undefined {
         const n = name.toLowerCase();
         for (const h of this.headers) {
             if (h.name.toLowerCase() === n) {
@@ -105,7 +105,7 @@ export class HAR {
                 }
             }
             this.postData.mimeType = ct;
-            ctParts = ct.split('; ');
+            ctParts = isUnknown(ct) ? [ct] : ct.split('; ');
             ctType = ctParts[0];
         }
         if (ctType === 'application/x-www-form-urlencoded') {
