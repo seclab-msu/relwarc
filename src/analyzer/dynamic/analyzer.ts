@@ -1,7 +1,10 @@
 declare class Debugger {
     constructor(win: object);
 
+    enabled: boolean;
+
     onNewScript: (script: Script) => void;
+    removeAllDebuggees(): void;
 }
 
 require('./debugger').addDebuggerToGlobal(global);
@@ -53,5 +56,15 @@ export class DynamicAnalyzer {
         };
 
         this.dbg = dbg;
+    }
+
+    close(): void {
+        if (this.dbg === null) {
+            return;
+        }
+
+        this.dbg.removeAllDebuggees();
+        this.dbg.enabled = false;
+        this.dbg = null;
     }
 }
