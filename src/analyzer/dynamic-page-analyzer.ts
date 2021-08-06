@@ -61,7 +61,11 @@ export class DynamicPageAnalyzer {
 
         this.dynamicAnalyzer = dynamicAnalyzer;
 
-        bot.onWindowCreated = dynamicAnalyzer.addWindow.bind(dynamicAnalyzer);
+        bot.onWindowCreated = (win: object) => {
+            dynamicAnalyzer.close();
+            analyzer.resetScripts();
+            dynamicAnalyzer.addWindow(win);
+        };
 
         this.analyzer = analyzer;
         this.bot = bot;

@@ -1262,6 +1262,10 @@ export class Analyzer {
         this.hars.push(har);
     }
 
+    resetScripts(): void {
+        this.scripts.length = 0;
+    }
+
     mineArgsForDEPCalls(url: string, uncomment?: boolean): void {
         log('Analyzer: start parsing code');
         this.parseCode();
