@@ -155,4 +155,137 @@ describe('Tests for default comparison hars', () => {
             'bodySize': 0
         }));
     });
+
+    it('json body with different numbers in maps', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': true, 'auth': {'l': 'test', 'p': 123} })
+            })
+
+            fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': true, 'auth': {'l': 'test', 'p': 456} })
+            })`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(1);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '47'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 47,
+            'postData': {
+                text: '{"alt_method":true,"auth":{"l":"test","p":123}}',
+                mimeType: 'application/json'
+            }
+        }));
+    });
+
+    it('json body with different strings in object that is in arrays', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': true, 'auth': ['test', {'test2': 'test3'}] })
+            })
+
+            fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': true, 'auth': ['test', {'test2': 'test4'}] })
+            })`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '53'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 53,
+            'postData': {
+                text: '{"alt_method":true,"auth":["test",{"test2":"test3"}]}',
+                mimeType: 'application/json'
+            }
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '53'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 53,
+            'postData': {
+                text: '{"alt_method":true,"auth":["test",{"test2":"test4"}]}',
+                mimeType: 'application/json'
+            }
+        }));
+    });
 });

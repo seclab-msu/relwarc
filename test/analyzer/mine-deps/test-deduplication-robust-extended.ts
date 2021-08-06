@@ -347,4 +347,137 @@ describe('Tests for extended comparison hars', () => {
             'bodySize': 0
         }));
     });
+
+    it('json body with different strings in arrays', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': true, 'auth': ['log1', 'pwd1'] })
+            })
+
+            fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': false, 'auth': ['log2', 'pwd2'] })
+            })`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Extended
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(1);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '42'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 42,
+            'postData': {
+                text: '{"alt_method":true,"auth":["log1","pwd1"]}',
+                mimeType: 'application/json'
+            }
+        }));
+    });
+
+    it('json body with different value types', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': true, 'auth': {'log': 'pwd'} })
+            })
+
+            fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'alt_method': false, 'auth': ['log', 'pwd'] })
+            })`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Extended
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '40'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 40,
+            'postData': {
+                text: '{"alt_method":true,"auth":{"log":"pwd"}}',
+                mimeType: 'application/json'
+            }
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '41'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 41,
+            'postData': {
+                text: '{"alt_method":false,"auth":["log","pwd"]}',
+                mimeType: 'application/json'
+            }
+        }));
+    });
 });
