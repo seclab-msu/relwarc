@@ -24,6 +24,8 @@ export class DynamicPageAnalyzer {
     readonly analyzer: Analyzer;
     readonly bot: HeadlessBot | OfflineHeadlessBot;
 
+    private readonly dynamicAnalyzer: DynamicAnalyzer;
+
     private readonly domainFilteringMode: DomainFilteringMode;
 
     constructor({
@@ -56,6 +58,8 @@ export class DynamicPageAnalyzer {
 
         const dynamicAnalyzer = new DynamicAnalyzer();
         const analyzer = new Analyzer(dynamicAnalyzer);
+
+        this.dynamicAnalyzer = dynamicAnalyzer;
 
         bot.onWindowCreated = dynamicAnalyzer.addWindow.bind(dynamicAnalyzer);
 
@@ -212,5 +216,14 @@ export class DynamicPageAnalyzer {
             this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs),
             deduplicationMode
         );
+    }
+
+    close(): void {
+        this.bot.onWindowCreated = null;
+        this.bot.requestCallback = null;
+
+        this.dynamicAnalyzer.close();
+
+        this.bot.close();
     }
 }
