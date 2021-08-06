@@ -5,6 +5,7 @@ const { Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm'); /* global Services */
 
 const { hasattr } = require('../utils/common');
+const { log } = require('../logging');
 
 const DOCUMENT_ELEMENT_INSERTED_EVENT = 'document-element-inserted';
 const DOCUMENT_CREATED_EVENT = 'document-created';
@@ -35,7 +36,14 @@ function off(eventType, cb) {
 function emit(eventType, data) {
     if (hasattr(subscriptions, eventType)) {
         for (const cb of subscriptions[eventType]) {
-            cb(data);
+            try {
+                cb(data);
+            } catch (err) {
+                log(
+                    'Warning: callback for event ' + eventType + ' failed: ' +
+                    err + '\n' + err.stack
+                );
+            }
         }
     }
 }
