@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils/utils';
+import { runSingleTestHAR, makeAndRunSimple } from '../utils/utils';
 
 describe('Tests for jQuery library hars', () => {
     it('jQuery post request with settings', function () {
@@ -237,5 +237,19 @@ describe('Tests for jQuery library hars', () => {
                 method: 'GET',
             }
         );
+    });
+
+    it('processes null/undefined ajax args properly', function () {
+        const scripts = [
+            `let url1 = {a:3}; $.ajax(url1.b);
+            let url2; $.ajax(url2);
+            let url3 = null; $.ajax(url3);
+            let url4 = undefined;$.ajax(url4);
+            `
+        ];
+        const url = 'http://test.com/test';
+        const analyzer = makeAndRunSimple(scripts, true, url);
+        const convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
+        expect(convertedHars).toEqual([]);
     });
 });
