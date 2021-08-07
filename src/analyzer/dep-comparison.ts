@@ -155,7 +155,7 @@ function compareDEPs(har1: HAR, har2: HAR, extendedMode: boolean): boolean {
                 return false;
             }
         } else {
-            if (!isEqualBody(postData1.text, postData2.text, extendedMode)) {
+            if (!bodiesEqual(postData1.text, postData2.text, extendedMode)) {
                 return false;
             }
         }
@@ -177,10 +177,10 @@ function getType(v): string {
         return 'array';
     }
 
-    return 'map';
+    return 'object';
 }
 
-function isEqualValues(v1, v2, extendedMode: boolean): boolean {
+function valuesEqual(v1, v2, extendedMode: boolean): boolean {
     const t1 = getType(v1);
     const t2 = getType(v2);
     if (t1 !== t2) {
@@ -194,13 +194,13 @@ function isEqualValues(v1, v2, extendedMode: boolean): boolean {
         }
 
         for (let i = 0; i < v1.length; i++) {
-            if (!isEqualValues(v1[i], v2[i], extendedMode)) {
+            if (!valuesEqual(v1[i], v2[i], extendedMode)) {
                 return false;
             }
         }
         break;
 
-    case 'map':
+    case 'object':
         if (Object.keys(v1).length !== Object.keys(v2).length) {
             return false;
         }
@@ -212,7 +212,7 @@ function isEqualValues(v1, v2, extendedMode: boolean): boolean {
 
             const value2 = v2[key];
 
-            if (!isEqualValues(value1, value2, extendedMode)) {
+            if (!valuesEqual(value1, value2, extendedMode)) {
                 return false;
             }
         }
@@ -228,7 +228,7 @@ function isEqualValues(v1, v2, extendedMode: boolean): boolean {
     return true;
 }
 
-function isEqualBody(
+function bodiesEqual(
     body1: string|null,
     body2: string|null,
     extendedMode: boolean
@@ -250,7 +250,7 @@ function isEqualBody(
         return body1 == body2;
     }
 
-    return isEqualValues(jsonBody1, jsonBody2, extendedMode);
+    return valuesEqual(jsonBody1, jsonBody2, extendedMode);
 }
 
 function updateUndefinedParams(
