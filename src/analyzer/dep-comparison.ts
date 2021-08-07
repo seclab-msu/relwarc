@@ -180,6 +180,38 @@ function getType(v): string {
     return 'object';
 }
 
+function arrayValuesEqual(v1, v2, extendedMode: boolean): boolean {
+    if (v1.length !== v2.length) {
+        return false;
+    }
+
+    for (let i = 0; i < v1.length; i++) {
+        if (!valuesEqual(v1[i], v2[i], extendedMode)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function objectValuesEqual(v1, v2, extendedMode: boolean): boolean {
+    if (Object.keys(v1).length !== Object.keys(v2).length) {
+        return false;
+    }
+
+    for (const [key, value1] of Object.entries(v1)) {
+        if (!hasattr(v2, key)) {
+            return false;
+        }
+
+        const value2 = v2[key];
+
+        if (!valuesEqual(value1, value2, extendedMode)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function valuesEqual(v1, v2, extendedMode: boolean): boolean {
     const t1 = getType(v1);
     const t2 = getType(v2);
@@ -189,34 +221,10 @@ function valuesEqual(v1, v2, extendedMode: boolean): boolean {
 
     switch (t1) {
     case 'array':
-        if (v1.length !== v2.length) {
-            return false;
-        }
-
-        for (let i = 0; i < v1.length; i++) {
-            if (!valuesEqual(v1[i], v2[i], extendedMode)) {
-                return false;
-            }
-        }
-        break;
+        return arrayValuesEqual(v1, v2, extendedMode);
 
     case 'object':
-        if (Object.keys(v1).length !== Object.keys(v2).length) {
-            return false;
-        }
-
-        for (const [key, value1] of Object.entries(v1)) {
-            if (!hasattr(v2, key)) {
-                return false;
-            }
-
-            const value2 = v2[key];
-
-            if (!valuesEqual(value1, value2, extendedMode)) {
-                return false;
-            }
-        }
-        break;
+        return objectValuesEqual(v1, v2, extendedMode);
 
     case 'number':
         return true;
