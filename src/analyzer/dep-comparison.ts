@@ -241,18 +241,16 @@ function isEqualBody(
         return false;
     }
 
-    try {
-        const jsonBody1 = JSON.parse(body1);
-        const jsonBody2 = JSON.parse(body2);
+    let jsonBody1, jsonBody2;
 
-        return isEqualValues(jsonBody1, jsonBody2, extendedMode);
+    try {
+        jsonBody1 = JSON.parse(body1);
+        jsonBody2 = JSON.parse(body2);
     } catch {
-        if (body1 !== body2) {
-            return false;
-        }
+        return body1 == body2;
     }
 
-    return true;
+    return isEqualValues(jsonBody1, jsonBody2, extendedMode);
 }
 
 function updateUndefinedParams(
