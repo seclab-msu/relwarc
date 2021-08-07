@@ -565,6 +565,17 @@ export class Analyzer {
         return UNKNOWN;
     }
 
+    private upperArgumentExists(name: string): boolean {
+        const offset = this.argsStackOffset !== null ? this.argsStackOffset : 0;
+
+        for (let i = this.argsStack.length - offset - 1; i >= 0; i--) {
+            if (this.argsStack[i].includes(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     getVariable(name: string): Value {
         if (this.currentPath === null) {
             throw new Error('getVariable called without currentPath set');
@@ -593,6 +604,9 @@ export class Analyzer {
                 return this.formalArgValues[name];
             }
             return FROM_ARG;
+        }
+        if (this.upperArgumentExists(name)) {
+            return UNKNOWN;
         }
         if (hasattr(this.globalDefinitions, name)) {
             return this.globalDefinitions[name];
