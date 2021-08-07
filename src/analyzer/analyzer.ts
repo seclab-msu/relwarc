@@ -385,6 +385,12 @@ export class Analyzer {
             throw new Error('gatherVariableValues was called before mergeASTs');
         }
         traverse(this.mergedProgram, {
+            enter: (path: NodePath) => {
+                const node: ASTNode = path.node;
+                if (isFunction(node)) {
+                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                }
+            },
             exit: (path: NodePath) => {
                 this.currentPath = path;
                 const node: ASTNode = path.node;
@@ -417,8 +423,12 @@ export class Analyzer {
                     this.memory.set(binding, new FunctionValue(node));
                     this.addFunctionBinding(node, binding);
                 }
+                if (isFunction(node)) {
+                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                }
             }
         });
+        this.argsStack.length = 0; // clear args stack just in case
     }
 
     private processStringMethod(
