@@ -135,7 +135,6 @@ export class Analyzer {
     private mergedProgram: AST | null;
 
     private readonly memory: WeakMap<Binding, Value>;
-    private readonly functions: WeakMap<Binding, NodePath>;
     private readonly functionToBinding: WeakMap<ASTNode, Binding[]>;
 
     private currentPath: NodePath | null;
@@ -149,6 +148,8 @@ export class Analyzer {
     private trackedCallSequencesStack: Map<string, TrackedCallSequence>[];
 
     harFilter: null | ((had: HAR) => boolean);
+
+    suppressedError: boolean;
 
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
@@ -175,7 +176,6 @@ export class Analyzer {
         this.functionsStack = [];
 
         this.memory = new WeakMap();
-        this.functions = new WeakMap();
         this.functionToBinding = new WeakMap();
 
         this.currentPath = null;
@@ -188,6 +188,7 @@ export class Analyzer {
         this.resultsAlready = new Set();
 
         this.trackedCallSequencesStack = [new Map()];
+        this.suppressedError = false;
     }
 
     addScript(sourceText: string, startLine?: number, url?: string): void {
@@ -387,6 +388,12 @@ export class Analyzer {
             throw new Error('gatherVariableValues was called before mergeASTs');
         }
         traverse(this.mergedProgram, {
+            enter: (path: NodePath) => {
+                const node: ASTNode = path.node;
+                if (isFunction(node)) {
+                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                }
+            },
             exit: (path: NodePath) => {
                 this.currentPath = path;
                 const node: ASTNode = path.node;
@@ -404,7 +411,9 @@ export class Analyzer {
                         return;
                     }
 
-                    const binding = path.scope.getBinding(node.id.name);
+                    const binding = path.parentPath.scope.getBinding(
+                        node.id.name
+                    );
 
                     if (typeof binding === 'undefined') {
                         log(
@@ -414,11 +423,15 @@ export class Analyzer {
                         return;
                     }
 
-                    this.functions.set(binding, path);
+                    this.memory.set(binding, new FunctionValue(node));
                     this.addFunctionBinding(node, binding);
+                }
+                if (isFunction(node)) {
+                    this.argsStack.push(this.argNamesForFunctionNode(node));
                 }
             }
         });
+        this.argsStack.length = 0; // clear args stack just in case
     }
 
     private processStringMethod(
@@ -479,7 +492,16 @@ export class Analyzer {
         }
         if (ob.type === 'Identifier' && propIsIdentifier) {
             if (ob.name === 'JSON' && propName === 'stringify') {
-                return JSON.stringify(this.valueFromASTNode(args[0]));
+                try {
+                    return JSON.stringify(this.valueFromASTNode(args[0]));
+                } catch (err) {
+                    log(
+                        'warning: suppressing exception from JSON.stringify: ' +
+                        err
+                    );
+                    this.suppressedError = true;
+                    return UNKNOWN;
+                }
             }
             if (ob.name === 'Math' && propName === 'random') {
                 return 0.8782736846632295;
@@ -565,6 +587,17 @@ export class Analyzer {
         return UNKNOWN;
     }
 
+    private upperArgumentExists(name: string): boolean {
+        const offset = this.argsStackOffset !== null ? this.argsStackOffset : 0;
+
+        for (let i = this.argsStack.length - offset - 1; i >= 0; i--) {
+            if (this.argsStack[i].includes(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     getVariable(name: string): Value {
         if (this.currentPath === null) {
             throw new Error('getVariable called without currentPath set');
@@ -575,9 +608,6 @@ export class Analyzer {
         if (typeof binding !== 'undefined') {
             if (this.memory.has(binding)) {
                 return this.memory.get(binding);
-            }
-            if (this.functions.has(binding)) {
-                return UNKNOWN_FUNCTION;
             }
         }
 
@@ -596,6 +626,9 @@ export class Analyzer {
                 return this.formalArgValues[name];
             }
             return FROM_ARG;
+        }
+        if (this.upperArgumentExists(name)) {
+            return UNKNOWN;
         }
         if (hasattr(this.globalDefinitions, name)) {
             return this.globalDefinitions[name];
