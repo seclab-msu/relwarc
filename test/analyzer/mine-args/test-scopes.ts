@@ -57,6 +57,8 @@ describe('Analyzer working correctly with scopes', () => {
             fs.readFileSync(__dirname + '/../data/task-4404.js').toString()
         ];
 
-        makeAndRunSimple(scripts, false, 'http://test.com/test');
+        const analyzer = makeAndRunSimple(scripts, false, 'http://test.com/');
+
+        expect(analyzer.suppressedError).toBeFalse();
     });
 });

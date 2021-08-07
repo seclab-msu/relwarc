@@ -149,6 +149,8 @@ export class Analyzer {
 
     harFilter: null | ((had: HAR) => boolean);
 
+    suppressedError: boolean;
+
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
@@ -186,6 +188,7 @@ export class Analyzer {
         this.resultsAlready = new Set();
 
         this.trackedCallSequencesStack = [new Map()];
+        this.suppressedError = false;
     }
 
     addScript(sourceText: string, startLine?: number, url?: string): void {
@@ -489,7 +492,16 @@ export class Analyzer {
         }
         if (ob.type === 'Identifier' && propIsIdentifier) {
             if (ob.name === 'JSON' && propName === 'stringify') {
-                return JSON.stringify(this.valueFromASTNode(args[0]));
+                try {
+                    return JSON.stringify(this.valueFromASTNode(args[0]));
+                } catch (err) {
+                    log(
+                        'warning: suppressing exception from JSON.stringify: ' +
+                        err
+                    );
+                    this.suppressedError = true;
+                    return UNKNOWN;
+                }
             }
             if (ob.name === 'Math' && propName === 'random') {
                 return 0.8782736846632295;
