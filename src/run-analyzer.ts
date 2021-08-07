@@ -17,9 +17,7 @@ import {
     deduplicationModeFromString,
     validDeduplicationModeValues
 } from './analyzer/dep-comparison';
-import { HAR } from './analyzer/har';
-
-import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
+import { outputDEPs, outputArgs } from './analyzer/output';
 
 /* eslint max-lines-per-function:off */
 async function main(argc: number, argv: string[]): Promise<number> {
@@ -44,6 +42,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--load-timeout', { type: Number });
     parser.add_argument('--add-dynamic-html-dep-location', { action: 'store_true' });
     parser.add_argument('--record-request-stacks', { action: 'store_true' });
+    parser.add_argument('--output', { type: String, default: null });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -84,28 +83,18 @@ async function main(argc: number, argv: string[]): Promise<number> {
     );
 
     if (args.args) {
-        for (const result of analyzer.analyzer.results) {
-            console.log(JSON.stringify(result, null, 4));
-        }
+        outputArgs(analyzer.analyzer.results);
     } else {
         // hars
         const deps = analyzer.getAllDeps(
             deduplicationModeFromString(args.dep_deduplication)
         );
-        outputDEPs(deps);
+        outputDEPs(deps, args.output);
     }
 
     return 0;
 }
 
-function outputDEPs(deps: HAR[]): void {
-    if (stdoutIsTTY()) {
-        console.log('\nDEPS (' + deps.length + '):');
-        deps.forEach(prettyPrintHAR);
-    } else {
-        console.log(JSON.stringify(deps, null, 4));
-    }
-}
 
 (async () => {
     let exitStatus: number;

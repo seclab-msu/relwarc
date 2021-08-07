@@ -4,12 +4,12 @@ import { ArgumentParser } from 'argparse';
 
 import { Analyzer } from './analyzer/analyzer';
 
-import { prettyPrintHAR, stdoutIsTTY } from './analyzer/pretty-deps';
 import {
     deduplicationModeFromString,
     validDeduplicationModeValues,
     deduplicateDEPs
 } from './analyzer/dep-comparison';
+import { outputDEPs, outputArgs } from './analyzer/output';
 
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
@@ -22,6 +22,7 @@ async function main(): Promise<number> {
         choices: validDeduplicationModeValues,
         default: 'none'
     });
+    parser.add_argument('--output', { type: String, default: null });
 
     const args = parser.parse_args();
 
@@ -36,9 +37,7 @@ async function main(): Promise<number> {
     analyzer.analyze(baseURL, args.uncomment);
 
     if (args.args) {
-        for (const result of analyzer.results) {
-            console.log(JSON.stringify(result, null, 4));
-        }
+        outputArgs(analyzer.results);
     } else {
         // hars
         const deps = deduplicateDEPs(
@@ -46,12 +45,7 @@ async function main(): Promise<number> {
             deduplicationModeFromString(args.dep_deduplication)
         );
 
-        if (stdoutIsTTY()) {
-            console.log('\nDEPS (' + deps.length + '):');
-            deps.forEach(prettyPrintHAR);
-        } else {
-            console.log(JSON.stringify(deps, null, 4));
-        }
+        outputDEPs(deps, args.output);
     }
 
     return 0;
