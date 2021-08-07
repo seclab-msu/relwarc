@@ -402,7 +402,9 @@ export class Analyzer {
                         return;
                     }
 
-                    const binding = path.scope.getBinding(node.id.name);
+                    const binding = path.parentPath.scope.getBinding(
+                        node.id.name
+                    );
 
                     if (typeof binding === 'undefined') {
                         log(

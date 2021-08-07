@@ -86,4 +86,25 @@ describe('Analyzer finding calls of assigned functions', () => {
             } as SinkCall,
         );
     });
+    it('function declaration with same-named argument', function () {
+        const scripts = [
+            `
+            function f() {
+                function g(g, endpoint) {
+                    fetch('/api/base/' + endpoint);
+                }
+                var k = g;
+                k(null, 'action.do');
+            }
+            `
+        ];
+
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'fetch',
+                'args': ['/api/base/action.do']
+            } as SinkCall,
+        );
+    });
 });
