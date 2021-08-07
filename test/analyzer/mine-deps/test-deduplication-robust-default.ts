@@ -156,6 +156,261 @@ describe('Tests for default comparison hars', () => {
         }));
     });
 
+    it('different plain text bodies', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                body: "abcdef"
+            });
+            fetch('/test', {
+                method: 'POST',
+                body: "qwerty"
+            });`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '6'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 6,
+            'postData': {
+                text: 'abcdef',
+            }
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '6'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 6,
+            'postData': {
+                text: 'qwerty',
+            }
+        }));
+    });
+
+    it('identical plain text bodies', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                body: 'abcdef',
+                headers: {
+                    'Content-Type': 'text/plain',
+                    'notImportantHeader': 'test',
+                }
+            });
+            $.ajax({
+                url: '/test',
+                method: 'POST',
+                contentType: 'text/plain',
+                data: 'abcdef'
+            });`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(1);
+    });
+
+    it('different keys in object', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'a': true, 'b': 123})
+            })
+
+            fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'a': true, 'c': 456})
+            })`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '18'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 18,
+            'postData': {
+                text: '{"a":true,"b":123}',
+                mimeType: 'application/json'
+            }
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '18'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 18,
+            'postData': {
+                text: '{"a":true,"c":456}',
+                mimeType: 'application/json'
+            }
+        }));
+    });
+
+    it('different length of arrays', async () => {
+        const scripts = [
+            `fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'a': [1, 2, 3]})
+            })
+
+            fetch('/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({'a': [1, 2, 3, 4]})
+            })`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(2);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '13'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 13,
+            'postData': {
+                text: '{"a":[1,2,3]}',
+                mimeType: 'application/json'
+            }
+        }));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://test.com/test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                },
+                {
+                    name: 'Content-Length',
+                    value: '15'
+                }
+            ],
+            'queryString': [],
+            'bodySize': 15,
+            'postData': {
+                text: '{"a":[1,2,3,4]}',
+                mimeType: 'application/json'
+            }
+        }));
+    });
+
     it('json body with different numbers in maps', async () => {
         const scripts = [
             `fetch('/test', {
