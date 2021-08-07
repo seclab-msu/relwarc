@@ -1,5 +1,7 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTestSinkCall } from '../utils/utils';
+import { runSingleTestSinkCall, makeAndRunSimple } from '../utils/utils';
+
+import * as fs from 'fs';
 
 describe('Analyzer working correctly with scopes', () => {
     it('access argument of outer function', function () {
@@ -49,5 +51,12 @@ describe('Analyzer working correctly with scopes', () => {
                 'args': ['/api/base/action.do']
             } as SinkCall,
         );
+    });
+    it('test for regression of issue 4404', function () {
+        const scripts = [
+            fs.readFileSync(__dirname + '/../data/task-4404.js').toString()
+        ];
+
+        makeAndRunSimple(scripts, false, 'http://test.com/test');
     });
 });
