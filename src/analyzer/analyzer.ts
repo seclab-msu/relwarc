@@ -135,7 +135,6 @@ export class Analyzer {
     private mergedProgram: AST | null;
 
     private readonly memory: WeakMap<Binding, Value>;
-    private readonly functions: WeakMap<Binding, NodePath>;
     private readonly functionToBinding: WeakMap<ASTNode, Binding[]>;
 
     private currentPath: NodePath | null;
@@ -175,7 +174,6 @@ export class Analyzer {
         this.functionsStack = [];
 
         this.memory = new WeakMap();
-        this.functions = new WeakMap();
         this.functionToBinding = new WeakMap();
 
         this.currentPath = null;
@@ -414,7 +412,7 @@ export class Analyzer {
                         return;
                     }
 
-                    this.functions.set(binding, path);
+                    this.memory.set(binding, new FunctionValue(node));
                     this.addFunctionBinding(node, binding);
                 }
             }
@@ -575,9 +573,6 @@ export class Analyzer {
         if (typeof binding !== 'undefined') {
             if (this.memory.has(binding)) {
                 return this.memory.get(binding);
-            }
-            if (this.functions.has(binding)) {
-                return UNKNOWN_FUNCTION;
             }
         }
 
