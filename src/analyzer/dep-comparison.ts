@@ -154,10 +154,111 @@ function compareDEPs(har1: HAR, har2: HAR, extendedMode: boolean): boolean {
             ) {
                 return false;
             }
+        } else {
+            if (!bodiesEqual(postData1.text, postData2.text, extendedMode)) {
+                return false;
+            }
         }
     }
 
     return true;
+}
+
+function getType(v): string {
+    if (typeof v !== 'object') {
+        return typeof v;
+    }
+
+    if (v === null) {
+        return 'null';
+    }
+
+    if (Array.isArray(v)) {
+        return 'array';
+    }
+
+    return 'object';
+}
+
+function arrayValuesEqual(v1, v2, extendedMode: boolean): boolean {
+    if (v1.length !== v2.length) {
+        return false;
+    }
+
+    for (let i = 0; i < v1.length; i++) {
+        if (!valuesEqual(v1[i], v2[i], extendedMode)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function objectValuesEqual(v1, v2, extendedMode: boolean): boolean {
+    if (Object.keys(v1).length !== Object.keys(v2).length) {
+        return false;
+    }
+
+    for (const [key, value1] of Object.entries(v1)) {
+        if (!hasattr(v2, key)) {
+            return false;
+        }
+
+        const value2 = v2[key];
+
+        if (!valuesEqual(value1, value2, extendedMode)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function valuesEqual(v1, v2, extendedMode: boolean): boolean {
+    const t1 = getType(v1);
+    const t2 = getType(v2);
+    if (t1 !== t2) {
+        return false;
+    }
+
+    switch (t1) {
+    case 'array':
+        return arrayValuesEqual(v1, v2, extendedMode);
+
+    case 'object':
+        return objectValuesEqual(v1, v2, extendedMode);
+
+    case 'number':
+        return true;
+
+    default:
+        return extendedMode || v1 === v2;
+    }
+
+    return true;
+}
+
+function bodiesEqual(
+    body1: string|null,
+    body2: string|null,
+    extendedMode: boolean
+): boolean {
+    if (body1 === null && body2 === null) {
+        return true;
+    }
+
+    if (body1 === null || body2 === null) {
+        return false;
+    }
+
+    let jsonBody1, jsonBody2;
+
+    try {
+        jsonBody1 = JSON.parse(body1);
+        jsonBody2 = JSON.parse(body2);
+    } catch {
+        return body1 == body2;
+    }
+
+    return valuesEqual(jsonBody1, jsonBody2, extendedMode);
 }
 
 function updateUndefinedParams(
