@@ -40,7 +40,7 @@ func init() {
 	analyzerPath = fmt.Sprintf(analyzerPath, exPath)
 }
 
-func run(outStream, errStream io.Writer, tarPath string, analyzerArgs []string) {
+func run(outStream, errStream io.Writer, tarPath string, args []string) {
 	indexURL, mapURLs, err := readTar(tarPath)
 	if err != nil {
 		log.Panic(err)
@@ -83,7 +83,7 @@ func run(outStream, errStream io.Writer, tarPath string, analyzerArgs []string) 
 
 	srvHTTP, srvHTTPS := startServers(mapURLs, &httpServerExitDone)
 
-	runAnalyzer(indexURL, analyzerArgs, outStream, errStream)
+	runCmd(indexURL, args, outStream, errStream)
 
 	if err := srvHTTP.Shutdown(context.Background()); err != nil {
 		log.Panic(err)
@@ -100,8 +100,8 @@ func run(outStream, errStream io.Writer, tarPath string, analyzerArgs []string) 
 
 func main() {
 	tarPath := os.Args[1]
-	analyzerArgs := os.Args[2:]
-	run(os.Stdin, os.Stderr, tarPath, analyzerArgs)
+	args := os.Args[2:]
+	run(os.Stdin, os.Stderr, tarPath, args)
 }
 
 func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, *http.Server) {
@@ -153,9 +153,11 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 	return &srvHTTP, &srvHTTPS
 }
 
-func runAnalyzer(indexURL string, analyzerArgs []string, outStream, errStream io.Writer) {
-	analyzerArgs = append([]string{analyzerPath, indexURL}, analyzerArgs...)
-	cmd := exec.Command(slimerPath, analyzerArgs...)
+func runCmd(indexURL string, args []string, outStream, errStream io.Writer) {
+	if _, ok := os.LookupEnv("TARSERVER_RAW_ARGS"); !ok {
+		args = append([]string{slimerPath, analyzerPath, indexURL}, args...)
+	}
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = outStream
 	cmd.Stderr = errStream
 	if err := cmd.Run(); err != nil {
