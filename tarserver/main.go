@@ -104,7 +104,7 @@ func main() {
 	run(os.Stdin, os.Stderr, tarPath, args)
 }
 
-func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, *http.Server) {
+func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, *http.Server) {
 	var srvHTTP, srvHTTPS http.Server
 
 	lHTTP, err := net.Listen("tcp", ":80")
@@ -125,7 +125,8 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 			}
 
 			if r.URL.RequestURI() == parsedURL.RequestURI() && r.Host == parsedURL.Host {
-				if _, err := fmt.Fprintf(w, content); err != nil {
+				n, err := w.Write(content)
+				if n != len(content) || err != nil {
 					log.Panic(err)
 				}
 				break

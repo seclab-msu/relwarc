@@ -9,13 +9,13 @@ import (
 	"os"
 )
 
-func readTar(path string) (string, map[string]string, error) {
+func readTar(path string) (string, map[string][]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return "", nil, err
 	}
 	defer f.Close()
-	resources := make(map[string]string)
+	resources := make(map[string][]byte)
 	metainfo := make(map[string]interface{})
 
 	tr := tar.NewReader(f)
@@ -45,17 +45,17 @@ func readTar(path string) (string, map[string]string, error) {
 				return "", nil, err
 			}
 		} else {
-			resources[header.Name] = string(b)
+			resources[header.Name] = b
 		}
 	}
 }
 
 func getMapURLs(
 	metainfo map[string]interface{},
-	resources map[string]string,
-) (string, map[string]string) {
+	resources map[string][]byte,
+) (string, map[string][]byte) {
 	var indexURL string
-	mapURLs := make(map[string]string)
+	mapURLs := make(map[string][]byte)
 	for fname, content := range resources {
 		u := metainfo[fname].(string)
 		mapURLs[u] = content
