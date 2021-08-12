@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -87,8 +88,17 @@ func main() {
 }
 
 func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, *http.Server) {
-	srvHTTP := &http.Server{Addr: ":80"}
-	srvHTTPS := &http.Server{Addr: ":443"}
+	var srvHTTP, srvHTTPS http.Server
+
+	lHTTP, err := net.Listen("tcp", ":80")
+	if err != nil {
+		log.Panic(err)
+	}
+
+	lHTTPS, err := net.Listen("tcp", ":443")
+	if err != nil {
+		log.Panic(err)
+	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for URL, content := range mapURLs {
@@ -113,19 +123,19 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 
 	go func() {
 		defer wg.Done()
-		if err := srvHTTP.ListenAndServe(); err != http.ErrServerClosed {
+		if err := srvHTTP.Serve(lHTTP); err != http.ErrServerClosed {
 			log.Panic(err)
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		if err := srvHTTPS.ListenAndServeTLS(sslCrtPath, sslKeyPath); err != http.ErrServerClosed {
+		if err := srvHTTPS.ServeTLS(lHTTPS, sslCrtPath, sslKeyPath); err != http.ErrServerClosed {
 			log.Panic(err)
 		}
 	}()
 
-	return srvHTTP, srvHTTPS
+	return &srvHTTP, &srvHTTPS
 }
 
 func runAnalyzer(indexURL string) {
