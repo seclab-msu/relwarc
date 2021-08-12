@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -39,8 +40,8 @@ func init() {
 	analyzerPath = fmt.Sprintf(analyzerPath, exPath)
 }
 
-func main() {
-	indexURL, mapURLs, err := readTar(os.Args[1])
+func run(outStream, errStream io.Writer, tarPath string, analyzerArgs []string) {
+	indexURL, mapURLs, err := readTar(tarPath)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -82,7 +83,7 @@ func main() {
 
 	srvHTTP, srvHTTPS := startServers(mapURLs, &httpServerExitDone)
 
-	runAnalyzer(indexURL)
+	runAnalyzer(indexURL, analyzerArgs, outStream, errStream)
 
 	if err := srvHTTP.Shutdown(context.Background()); err != nil {
 		log.Panic(err)
@@ -91,7 +92,16 @@ func main() {
 		log.Panic(err)
 	}
 
+	if err := syscall.Unmount(hostsPath, 0); err != nil {
+		log.Panic(err)
+	}
 	httpServerExitDone.Wait()
+}
+
+func main() {
+	tarPath := os.Args[1]
+	analyzerArgs := os.Args[2:]
+	run(os.Stdin, os.Stderr, tarPath, analyzerArgs)
 }
 
 func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, *http.Server) {
@@ -143,11 +153,11 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 	return &srvHTTP, &srvHTTPS
 }
 
-func runAnalyzer(indexURL string) {
-	analyzerArgs := append([]string{analyzerPath, indexURL}, os.Args[2:]...)
+func runAnalyzer(indexURL string, analyzerArgs []string, outStream, errStream io.Writer) {
+	analyzerArgs = append([]string{analyzerPath, indexURL}, analyzerArgs...)
 	cmd := exec.Command(slimerPath, analyzerArgs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = outStream
+	cmd.Stderr = errStream
 	if err := cmd.Run(); err != nil {
 		log.Panic(err)
 	}

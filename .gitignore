@@ -9,3 +9,4 @@ test_reports/
 node_modules
 tsconfig.tsbuildinfo
 tarserver/tarserver
+tarserver/tarserver.test
