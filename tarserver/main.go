@@ -50,7 +50,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	used := make(map[string]bool)
+	used := make(map[string]struct{})
 	for u := range mapURLs {
 		parsedURL, err := url.Parse(u)
 		if err != nil {
@@ -60,7 +60,7 @@ func main() {
 		if _, ok := used[host]; ok {
 			continue
 		}
-		used[host] = true
+		used[host] = struct{}{}
 		if _, err := fmt.Fprintf(tmpfile, "%s %s\n", localhost, host); err != nil {
 			log.Panic(err)
 		}
