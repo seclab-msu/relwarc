@@ -114,15 +114,11 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 				log.Panic(err)
 			}
 
-			path := parsedURL.EscapedPath()
-			if path == "" {
-				path = "/"
-			}
-
-			if r.URL.EscapedPath() == path && r.Host == parsedURL.Host {
+			if r.URL.RequestURI() == parsedURL.RequestURI() && r.Host == parsedURL.Host {
 				if _, err := fmt.Fprintf(w, content); err != nil {
 					log.Panic(err)
 				}
+				break
 			}
 		}
 	})
