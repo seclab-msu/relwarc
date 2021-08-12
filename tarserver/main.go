@@ -61,7 +61,10 @@ func main() {
 			continue
 		}
 		used[host] = true
-		tmpfile.WriteString(fmt.Sprintf("%s %s\n", localhost, host))
+		if _, err := fmt.Fprintf(tmpfile, "%s %s\n", localhost, host); err != nil {
+			log.Panic(err)
+		}
+
 	}
 
 	if err := syscall.Mount(tmpfile.Name(), hostsPath, "", syscall.MS_BIND, ""); err != nil {
@@ -117,7 +120,9 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 			}
 
 			if r.URL.EscapedPath() == path && r.Host == parsedURL.Host {
-				fmt.Fprintf(w, content)
+				if _, err := fmt.Fprintf(w, content); err != nil {
+					log.Panic(err)
+				}
 			}
 		}
 	})
