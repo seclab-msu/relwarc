@@ -51,8 +51,8 @@ func main() {
 	}
 
 	used := make(map[string]bool)
-	for URL := range mapURLs {
-		parsedURL, err := url.Parse(URL)
+	for u := range mapURLs {
+		parsedURL, err := url.Parse(u)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -105,18 +105,18 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for URL, content := range mapURLs {
-			u, err := url.Parse(URL)
+		for u, content := range mapURLs {
+			parsedURL, err := url.Parse(u)
 			if err != nil {
 				log.Panic(err)
 			}
 
-			path := u.EscapedPath()
+			path := parsedURL.EscapedPath()
 			if path == "" {
 				path = "/"
 			}
 
-			if r.URL.EscapedPath() == path && r.Host == u.Host {
+			if r.URL.EscapedPath() == path && r.Host == parsedURL.Host {
 				fmt.Fprintf(w, content)
 			}
 		}

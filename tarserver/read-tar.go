@@ -30,7 +30,7 @@ func readTar(path string) (string, map[string]string, error) {
 			return "", nil, err
 		}
 
-		bs, err := ioutil.ReadAll(tr)
+		b, err := ioutil.ReadAll(tr)
 		if err != nil {
 			return "", nil, err
 		}
@@ -40,12 +40,12 @@ func readTar(path string) (string, map[string]string, error) {
 		}
 
 		if header.Name == "metainfo.json" {
-			err := json.Unmarshal(bs, &metainfo)
+			err := json.Unmarshal(b, &metainfo)
 			if err != nil {
 				return "", nil, err
 			}
 		} else {
-			resources[header.Name] = string(bs)
+			resources[header.Name] = string(b)
 		}
 	}
 }
@@ -57,10 +57,10 @@ func getMapURLs(
 	var indexURL string
 	mapURLs := make(map[string]string)
 	for fname, content := range resources {
-		URL := metainfo[fname].(string)
-		mapURLs[URL] = content
+		u := metainfo[fname].(string)
+		mapURLs[u] = content
 		if fname == "index.html" {
-			indexURL = URL
+			indexURL = u
 		}
 	}
 	return indexURL, mapURLs
