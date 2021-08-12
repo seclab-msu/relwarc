@@ -101,7 +101,7 @@ func run(outStream, errStream io.Writer, tarPath string, args []string) {
 func main() {
 	tarPath := os.Args[1]
 	args := os.Args[2:]
-	run(os.Stdin, os.Stderr, tarPath, args)
+	run(os.Stdout, os.Stderr, tarPath, args)
 }
 
 func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, *http.Server) {
