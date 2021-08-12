@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
-	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,8 +21,10 @@ const (
 )
 
 var (
-	sslCrtPath = "%s/ssl/server.crt"
-	sslKeyPath = "%s/ssl/server.key"
+	sslCrtPath   = "%s/ssl/server.crt"
+	sslKeyPath   = "%s/ssl/server.key"
+	slimerPath   = "%s/../src/slimerjs"
+	analyzerPath = "%s/../src/run-analyzer.js"
 )
 
 func init() {
@@ -33,6 +35,8 @@ func init() {
 	exPath := filepath.Dir(ex)
 	sslCrtPath = fmt.Sprintf(sslCrtPath, exPath)
 	sslKeyPath = fmt.Sprintf(sslKeyPath, exPath)
+	slimerPath = fmt.Sprintf(slimerPath, exPath)
+	analyzerPath = fmt.Sprintf(analyzerPath, exPath)
 }
 
 func main() {
@@ -139,8 +143,8 @@ func startServers(mapURLs map[string]string, wg *sync.WaitGroup) (*http.Server, 
 }
 
 func runAnalyzer(indexURL string) {
-	analyzerArgs := append([]string{"./run-analyzer.js", indexURL}, os.Args[2:]...)
-	cmd := exec.Command("./slimerjs", analyzerArgs...)
+	analyzerArgs := append([]string{analyzerPath, indexURL}, os.Args[2:]...)
+	cmd := exec.Command(slimerPath, analyzerArgs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
