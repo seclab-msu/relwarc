@@ -32,13 +32,18 @@ type HAR struct {
 	PostData    PostData
 }
 
-var (
-	expected     HAR
-	tarserverDir string
-)
+var tarserverDir string
 
 func init() {
-	expected = HAR{
+	ex, err := os.Executable()
+	if err != nil {
+		log.Panic(err)
+	}
+	tarserverDir = filepath.Dir(ex)
+}
+
+func newHAR() *HAR {
+	return &HAR{
 		Method:      "GET",
 		HTTPVersion: "HTTP/1.1",
 		Headers: []KeyValue{
@@ -50,11 +55,6 @@ func init() {
 		QueryString: []KeyValue{},
 		BodySize:    0,
 	}
-	ex, err := os.Executable()
-	if err != nil {
-		log.Panic(err)
-	}
-	tarserverDir = filepath.Dir(ex)
 }
 
 func TestHTTPServer(t *testing.T) {
@@ -65,9 +65,10 @@ func TestHTTPServer(t *testing.T) {
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
+	expected := newHAR()
 	expected.URL = "http://test.com/example"
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 }
 
 func TestHTTPSServer(t *testing.T) {
@@ -78,9 +79,10 @@ func TestHTTPSServer(t *testing.T) {
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
+	expected := newHAR()
 	expected.URL = "https://test.com/example"
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 }
 
 func TestParamsInDifferentScripts(t *testing.T) {
@@ -91,6 +93,7 @@ func TestParamsInDifferentScripts(t *testing.T) {
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
+	expected := newHAR()
 	expected.URL = "http://test.com/test/test?example=example"
 	expected.QueryString = []KeyValue{
 		KeyValue{
@@ -99,7 +102,7 @@ func TestParamsInDifferentScripts(t *testing.T) {
 		},
 	}
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 }
 
 func TestTarWithoutRequiredScript(t *testing.T) {
@@ -117,6 +120,7 @@ func TestScriptsWithQueryString(t *testing.T) {
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
+	expected := newHAR()
 	expected.URL = "http://test.com/test/url?q=123"
 	expected.QueryString = []KeyValue{
 		KeyValue{
@@ -125,7 +129,7 @@ func TestScriptsWithQueryString(t *testing.T) {
 		},
 	}
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 }
 
 func TestScriptsWithSamePaths(t *testing.T) {
@@ -136,6 +140,7 @@ func TestScriptsWithSamePaths(t *testing.T) {
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
+	expected := newHAR()
 	expected.URL = "http://test.com/test/testing?s=1"
 	expected.QueryString = []KeyValue{
 		KeyValue{
@@ -144,7 +149,7 @@ func TestScriptsWithSamePaths(t *testing.T) {
 		},
 	}
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 
 	expected.URL = "http://test.com/test/example?q=123"
 	expected.QueryString = []KeyValue{
@@ -154,7 +159,7 @@ func TestScriptsWithSamePaths(t *testing.T) {
 		},
 	}
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 }
 
 func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
@@ -165,6 +170,7 @@ func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
+	expected := newHAR()
 	expected.URL = "http://test.com/test/testing?s=1"
 	expected.QueryString = []KeyValue{
 		KeyValue{
@@ -173,7 +179,7 @@ func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
 		},
 	}
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
 
 	expected.URL = "http://test.com/test/example?q=123"
 	expected.QueryString = []KeyValue{
@@ -183,5 +189,19 @@ func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
 		},
 	}
 
-	assert.Contains(t, results, expected)
+	assert.Contains(t, results, *expected)
+}
+
+func TestDefaultPorts(t *testing.T) {
+	var buf bytes.Buffer
+	var analyzerArgs []string
+
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-8.tar", analyzerArgs)
+	var results []HAR
+	json.Unmarshal(buf.Bytes(), &results)
+
+	expected := newHAR()
+	expected.URL = "https://test.com/example"
+
+	assert.Contains(t, results, *expected)
 }

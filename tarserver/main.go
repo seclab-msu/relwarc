@@ -124,7 +124,10 @@ func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, 
 				log.Panic(err)
 			}
 
-			if r.URL.RequestURI() == parsedURL.RequestURI() && r.Host == parsedURL.Host {
+			reqHost := normalizeHost(r.TLS != nil, r.Host)
+			srvHost := normalizeHost(parsedURL.Scheme == "https", parsedURL.Host)
+
+			if r.URL.RequestURI() == parsedURL.RequestURI() && reqHost == srvHost {
 				n, err := w.Write(content)
 				if n != len(content) || err != nil {
 					log.Panic(err)
@@ -164,4 +167,15 @@ func runCmd(indexURL string, args []string, outStream, errStream io.Writer) {
 	if err := cmd.Run(); err != nil {
 		log.Panic(err)
 	}
+}
+
+func normalizeHost(secure bool, host string) string {
+	hostname, port, err := net.SplitHostPort(host)
+	if err != nil {
+		return host
+	}
+	if secure && port == "443" || !secure && port == "80" {
+		return hostname
+	}
+	return host
 }
