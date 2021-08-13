@@ -219,3 +219,23 @@ func TestDefaultPortOnResource(t *testing.T) {
 
 	assert.Contains(t, results, *expected)
 }
+
+func TestCrossoriginScripts(t *testing.T) {
+	var buf bytes.Buffer
+	var analyzerArgs []string
+
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-crossorigin.tar", analyzerArgs)
+	var results []HAR
+	json.Unmarshal(buf.Bytes(), &results)
+
+	expected := newHAR()
+	expected.URL = "https://test.com/test/test?example=example"
+	expected.QueryString = []KeyValue{
+		KeyValue{
+			Name:  "example",
+			Value: "example",
+		},
+	}
+
+	assert.Contains(t, results, *expected)
+}
