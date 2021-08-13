@@ -118,6 +118,7 @@ func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, 
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		for u, content := range mapURLs {
 			parsedURL, err := url.Parse(u)
 			if err != nil {
