@@ -192,11 +192,25 @@ func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
 	assert.Contains(t, results, *expected)
 }
 
-func TestDefaultPorts(t *testing.T) {
+func TestDefaultPortOnMainPage(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
 	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-8.tar", analyzerArgs)
+	var results []HAR
+	json.Unmarshal(buf.Bytes(), &results)
+
+	expected := newHAR()
+	expected.URL = "https://test.com/example"
+
+	assert.Contains(t, results, *expected)
+}
+
+func TestDefaultPortOnResource(t *testing.T) {
+	var buf bytes.Buffer
+	var analyzerArgs []string
+
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-9.tar", analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
