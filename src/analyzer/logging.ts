@@ -7,7 +7,7 @@ function formatDate(): string {
     const dateString = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}` +
         `.${d.getFullYear()}`;
     const timeString = `${pad(d.getHours())}:${pad(d.getMinutes())}:` +
-        `${pad(d.getSeconds())}.${d.getMilliseconds()}`;
+        `${pad(d.getSeconds())}.${String(d.getMilliseconds()).padStart(3, '0')}`;
 
     return `${dateString} ${timeString}`;
 }
