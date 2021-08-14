@@ -1,16 +1,30 @@
 import { HAR, headersFromMap, KeyValue } from '../../har';
 import { isUnknown } from '../../types/unknown';
+import { FunctionValue } from '../../types/function';
 import { FormDataModel } from '../../types/form-data';
 import { hasattr } from '../../utils/common';
 
 import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
-import type { Unknown } from '../../types/unknown';
 
 interface FetchSettings {
     method?: string;
     headers?: Record<string, string>;
-    body?: string | FormDataModel | Unknown;
+    body?: string | FormDataModel;
+}
+
+type AcceptableOptionsObject =
+    | Record<string, unknown>
+    | FunctionValue
+    | FormDataModel
+    | Value[];
+
+function isAcceptableOptionsObject(ob: Value): ob is AcceptableOptionsObject {
+    if (isUnknown(ob) || ob instanceof RegExp || ob instanceof URL) {
+        return false;
+    }
+
+    return typeof ob === 'object' && ob !== null;
 }
 
 function setData(har: HAR, data: FormDataModel): void {
@@ -31,7 +45,7 @@ function setCt(har: HAR, isCtSet: boolean, isMultipart: boolean): void {
 }
 
 function processData(data: Value, har: HAR, isCtSet: boolean): void {
-    if (data && har.method.toUpperCase() !== 'GET' && har.method.toUpperCase() !== 'HEAD') {
+    if (data && har.method !== 'GET' && har.method !== 'HEAD') {
         // Note that a fetch() request using the GET or HEAD method cannot have a body.
         if (isUnknown(data)) {
             return;
@@ -44,6 +58,33 @@ function processData(data: Value, har: HAR, isCtSet: boolean): void {
             har.setPostData(String(data));
         }
     }
+}
+
+function processFetchSettings(opt: AcceptableOptionsObject): FetchSettings {
+    const settings: FetchSettings = {};
+
+    if ('method' in opt) {
+        settings.method = String(opt.method);
+    }
+
+    settings.headers = {};
+
+    if ('headers' in opt && typeof opt.headers === 'object' && opt.headers !== null) {
+        for (const [n, v] of Object.entries(opt.headers)) {
+            settings.headers[n] = String(v);
+        }
+    }
+
+    if ('body' in opt) {
+        const body = opt.body;
+
+        if (body instanceof FormDataModel || typeof body === 'string') {
+            settings.body = body;
+        } else if (isUnknown(body)) {
+            settings.body = String(body);
+        }
+    }
+    return settings;
 }
 
 export function makeHARFetch(
@@ -59,9 +100,10 @@ export function makeHARFetch(
 
     const har = new HAR(url, baseURL);
 
-    if (args.length > 1 || typeof args[1] === 'object') {
-        const settings = args[1] as FetchSettings;
-        har.method = settings.method || 'GET';
+    if (args.length > 1 && isAcceptableOptionsObject(args[1])) {
+        const settings: FetchSettings = processFetchSettings(args[1]);
+
+        har.method = (settings.method || 'GET').toUpperCase();
         har.headers.push(...headersFromMap(settings.headers || {}));
         let isCtSet = false;
         const data = settings.body;

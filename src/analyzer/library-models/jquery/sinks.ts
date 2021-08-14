@@ -40,7 +40,7 @@ function parseArgs(funcName, args) {
     return [url, settings, data];
 }
 
-function getMethod(funcName, settings) {
+function getMethod(funcName, settings): string {
     let method;
     if (~['get', 'post'].indexOf(funcName)) {
         method = funcName.toUpperCase();

@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils/utils';
+import { runSingleTestHAR, makeAndRunSimple } from '../utils/utils';
 
 describe('Analyzer mining HARs from fetch() calls', () => {
     it('handles window.fetch()', () => {
@@ -74,5 +74,17 @@ describe('Analyzer mining HARs from fetch() calls', () => {
             },
             'http://example.com',
         );
+    });
+    it('does not fail on unknown method', () => {
+        const scripts = [
+            `function f() {
+                var x = unknownMethod();
+                fetch('/kek', {
+                    method: x,
+                    body: 'kek'
+                })
+            }`
+        ];
+        makeAndRunSimple(scripts, true);
     });
 });
