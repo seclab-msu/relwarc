@@ -11,6 +11,8 @@ import {
 } from './analyzer/dep-comparison';
 import { outputDEPs, outputArgs } from './analyzer/output';
 
+import { log } from './analyzer/logging';
+
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
 
@@ -60,5 +62,6 @@ async function main(): Promise<number> {
         process.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
         exitStatus = 1;
     }
+    log('All done, exiting');
     process.exit(exitStatus);
 })();
