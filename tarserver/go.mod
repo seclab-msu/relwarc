@@ -1,4 +1,4 @@
-module tarmode
+module tarserver
 
 go 1.17
 
