@@ -140,7 +140,7 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 				}
 
 				w.WriteHeader(http.StatusOK)
-				break
+				return
 			}
 		}
 		w.WriteHeader(http.StatusNotFound)
