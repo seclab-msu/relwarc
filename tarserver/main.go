@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 )
@@ -22,10 +23,24 @@ const (
 )
 
 var (
-	sslCrtPath   = "%s/ssl/server.crt"
-	sslKeyPath   = "%s/ssl/server.key"
-	slimerPath   = "%s/../src/slimerjs"
-	analyzerPath = "%s/../src/run-analyzer.js"
+	sslCrtPath     = "%s/ssl/server.crt"
+	sslKeyPath     = "%s/ssl/server.key"
+	slimerPath     = "%s/../src/slimerjs"
+	analyzerPath   = "%s/../src/run-analyzer.js"
+	excludeHeaders = map[string]struct{}{
+		"age":               struct{}{},
+		"alt-svc":           struct{}{},
+		"cache-control":     struct{}{},
+		"content-encoding":  struct{}{},
+		"date":              struct{}{},
+		"etag":              struct{}{},
+		"expect-ct":         struct{}{},
+		"last-modified":     struct{}{},
+		"report-to":         struct{}{},
+		"vary":              struct{}{},
+		"content-length":    struct{}{},
+		"transfer-encoding": struct{}{},
+	}
 )
 
 func init() {
@@ -129,6 +144,9 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 
 			if r.URL.RequestURI() == parsedURL.RequestURI() && reqHost == srvHost {
 				for h, values := range info.Headers {
+					if _, ok := excludeHeaders[strings.ToLower(h)]; ok {
+						continue
+					}
 					for _, v := range values {
 						w.Header().Add(h, v)
 					}
