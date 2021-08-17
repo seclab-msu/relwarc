@@ -14,7 +14,7 @@ import {
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
-    isTemplateLiteral, isSpreadElement, isFunction
+    isTemplateLiteral, isSpreadElement, isFunction, isCallExpression
 } from '@babel/types';
 
 import {
@@ -806,7 +806,9 @@ export class Analyzer {
             ReferencedIdentifier(path) {
                 if (
                     path.node.name === name &&
-                    path.scope.getBinding(path.node.name) === binding
+                    path.scope.getBinding(path.node.name) === binding &&
+                    isCallExpression(path.parentPath.node) &&
+                    path.parentPath.node.callee === path.node
                 ) {
                     result.push(path);
                 }
