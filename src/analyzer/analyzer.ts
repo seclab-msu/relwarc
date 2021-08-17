@@ -152,6 +152,8 @@ export class Analyzer {
 
     suppressedError: boolean;
 
+    private readonly debugCallChains: boolean;
+
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
         this.results = [];
@@ -190,6 +192,8 @@ export class Analyzer {
 
         this.trackedCallSequencesStack = [new Map()];
         this.suppressedError = false;
+
+        this.debugCallChains = false;
     }
 
     addScript(sourceText: string, startLine?: number, url?: string): void {
@@ -870,6 +874,7 @@ export class Analyzer {
         return -1;
     }
 
+    /* eslint complexity: "off", max-lines-per-function: "off" */
     private buildCallChainsForMissingArgs(): void {
         let func;
 
@@ -884,11 +889,21 @@ export class Analyzer {
             func = this.functionsStack[this.functionsStack.length - 1 - offset];
         }
         const bindings = this.functionToBinding.get(func.node);
+        if (this.debugCallChains) {
+            log(
+                `args of function  ${String(func).substring(0, 75)} are` +
+                `unknown, search for bindings. ` +
+                `Chain len: ${this.callChain.length}`
+            );
+        }
         if (typeof bindings === 'undefined') {
             return;
         }
 
         for (const binding of bindings) {
+            if (this.debugCallChains) {
+                log('found binding ' + binding.identifier.name);
+            }
             const callSites = this.findCallSitesForBinding(binding);
 
             const uniqueCallers = new Set();
@@ -909,6 +924,10 @@ export class Analyzer {
                     continue;
                 }
 
+                if (this.debugCallChains) {
+                    const description = String(caller).substring(0, 75);
+                    log(`for it, found call site ${description}`);
+                }
                 const funcDescr = this.makeFunctionDescription(func);
                 const callDescr: FunctionCallDescription = {
                     binding,
