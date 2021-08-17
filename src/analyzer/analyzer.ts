@@ -14,7 +14,7 @@ import {
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
-    isTemplateLiteral, isSpreadElement, isFunction
+    isTemplateLiteral, isSpreadElement, isFunction, isCallExpression
 } from '@babel/types';
 
 import {
@@ -61,6 +61,7 @@ import {
 import { log } from './logging';
 
 const MAX_CALL_CHAIN = 5;
+const MAX_ACCUMULATED_STRING = 10000;
 
 const SPECIAL_PROP_NAMES = [
     'constructor',
@@ -249,8 +250,24 @@ export class Analyzer {
             newValue = value;
         } else if (op === '+=') {
             const oldValue = this.memory.get(binding);
+
+            if (
+                isUnknownOrUnknownString(oldValue) &&
+                isUnknownOrUnknownString(value)
+            ) {
+                // things are already bad, let's not make them worse
+                return;
+            }
+
             // @ts-ignore
             newValue = oldValue + value;
+
+            if (
+                typeof newValue === 'string' &&
+                newValue.length > MAX_ACCUMULATED_STRING
+            ) {
+                return;
+            }
         } else {
             // TODO: support other type of assignment
             return;
@@ -806,7 +823,9 @@ export class Analyzer {
             ReferencedIdentifier(path) {
                 if (
                     path.node.name === name &&
-                    path.scope.getBinding(path.node.name) === binding
+                    path.scope.getBinding(path.node.name) === binding &&
+                    isCallExpression(path.parentPath.node) &&
+                    path.parentPath.node.callee === path.node
                 ) {
                     result.push(path);
                 }
@@ -872,8 +891,24 @@ export class Analyzer {
         for (const binding of bindings) {
             const callSites = this.findCallSitesForBinding(binding);
 
+            const uniqueCallers = new Set();
+
             for (const callSite of callSites) {
                 const caller = this.getFunctionForCallSite(callSite);
+
+                if (uniqueCallers.has(caller)) {
+                    continue;
+                }
+                uniqueCallers.add(caller);
+
+                if (
+                    this.callChain.length > 0 &&
+                    this.callChain[0].code === caller
+                ) {
+                    log('Found recursive call, limiting depth to 1');
+                    continue;
+                }
+
                 const funcDescr = this.makeFunctionDescription(func);
                 const callDescr: FunctionCallDescription = {
                     binding,
