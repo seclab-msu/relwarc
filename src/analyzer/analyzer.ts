@@ -61,6 +61,7 @@ import {
 import { log } from './logging';
 
 const MAX_CALL_CHAIN = 5;
+const MAX_ACCUMULATED_STRING = 10000;
 
 const SPECIAL_PROP_NAMES = [
     'constructor',
@@ -249,8 +250,24 @@ export class Analyzer {
             newValue = value;
         } else if (op === '+=') {
             const oldValue = this.memory.get(binding);
+
+            if (
+                isUnknownOrUnknownString(oldValue) &&
+                isUnknownOrUnknownString(value)
+            ) {
+                // things are already bad, let's not make them worse
+                return;
+            }
+
             // @ts-ignore
             newValue = oldValue + value;
+
+            if (
+                typeof newValue === 'string' &&
+                newValue.length > MAX_ACCUMULATED_STRING
+            ) {
+                return;
+            }
         } else {
             // TODO: support other type of assignment
             return;
