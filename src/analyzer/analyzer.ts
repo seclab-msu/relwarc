@@ -884,6 +884,14 @@ export class Analyzer {
                 }
                 uniqueCallers.add(caller);
 
+                if (
+                    this.callChain.length > 0 &&
+                    this.callChain[0].code === caller
+                ) {
+                    log('Found recursive call, limiting depth to 1');
+                    continue;
+                }
+
                 const funcDescr = this.makeFunctionDescription(func);
                 const callDescr: FunctionCallDescription = {
                     binding,

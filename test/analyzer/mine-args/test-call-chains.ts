@@ -95,4 +95,55 @@ describe('Tests for correct analysis of call chains', () => {
             ]
         } as SinkCall);
     });
+    describe('Recursive functions', () => {
+        it('are handled', function () {
+            const scripts = [`
+                function f(x) {
+                    if (typeof x === 'undefined') {
+                        f('defarg')
+                    } else {
+                        fetch('/api/endpoint?arg=' + x);
+                    }
+                }
+            `];
+            runSingleTestSinkCall(
+                scripts,
+                {
+                    'funcName': 'fetch',
+                    'args': [
+                        '/api/endpoint?arg=defarg'
+                    ]
+                } as SinkCall,
+            );
+        });
+        it('limit call depth to 1', function () {
+            const script = `
+                function f(x) {
+                    $.get('/api/get?param=' + x);
+
+                    if (someCond()) {
+                        f(x + 'x');
+                    }
+                }
+            `;
+
+            const analyzer = new Analyzer();
+
+            // @ts-ignore
+            const origExtractDEPsWithCallChain = analyzer.extractDEPsWithCallChain;
+
+            let callCount = 0;
+
+            // @ts-ignore
+            analyzer.extractDEPsWithCallChain = function (...args) {
+                callCount++;
+                origExtractDEPsWithCallChain.call(analyzer, ...args);
+            };
+
+            analyzer.addScript(script);
+            analyzer.mineArgsForDEPCalls('http://example.com', false);
+
+            expect(callCount).toBeLessThanOrEqual(1);
+        });
+    });
 });
