@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 )
@@ -22,10 +23,24 @@ const (
 )
 
 var (
-	sslCrtPath   = "%s/ssl/server.crt"
-	sslKeyPath   = "%s/ssl/server.key"
-	slimerPath   = "%s/../src/slimerjs"
-	analyzerPath = "%s/../src/run-analyzer.js"
+	sslCrtPath     = "%s/ssl/server.crt"
+	sslKeyPath     = "%s/ssl/server.key"
+	slimerPath     = "%s/../src/slimerjs"
+	analyzerPath   = "%s/../src/run-analyzer.js"
+	excludeHeaders = map[string]struct{}{
+		"age":               struct{}{},
+		"alt-svc":           struct{}{},
+		"cache-control":     struct{}{},
+		"content-encoding":  struct{}{},
+		"date":              struct{}{},
+		"etag":              struct{}{},
+		"expect-ct":         struct{}{},
+		"last-modified":     struct{}{},
+		"report-to":         struct{}{},
+		"vary":              struct{}{},
+		"content-length":    struct{}{},
+		"transfer-encoding": struct{}{},
+	}
 )
 
 func init() {
@@ -41,7 +56,7 @@ func init() {
 }
 
 func run(outStream, errStream io.Writer, tarPath string, args []string) {
-	indexURL, mapURLs, err := readTar(tarPath)
+	resources, err := readTar(tarPath)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -52,12 +67,12 @@ func run(outStream, errStream io.Writer, tarPath string, args []string) {
 	}
 
 	used := make(map[string]struct{})
-	for u := range mapURLs {
-		parsedURL, err := url.Parse(u)
+	for _, info := range resources {
+		u, err := url.Parse(info.URL)
 		if err != nil {
 			log.Panic(err)
 		}
-		host := parsedURL.Hostname()
+		host := u.Hostname()
 		if _, ok := used[host]; ok {
 			continue
 		}
@@ -81,9 +96,9 @@ func run(outStream, errStream io.Writer, tarPath string, args []string) {
 	var httpServerExitDone sync.WaitGroup
 	httpServerExitDone.Add(2)
 
-	srvHTTP, srvHTTPS := startServers(mapURLs, &httpServerExitDone)
+	srvHTTP, srvHTTPS := startServers(resources, &httpServerExitDone)
 
-	runCmd(indexURL, args, outStream, errStream)
+	runCmd(resources["index.html"].URL, args, outStream, errStream)
 
 	if err := srvHTTP.Shutdown(context.Background()); err != nil {
 		log.Panic(err)
@@ -104,7 +119,7 @@ func main() {
 	run(os.Stdout, os.Stderr, tarPath, args)
 }
 
-func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, *http.Server) {
+func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Server, *http.Server) {
 	var srvHTTP, srvHTTPS http.Server
 
 	lHTTP, err := net.Listen("tcp", ":80")
@@ -118,9 +133,8 @@ func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, 
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		for u, content := range mapURLs {
-			parsedURL, err := url.Parse(u)
+		for _, info := range resources {
+			parsedURL, err := url.Parse(info.URL)
 			if err != nil {
 				log.Panic(err)
 			}
@@ -129,13 +143,26 @@ func startServers(mapURLs map[string][]byte, wg *sync.WaitGroup) (*http.Server, 
 			srvHost := normalizeHost(parsedURL.Scheme == "https", parsedURL.Host)
 
 			if r.URL.RequestURI() == parsedURL.RequestURI() && reqHost == srvHost {
-				n, err := w.Write(content)
-				if n != len(content) || err != nil {
+				for h, values := range info.Headers {
+					if _, ok := excludeHeaders[strings.ToLower(h)]; ok {
+						continue
+					}
+					for _, v := range values {
+						w.Header().Add(h, v)
+					}
+				}
+
+				n, err := w.Write(info.Body)
+				if n != len(info.Body) || err != nil {
 					log.Panic(err)
 				}
-				break
+
+				w.WriteHeader(http.StatusOK)
+				return
 			}
 		}
+		log.Printf("404 Not Found: %s", r.Host + r.URL.RequestURI())
+		w.WriteHeader(http.StatusNotFound)
 	})
 
 	srvHTTP.Handler = handler
