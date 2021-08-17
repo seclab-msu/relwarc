@@ -874,8 +874,16 @@ export class Analyzer {
         for (const binding of bindings) {
             const callSites = this.findCallSitesForBinding(binding);
 
+            const uniqueCallers = new Set();
+
             for (const callSite of callSites) {
                 const caller = this.getFunctionForCallSite(callSite);
+
+                if (uniqueCallers.has(caller)) {
+                    continue;
+                }
+                uniqueCallers.add(caller);
+
                 const funcDescr = this.makeFunctionDescription(func);
                 const callDescr: FunctionCallDescription = {
                     binding,
