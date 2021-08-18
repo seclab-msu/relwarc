@@ -161,7 +161,7 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 				return
 			}
 		}
-		log.Printf("404 Not Found: %s", r.Host + r.URL.RequestURI())
+		log.Printf("Tarserver: 404 Not Found: %s", r.Host+r.URL.RequestURI())
 		w.WriteHeader(http.StatusNotFound)
 	})
 
