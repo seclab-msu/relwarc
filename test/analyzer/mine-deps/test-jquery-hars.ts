@@ -252,4 +252,23 @@ describe('Tests for jQuery library hars', () => {
         const convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
         expect(convertedHars).toEqual([]);
     });
+
+    it('handles null and undefined URLs', function () {
+        const scripts = [
+            `$.post({
+                url: null,
+                data: {
+                    "test": "data"
+                }
+            })`,
+            `$.post({
+                url: undefined,
+                data: {
+                    "test": "data"
+                }
+            })`
+        ];
+        const analyzer = makeAndRunSimple(scripts, true);
+        expect(analyzer.hars).toEqual([]);
+    });
 });

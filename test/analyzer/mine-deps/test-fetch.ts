@@ -87,4 +87,15 @@ describe('Analyzer mining HARs from fetch() calls', () => {
         ];
         makeAndRunSimple(scripts, true);
     });
+
+    it('handles null and undefined URLs', function () {
+        const scripts = [
+            `fetch(null, {
+                body: "test=data"
+            })`,
+            `fetch(undefined)`
+        ];
+        const analyzer = makeAndRunSimple(scripts, true);
+        expect(analyzer.hars).toEqual([]);
+    });
 });

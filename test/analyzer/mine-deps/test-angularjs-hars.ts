@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils/utils';
+import { runSingleTestHAR, makeAndRunSimple } from '../utils/utils';
 
 
 describe('Tests for AngularJS library"s DEPs hars', () => {
@@ -261,5 +261,23 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
                 method: 'GET'
             },
         );
+    });
+
+    it('handles null and undefined URLs', function () {
+        const scripts = [
+            `$http.post(
+                null,
+                {
+                    'name': 'username',
+                    'value': 'Name'
+                }
+            );`,
+            `$http({
+                method: 'GET',
+                url: undefined
+            });`
+        ];
+        const analyzer = makeAndRunSimple(scripts, true);
+        expect(analyzer.hars).toEqual([]);
     });
 });
