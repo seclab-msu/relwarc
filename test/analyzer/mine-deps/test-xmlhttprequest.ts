@@ -1,4 +1,4 @@
-import { runSingleTestHAR, runSingleTestHARFromFile } from '../utils/utils';
+import { runSingleTestHAR, runSingleTestHARFromFile, makeAndRunSimple } from '../utils/utils';
 import * as fs from 'fs';
 
 
@@ -163,5 +163,18 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
             __dirname + '/../data/22.json',
             'http://example.com/',
         );
+    });
+
+    it('handles null and undefined URLs', () => {
+        const scripts = [
+            `var oReq = new XMLHttpRequest();
+            oReq.open("GET", null);
+            oReq.send();`,
+            `var oReq = new XMLHttpRequest();
+            oReq.open("GET", undefined);
+            oReq.send();`
+        ];
+        const analyzer = makeAndRunSimple(scripts, true);
+        expect(analyzer.hars).toEqual([]);
     });
 });

@@ -30,6 +30,10 @@ function addBody(result, body) {
     return result;
 }
 
+function isIllegalURL(url: Value): boolean {
+    return isUnknown(url) || !url;
+}
+
 function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
     let result: HAR | null = null,
         body: string | null = null;
@@ -40,7 +44,7 @@ function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
         switch (name) {
         case 'open': {
             const [method, url] = callArgs;
-            if (isUnknown(url)) {
+            if (isIllegalURL(url)) {
                 return null;
             }
             result = new HAR(String(url), baseURL);

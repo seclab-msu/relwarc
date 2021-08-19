@@ -1,4 +1,4 @@
-import { runSingleTestHAR } from '../utils/utils';
+import { runSingleTestHAR, makeAndRunSimple } from '../utils/utils';
 
 
 describe('Tests for Axios library\'s DEPs hars', () => {
@@ -253,5 +253,23 @@ describe('Tests for Axios library\'s DEPs hars', () => {
                 method: 'PUT'
             },
         );
+    });
+
+    it('handles null and undefined URLs', function () {
+        const scripts = [
+            `axios.post(
+                null,
+                {
+                  firstName: 'Fred',
+                  lastName: 'Flintstone'
+                }
+            );`,
+            `axios({
+                method: 'get',
+                url: undefined
+            });`
+        ];
+        const analyzer = makeAndRunSimple(scripts, true);
+        expect(analyzer.hars).toEqual([]);
     });
 });
