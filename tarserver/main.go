@@ -133,6 +133,13 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			w.Header().Add("Access-Control-Allow-Origin", "*")
+			w.Header().Add("Access-Control-Allow-Methods", "*")
+			w.Header().Add("Access-Control-Allow-Headers", "*")
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		for _, info := range resources {
 			parsedURL, err := url.Parse(info.URL)
 			if err != nil {
