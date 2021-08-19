@@ -29,6 +29,7 @@ const DEFAULT_LOAD_TIMEOUT = 180; // 180 seconds = 3 min
 
 // TODO: replace with type definitions for slimerjs
 export interface ResourceRequest {
+    id: number;
     url: string;
     method: string;
     headers: KeyValue[];
@@ -41,10 +42,20 @@ export interface ResourceRequest {
 
 // TODO: replace with type definitions for slimerjs
 interface ResourceResponse {
+    id: number;
     stage: string;
     url: string;
     status: number;
     body: string | null;
+}
+
+interface ResourceError {
+    id: number;
+    url: string;
+    errorCode: string;
+    errorString: string;
+    status: number;
+    statusText: string;
 }
 
 // TODO: replace with type definitions for slimerjs
@@ -55,6 +66,8 @@ export interface NetworkRequest {
 type WindowCreatedCallback = (win: Window, doc: object) => void;
 type ResourceRequestedCallback = (req: ResourceRequest, netReq: NetworkRequest) => void; // eslint-disable-line max-len
 type ResourceReceivedCallback = (response: ResourceResponse) => void;
+type ResourceErrorCallback = (resError: ResourceError) => void;
+
 
 // TODO: replace with type definitions for slimerjs
 interface Webpage {
@@ -66,6 +79,7 @@ interface Webpage {
     onConsoleMessage: (msg: string) => void;
     onResourceRequested: null | ResourceRequestedCallback;
     onResourceReceived: null | ResourceReceivedCallback;
+    onResourceError: null | ResourceErrorCallback;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
     evaluate: (callback: () => void) => void;
     content: string;
@@ -89,11 +103,11 @@ export class HeadlessBot {
     private readonly loadTimeout: number;
     protected readonly printPageErrors: boolean;
     protected readonly logRequests: boolean;
+    protected readonly debugRequestLoading: boolean;
     protected readonly trackDOMMutations: boolean;
     protected initialContent: string;
 
-    protected pendingRequestCount: number;
-    protected readonly pendingRequests: string[] | null;
+    protected readonly pendingRequests: Map<number, string>;
     protected notifyPageIsLoaded: null | (() => void);
     protected loadedWatchdog: number | null;
     protected lastDOMMutation: number | null;
@@ -114,6 +128,7 @@ export class HeadlessBot {
         this.webpage = createWebpage();
         this.printPageErrors = printPageErrors;
         this.logRequests = logRequests;
+        this.debugRequestLoading = debugRequestLoading;
         this.loadTimeout = (loadTimeout || DEFAULT_LOAD_TIMEOUT) * 1000;
 
         this.requestCallback = null;
@@ -124,18 +139,13 @@ export class HeadlessBot {
         }
 
         this.webpage.settings.userAgent = USER_AGENT;
-        this.pendingRequestCount = 0;
         this.notifyPageIsLoaded = null;
         this.loadedWatchdog = null;
         this.mutationObserver = null;
         this.lastDOMMutation = null;
         this.initialContent = '';
 
-        if (debugRequestLoading) {
-            this.pendingRequests = [];
-        } else {
-            this.pendingRequests = null;
-        }
+        this.pendingRequests = new Map();
 
         this.setupEventHandlers();
 
@@ -166,6 +176,7 @@ export class HeadlessBot {
         );
         this.webpage.onResourceRequested = this.handleRequest.bind(this);
         this.webpage.onResourceReceived = this.handleResponse.bind(this);
+        this.webpage.onResourceError = this.handleError.bind(this);
 
         this.webpage.onError = (message, stack) => {
             if (this.printPageErrors) {
@@ -197,15 +208,13 @@ export class HeadlessBot {
     }
 
     protected handleRequest(req: ResourceRequest): void {
-        this.pendingRequestCount++;
-        if (this.pendingRequests !== null) {
-            this.pendingRequests.push(req.url);
-        }
+        this.pendingRequests.set(req.id, req.url);
+
         this.notifyLoadingContinues();
         if (this.logRequests) {
             log(
                 `requested: ${req.method} ${req.url} count now ` +
-                `${this.pendingRequestCount}`
+                `${this.pendingRequests.size}`
             );
         }
         if (this.requestCallback) {
@@ -213,29 +222,38 @@ export class HeadlessBot {
         }
     }
 
+    protected handleError(resError: ResourceError): void {
+        this.pendingRequests.delete(resError.id);
+
+        if (this.logRequests) {
+            log(
+                `request error ${resError.url}
+                (error: ${resError.errorString}): ` +
+                `count now ${this.pendingRequests.size}`
+            );
+        }
+    }
+
     protected handleResponse(response: ResourceResponse): void {
         if (response.stage !== 'end') {
             return;
         }
-        this.pendingRequestCount--;
+
+        this.pendingRequests.delete(response.id);
+
         if (this.logRequests) {
             log(
                 `request done ${response.url} (status ${response.status}): ` +
-                `count now ${this.pendingRequestCount}`
+                `count now ${this.pendingRequests.size}`
             );
         }
-        if (this.pendingRequests !== null) {
-            this.pendingRequests.splice(
-                this.pendingRequests.indexOf(response.url),
-                1
-            );
-        }
-        if (this.pendingRequestCount === 0) {
+
+        if (this.pendingRequests.size === 0) {
             this.ensurePageIsLoaded();
-        } else if (this.pendingRequests !== null) {
+        } else if (this.debugRequestLoading) {
             log('currently, pending requests are:');
 
-            for (const url of this.pendingRequests) {
+            for (const url of this.pendingRequests.values()) {
                 log(url);
             }
         }
@@ -247,7 +265,7 @@ export class HeadlessBot {
     protected ensurePageIsLoaded(): void {
         this.loadedWatchdog = window.setTimeout(() => {
             if (
-                this.pendingRequestCount !== 0 ||
+                this.pendingRequests.size !== 0 ||
                 this.notifyPageIsLoaded === null
             ) {
                 return;
@@ -314,7 +332,7 @@ export class HeadlessBot {
         });
         await delay;
 
-        if (this.pendingRequestCount === 0 && this.notifyPageIsLoaded) {
+        if (this.pendingRequests.size === 0 && this.notifyPageIsLoaded) {
             this.ensurePageIsLoaded();
         }
 
