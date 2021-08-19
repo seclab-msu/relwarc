@@ -76,6 +76,7 @@ export interface HeadlessBotOptions {
     printPageErrors: boolean;
     printPageConsoleLog: boolean;
     logRequests: boolean;
+    debugRequestLoading: boolean;
     recordRequestStackTraces?: boolean;
     loadTimeout?: number;
 }
@@ -92,6 +93,7 @@ export class HeadlessBot {
     protected initialContent: string;
 
     protected pendingRequestCount: number;
+    protected readonly pendingRequests: string[] | null;
     protected notifyPageIsLoaded: null | (() => void);
     protected loadedWatchdog: number | null;
     protected lastDOMMutation: number | null;
@@ -105,6 +107,7 @@ export class HeadlessBot {
         printPageErrors=false,
         printPageConsoleLog=true,
         logRequests=false,
+        debugRequestLoading=false,
         recordRequestStackTraces=false,
         loadTimeout=DEFAULT_LOAD_TIMEOUT
     }: HeadlessBotOptions) {
@@ -127,6 +130,12 @@ export class HeadlessBot {
         this.mutationObserver = null;
         this.lastDOMMutation = null;
         this.initialContent = '';
+
+        if (debugRequestLoading) {
+            this.pendingRequests = [];
+        } else {
+            this.pendingRequests = null;
+        }
 
         this.setupEventHandlers();
 
@@ -189,10 +198,13 @@ export class HeadlessBot {
 
     protected handleRequest(req: ResourceRequest): void {
         this.pendingRequestCount++;
+        if (this.pendingRequests !== null) {
+            this.pendingRequests.push(req.url);
+        }
         this.notifyLoadingContinues();
         if (this.logRequests) {
             log(
-                `requested: ${req.url} count now ` +
+                `requested: ${req.method} ${req.url} count now ` +
                 `${this.pendingRequestCount}`
             );
         }
@@ -212,8 +224,20 @@ export class HeadlessBot {
                 `count now ${this.pendingRequestCount}`
             );
         }
+        if (this.pendingRequests !== null) {
+            this.pendingRequests.splice(
+                this.pendingRequests.indexOf(response.url),
+                1
+            );
+        }
         if (this.pendingRequestCount === 0) {
             this.ensurePageIsLoaded();
+        } else if (this.pendingRequests !== null) {
+            log('currently, pending requests are:');
+
+            for (const url of this.pendingRequests) {
+                log(url);
+            }
         }
         if (response.body) {
             this.initialContent = response.body;
