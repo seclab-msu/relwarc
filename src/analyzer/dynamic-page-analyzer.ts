@@ -30,6 +30,7 @@ export class DynamicPageAnalyzer {
 
     constructor({
         logRequests=false,
+        debugRequestLoading=false,
         mapURLs=(null as object | null),
         domainFilteringMode=DomainFilteringMode.Any,
         mineDynamicDEPs=true,
@@ -43,6 +44,7 @@ export class DynamicPageAnalyzer {
                 printPageErrors: false,
                 printPageConsoleLog: false,
                 logRequests,
+                debugRequestLoading,
                 loadTimeout,
                 recordRequestStackTraces
             });
@@ -51,6 +53,7 @@ export class DynamicPageAnalyzer {
                 printPageErrors: false,
                 printPageConsoleLog: false,
                 logRequests,
+                debugRequestLoading,
                 loadTimeout,
                 recordRequestStackTraces
             });

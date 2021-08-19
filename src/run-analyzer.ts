@@ -37,6 +37,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--no-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--only-js-dynamic-deps', { action: 'store_true' });
     parser.add_argument('--log-requests', { action: 'store_true' });
+    parser.add_argument('--debug-request-loading', { action: 'store_true' });
     parser.add_argument('--domain-scope', {
         choices: validDomainFilteringModeValues,
         default: 'second-level'
@@ -56,6 +57,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const analyzerOptions = {
         logRequests: args.log_requests,
+        debugRequestLoading: args.debug_request_loading,
         domainFilteringMode: domainFilteringModeFromString(args.domain_scope),
         mapURLs: null as (object | null),
         mineDynamicDEPs: !args.no_dynamic_deps as boolean,
