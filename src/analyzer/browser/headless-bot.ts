@@ -227,8 +227,8 @@ export class HeadlessBot {
 
         if (this.logRequests) {
             log(
-                `request error ${resError.url}
-                (error: ${resError.errorString}): ` +
+                `request error ${resError.url} ` +
+                `(error: ${resError.errorString}): ` +
                 `count now ${this.pendingRequests.size}`
             );
         }
