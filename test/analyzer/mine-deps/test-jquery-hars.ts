@@ -271,4 +271,52 @@ describe('Tests for jQuery library hars', () => {
         const analyzer = makeAndRunSimple(scripts, true);
         expect(analyzer.hars).toEqual([]);
     });
+
+    it('not losing param name if param value is empty array', function () {
+        const scripts = [
+            `let usernames = [];
+            $.ajax({
+                url: '/signin',
+                type: 'post',
+                data: {
+                    users: usernames
+                }
+            });
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/signin',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/x-www-form-urlencoded'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '19'
+                    }
+                ],
+                bodySize: 19,
+                method: 'POST',
+                postData: {
+                    text: 'users%5B%5D=UNKNOWN',
+                    mimeType: 'application/x-www-form-urlencoded',
+                    params: [
+                        {
+                            name: 'users%5B%5D',
+                            value: 'UNKNOWN'
+                        }
+                    ]
+                }
+            }
+        );
+    });
 });
