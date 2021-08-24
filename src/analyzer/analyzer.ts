@@ -711,7 +711,7 @@ export class Analyzer {
             return null;
         }
         if (isRegExpLiteral(node)) {
-            return new RegExp(node.pattern);
+            return new RegExp(node.pattern, node.flags);
         }
         if (isTemplateLiteral(node)) {
             return this.processTemplateLiteral(node);
