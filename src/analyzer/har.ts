@@ -1,4 +1,4 @@
-import { Unknown, isUnknown } from './types/unknown';
+import { Unknown, isUnknown, UNKNOWN } from './types/unknown';
 import { LoadType } from './load-type';
 import type { StackFrame } from './browser/stack-frame';
 
@@ -190,6 +190,9 @@ export function queryStringFromObject(
             if (Array.isArray(val)) {
                 if (!k.endsWith('[]')) {
                     k += '[]';
+                }
+                if (val.length === 0) {
+                    val = [UNKNOWN];
                 }
             } else {
                 val = [val];
