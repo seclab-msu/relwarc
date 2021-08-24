@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+TAR_FILE="$1"
+URL="$2"
+
+if [ -z "$TAR_FILE" ]; then
+    echo "Usage: $0 TAR_FILE" >&2
+    exit 1
+fi
+
+if ! [ -e "$TAR_FILE" ]; then
+    echo "Tar file $TAR_FILE does not exist!" >&2
+    exit 1
+fi
+
+if [ -z "$URL" ]; then
+    if [ -f "$TAR_FILE" ]; then
+        URL=`tar xOf "$TAR_FILE" metainfo.json  | jq -r '.["index.html"].url'`
+    else
+        echo "URL not given and tar is not a regular file" >&2
+        exit 1
+    fi
+fi
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+TEMP_PROFILE_DIR=`mktemp -d`
+
+echo "Use temp profile dir $TEMP_PROFILE_DIR" >&2
+
+TARSERVER_RAW_ARGS=1 "$SCRIPT_DIR/run-analyzer-tar" "$TAR_FILE" \
+    google-chrome --user-data-dir="$TEMP_PROFILE_DIR" --no-sandbox --ignore-certificate-errors "$URL"
