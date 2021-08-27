@@ -2,6 +2,8 @@ package main
 
 import (
 	"archive/tar"
+	"bufio"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"io"
@@ -17,6 +19,21 @@ type Resource struct {
 	Body    []byte
 }
 
+func getCorrectReader(r io.Reader) (io.Reader, error) {
+	bReader := bufio.NewReader(r)
+
+	magickBytes, err := bReader.Peek(2)
+	if err != nil {
+		return nil, err
+	}
+
+	if magickBytes[0] == 31 && magickBytes[1] == 139 {
+		return gzip.NewReader(bReader)
+	}
+
+	return bReader, nil
+}
+
 func readTar(path string) (map[string]*Resource, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -26,7 +43,12 @@ func readTar(path string) (map[string]*Resource, error) {
 	bodies := make(map[string][]byte)
 	resources := make(map[string]*Resource)
 
-	tr := tar.NewReader(f)
+	reader, err := getCorrectReader(f)
+	if err != nil {
+		return nil, err
+	}
+
+	tr := tar.NewReader(reader)
 
 	for {
 		header, err := tr.Next()
