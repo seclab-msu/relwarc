@@ -87,7 +87,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     );
 
     if (args.args) {
-        outputArgs(analyzer.analyzer.results);
+        outputArgs(analyzer.analyzer.results, args.output);
     } else {
         // hars
         const deps = analyzer.getAllDeps(
