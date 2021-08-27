@@ -272,4 +272,90 @@ describe('Tests for Axios library\'s DEPs hars', () => {
         const analyzer = makeAndRunSimple(scripts, true);
         expect(analyzer.hars).toEqual([]);
     });
+
+    it('handles baseURL option with absolute requestURL', function () {
+        const scripts = [
+            `axios.post(
+                'http://biba-and-boba.co',
+                'command=pwd',
+                {
+                  baseURL: '/admin/index.html'
+                }
+            );`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url:
+                    'http://biba-and-boba.co/',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'biba-and-boba.co'
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/x-www-form-urlencoded'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '11'
+                    }
+                ],
+                queryString: [],
+                bodySize: 11,
+                postData: {
+                    text: 'command=pwd',
+                    mimeType: 'application/x-www-form-urlencoded',
+                    params: [
+                        {
+                            name: 'command',
+                            value: 'pwd'
+                        }
+                    ]
+                },
+                method: 'POST'
+            },
+        );
+    });
+
+    it('handles baseURL option', function () {
+        const scripts = [
+            `axios({
+                method: 'put',
+                url: '?command=ls',
+                baseURL: 'admin/index.html'
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url:
+                    'http://test.com/admin/index.html/?command=ls',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'test.com'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '0'
+                    }
+                ],
+                queryString: [
+                    {
+                        name: 'command',
+                        value: 'ls'
+                    }
+                ],
+                bodySize: 0,
+                postData: {
+                    text: '',
+                },
+                method: 'PUT'
+            },
+        );
+    });
 });
