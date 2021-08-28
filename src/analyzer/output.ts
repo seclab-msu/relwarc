@@ -21,8 +21,13 @@ export function outputDEPs(deps: HAR[], outputFile: string | null): void {
     }
 }
 
-export function outputArgs(args: SinkCall[]): void {
-    for (const result of args) {
-        console.log(JSON.stringify(result, null, 4));
+export function outputArgs(args: SinkCall[], outputFile: string | null): void {
+    const argsJSON = JSON.stringify(args, null, 4);
+    if (outputFile) {
+        log('Writing args to ' + outputFile);
+        fs.writeFileSync(outputFile, argsJSON);
+        log('Writing done');
+    } else {
+        console.log(argsJSON);
     }
 }

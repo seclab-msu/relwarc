@@ -39,7 +39,7 @@ async function main(): Promise<number> {
     analyzer.analyze(baseURL, args.uncomment);
 
     if (args.args) {
-        outputArgs(analyzer.results);
+        outputArgs(analyzer.results, args.output);
     } else {
         // hars
         const deps = deduplicateDEPs(
