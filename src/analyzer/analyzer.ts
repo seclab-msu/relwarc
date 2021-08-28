@@ -448,7 +448,7 @@ export class Analyzer {
                     this.addFunctionBinding(node, binding);
                 }
                 if (isFunction(node)) {
-                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                    this.argsStack.pop();
                 }
             }
         });
@@ -1232,6 +1232,8 @@ export class Analyzer {
             exit: (path: NodePath): void => {
                 if (isFunction(path.node)) {
                     this.argsStack.pop();
+                    this.formalArgs =
+                        this.argsStack[this.argsStack.length - 1] || [];
                     this.functionsStack.pop();
                     this.trackedCallSequencesStack.pop();
                 }
