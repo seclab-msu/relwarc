@@ -543,4 +543,51 @@ describe('Tests for default comparison hars', () => {
             }
         }));
     });
+
+    it('Different headers, same querystring', async () => {
+        const scripts = [
+            `fetch('/a?query=test');
+
+            $.ajax({
+                url: '/a',
+                data: { 'query': 'test' },
+                headers: { 'Test': '1' }
+            });`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = deduplicateDEPs(
+            analyzer.hars,
+            DeduplicationMode.Default
+        ).map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(1);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/a?query=test',
+            'httpVersion': 'HTTP/1.1',
+            'headers': [
+                {
+                    name: 'Host',
+                    value: 'test.com'
+                },
+                {
+                    name: 'Test',
+                    value: '1'
+                }
+            ],
+            'queryString': [
+                {
+                    name: 'query',
+                    value: 'test'
+                }
+            ],
+            'bodySize': 0
+        }));
+    });
 });

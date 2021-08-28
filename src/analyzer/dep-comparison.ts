@@ -112,10 +112,12 @@ function defaultComparison(
         ) {
             return true;
         } else {
-            return (
+            if (
                 !Number.isNaN(Number(param1.value)) &&
                 !Number.isNaN(Number(param2.value))
-            );
+            ) {
+                return true;
+            } else return param1.value === param2.value;
         }
     });
 }
