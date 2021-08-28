@@ -1,5 +1,5 @@
 import { Unknown, isUnknown, UNKNOWN } from './unknown';
-import type { Value } from './generic';
+import type { Value, NontrivialValue } from './generic';
 
 class FromArg extends Unknown {
     readonly tag: string = 'FROM_ARG';
@@ -7,16 +7,41 @@ class FromArg extends Unknown {
 
 export const FROM_ARG = new FromArg();
 
+function extractFormalArgsFromObject(
+    val: NontrivialValue
+): [NontrivialValue, boolean] {
+    let haveArg = false,
+        elt,
+        haveArgHere,
+        newPropName;
+
+    for (const propName of Object.getOwnPropertyNames(val)) {
+        [newPropName, haveArgHere] = extractFormalArgs(propName);
+        if (haveArgHere) {
+            haveArg = true;
+            val[newPropName] = val[propName];
+            delete val[propName];
+        }
+        [elt, haveArgHere] = extractFormalArgs(val[newPropName]);
+        val[newPropName] = elt;
+        haveArg = haveArg || haveArgHere;
+    }
+    return [val, haveArg];
+}
+
 export function extractFormalArgs(val: Value): [Value, boolean] {
     if (val === FROM_ARG) {
         return [UNKNOWN, true];
     }
+
     if (typeof val === 'string' && val.indexOf('FROM_ARG') !== -1) {
         return [val.replace(/FROM_ARG/g, 'UNKNOWN'), true];
     }
+
     if (val === null) {
         return [val, false];
     }
+
     if (typeof val !== 'object' || isUnknown(val)) {
         return [val, false];
     }
@@ -32,10 +57,6 @@ export function extractFormalArgs(val: Value): [Value, boolean] {
         }
         return [val, haveArg];
     }
-    for (const propName of Object.getOwnPropertyNames(val)) {
-        [elt, haveArgHere] = extractFormalArgs(val[propName]);
-        val[propName] = elt;
-        haveArg = haveArg || haveArgHere;
-    }
-    return [val, haveArg];
+
+    return extractFormalArgsFromObject(val);
 }
