@@ -27,6 +27,8 @@ const LOADED_COOLDOWN = 250;
 
 const DEFAULT_LOAD_TIMEOUT = 180; // 180 seconds = 3 min
 
+const LOADING_SCRIPT_MULTIPLIER = 0.6;
+
 // TODO: replace with type definitions for slimerjs
 export interface ResourceRequest {
     id: number;
@@ -77,11 +79,13 @@ interface Webpage {
         [userAgent: string]: string
     };
     onConsoleMessage: (msg: string) => void;
+    onLongRunningScript: (msg: string) => void;
     onResourceRequested: null | ResourceRequestedCallback;
     onResourceReceived: null | ResourceReceivedCallback;
     onResourceError: null | ResourceErrorCallback;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
     evaluate: (callback: () => void) => void;
+    stopJavaScript: () => void;
     content: string;
     close(): void;
 }
@@ -111,6 +115,7 @@ export class HeadlessBot {
     protected notifyPageIsLoaded: null | (() => void);
     protected loadedWatchdog: number | null;
     protected lastDOMMutation: number | null;
+    protected loadStartTimestamp: number | null;
 
     protected mutationObserver: MutationObserver | null;
 
@@ -143,6 +148,7 @@ export class HeadlessBot {
         this.loadedWatchdog = null;
         this.mutationObserver = null;
         this.lastDOMMutation = null;
+        this.loadStartTimestamp = null;
         this.initialContent = '';
 
         this.pendingRequests = new Map();
@@ -177,6 +183,7 @@ export class HeadlessBot {
         this.webpage.onResourceRequested = this.handleRequest.bind(this);
         this.webpage.onResourceReceived = this.handleResponse.bind(this);
         this.webpage.onResourceError = this.handleError.bind(this);
+        this.webpage.onLongRunningScript = this.onLongRunningScript.bind(this);
 
         this.webpage.onError = (message, stack) => {
             if (this.printPageErrors) {
@@ -205,6 +212,15 @@ export class HeadlessBot {
                 }
             });
         });
+    }
+
+    protected onLongRunningScript(): void {
+        if (this.loadStartTimestamp) {
+            const loadingTime = Date.now() - this.loadStartTimestamp;
+            if (loadingTime >= this.loadTimeout * LOADING_SCRIPT_MULTIPLIER) {
+                this.webpage.stopJavaScript();
+            }
+        }
     }
 
     protected handleRequest(req: ResourceRequest): void {
@@ -308,6 +324,7 @@ export class HeadlessBot {
 
         let status: string | null = null;
         try {
+            this.loadStartTimestamp = Date.now();
             status = await withTimeout(
                 this.webpage.open(url),
                 this.loadTimeout
