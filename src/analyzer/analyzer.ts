@@ -9,6 +9,7 @@ import {
     Node as ASTNode,
     File as AST,
     Function as FunctionASTNode,
+    Comment as CommentASTNode,
     CallExpression, BinaryExpression, UnaryExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
@@ -36,7 +37,7 @@ import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
 import { STRING_METHODS } from './utils/analyzer';
 
-import { HAR } from './har';
+import { HAR, BadURLError } from './har';
 import { makeHAR } from './library-models/sinks';
 
 import {
@@ -1330,8 +1331,13 @@ export class Analyzer {
 
     private addCommentedCode(): void {
         for (const script of this.scripts) {
+            let combComments: CommentASTNode[];
             const srcTxt = script.sourceText.replace(/^\s*[\r\n]/gm, '');
-            const combComments = combineComments(parser.parse(srcTxt).comments);
+            try {
+                combComments = combineComments(parser.parse(srcTxt).comments);
+            } catch {
+                continue;
+            }
             const parsedComments = parseComments(
                 combComments,
                 script.startLine,
@@ -1358,11 +1364,12 @@ export class Analyzer {
     mineArgsForDEPCalls(url: string, uncomment?: boolean): void {
         log('Analyzer: start parsing code');
         this.parseCode();
-        log('Analyzer: done parsing code');
 
         if (uncomment) {
             this.addCommentedCode();
         }
+
+        log('Analyzer: done parsing code');
 
         this.mergeASTs();
 
@@ -1386,7 +1393,17 @@ export class Analyzer {
         const harsAlready: Set<string> = new Set();
 
         for (const result of this.results) {
-            const har = makeHAR(result.funcName, result.args, url);
+            let har;
+
+            try {
+                har = makeHAR(result.funcName, result.args, url);
+            } catch (err) {
+                if (err instanceof BadURLError) {
+                    continue;
+                } else {
+                    throw err;
+                }
+            }
 
             if (har === null) {
                 continue;

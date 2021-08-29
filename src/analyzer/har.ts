@@ -42,6 +42,9 @@ export class HAR {
     private postData?: PostData;
 
     constructor(url: string, baseURL?: string) {
+        if (typeof url !== 'string' || urlHasUnknownPrefix(url)) {
+            throw new BadURLError(url);
+        }
         const parsedURL = new URL(url, baseURL);
 
         this.method = 'GET';
@@ -213,4 +216,14 @@ export function replaceQuery(url: string, qs: string): string {
 
     parsed.search = parsed.search ? parsed.search + '&' + qs : qs;
     return parsed.href;
+}
+
+export class BadURLError extends Error {
+    constructor(url?: string) {
+        super(`Bad URL: ${url}`);
+    }
+}
+
+function urlHasUnknownPrefix(url: string): boolean {
+    return ['UNKNOWN', 'undefined', '&UNKNOWN'].some(p => url.startsWith(p));
 }
