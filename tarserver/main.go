@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -41,6 +42,7 @@ var (
 		"content-length":    struct{}{},
 		"transfer-encoding": struct{}{},
 	}
+	tarserverLogs = flag.Bool("no-tarserver-logs", false, "Disable tarserver logs")
 )
 
 func init() {
@@ -114,8 +116,9 @@ func run(outStream, errStream io.Writer, tarPath string, args []string) {
 }
 
 func main() {
-	tarPath := os.Args[1]
-	args := os.Args[2:]
+	flag.Parse()
+	tarPath := flag.Args()[0]
+	args := flag.Args()[1:]
 	run(os.Stdout, os.Stderr, tarPath, args)
 }
 
@@ -168,7 +171,9 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 				return
 			}
 		}
-		log.Printf("Tarserver: 404 Not Found: %s", r.Host+r.URL.RequestURI())
+		if !*tarserverLogs {
+			log.Printf("Tarserver: 404 Not Found: %s", r.Host+r.URL.RequestURI())
+		}
 		w.WriteHeader(http.StatusNotFound)
 	})
 
