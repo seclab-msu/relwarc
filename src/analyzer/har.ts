@@ -45,7 +45,14 @@ export class HAR {
         if (typeof url !== 'string' || urlHasUnknownPrefix(url)) {
             throw new BadURLError(url);
         }
-        const parsedURL = new URL(url, baseURL);
+
+        let parsedURL: URL;
+
+        try {
+            parsedURL = new URL(url, baseURL);
+        } catch {
+            throw new BadURLError(url);
+        }
 
         this.method = 'GET';
         this.url = parsedURL.href;
