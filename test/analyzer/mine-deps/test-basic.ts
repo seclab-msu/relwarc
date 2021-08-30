@@ -79,4 +79,28 @@ describe('Analyzer mining HARs for JS DEPs', () => {
             },
         );
     });
+
+    it('invalid url in request', () => {
+        const scripts = [
+            `fetch('https://:/stats?sid=1&json=1');
+            fetch('/');`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://example.com/',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'example.com',
+                        name: 'Host',
+                    },
+                ],
+                bodySize: 0,
+                method: 'GET'
+            },
+            'http://example.com/',
+        );
+    });
 });
