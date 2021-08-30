@@ -712,7 +712,11 @@ export class Analyzer {
             return null;
         }
         if (isRegExpLiteral(node)) {
-            return new RegExp(node.pattern, node.flags);
+            try {
+                return new RegExp(node.pattern, node.flags);
+            } catch {
+                return new RegExp('');
+            }
         }
         if (isTemplateLiteral(node)) {
             return this.processTemplateLiteral(node);
