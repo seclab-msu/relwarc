@@ -103,4 +103,102 @@ describe('Analyzer mining HARs for JS DEPs', () => {
             'http://example.com/',
         );
     });
+
+    it('primitive types casting via toString', () => {
+        const scripts = [
+            `
+                var getParam = () => "hidden";
+                var a = {obj: {param: "hidden"}, toString: getParam};
+                $.post('http://example.com/admin', 'isAdmin=true&param=' + a);
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://example.com/admin',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'example.com',
+                        name: 'Host',
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/x-www-form-urlencoded'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '26'
+                    }
+                ],
+                bodySize: 26,
+                method: 'POST',
+                postData: {
+                    text: 'isAdmin=true&param=UNKNOWN',
+                    mimeType: 'application/x-www-form-urlencoded',
+                    params: [
+                        {
+                            name: 'isAdmin',
+                            value: 'true'
+                        }, {
+                            name: 'param',
+                            value: 'UNKNOWN'
+                        }
+                    ]
+                }
+            },
+            'http://example.com/',
+        );
+    });
+
+    it('primitive types casting via toString with syntactic sugar +', () => {
+        const scripts = [
+            `
+                var getParam = () => "hidden";
+                var a = {obj: {param: "hidden"}, toString: getParam};
+                h = 'isAdmin=true&param=';
+                h += a;
+                $.post('http://example.com/admin', h);
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://example.com/admin',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'example.com',
+                        name: 'Host',
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/x-www-form-urlencoded'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '26'
+                    }
+                ],
+                bodySize: 26,
+                method: 'POST',
+                postData: {
+                    text: 'isAdmin=true&param=UNKNOWN',
+                    mimeType: 'application/x-www-form-urlencoded',
+                    params: [
+                        {
+                            name: 'isAdmin',
+                            value: 'true'
+                        }, {
+                            name: 'param',
+                            value: 'UNKNOWN'
+                        }
+                    ]
+                }
+            },
+            'http://example.com/',
+        );
+    });
 });
