@@ -319,4 +319,34 @@ describe('Tests for jQuery library hars', () => {
             }
         );
     });
+
+    it('get shorthand method with string as data', () => {
+        const scripts = [
+            `
+                username = 'admin';
+                $.get('http://example.com/users', 'username=' + username);
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://example.com/users?username=admin',
+                queryString: [
+                    {
+                        name: 'username',
+                        value: 'admin'
+                    }
+                ],
+                headers: [
+                    {
+                        value: 'example.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET'
+            }
+        );
+    });
 });
