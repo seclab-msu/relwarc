@@ -295,8 +295,23 @@ export class Analyzer {
             newValue = value;
         } else if (op === '+=') {
             const oldValue = this.globalDefinitions[name];
+
+            if (
+                isUnknownOrUnknownString(oldValue) &&
+                isUnknownOrUnknownString(value)
+            ) {
+                return;
+            }
+
             // @ts-ignore
             newValue = oldValue + value;
+
+            if (
+                typeof newValue === 'string' &&
+                newValue.length > MAX_ACCUMULATED_STRING
+            ) {
+                return;
+            }
         } else {
             return;
         }
@@ -384,7 +399,12 @@ export class Analyzer {
 
             const value = this.valueFromASTNode(node.init);
 
-            this.memory.set(binding, value);
+            if (binding.scope.block.type === 'Program') {
+                this.globalDefinitions[node.id.name] = value;
+            } else {
+                this.memory.set(binding, value);
+            }
+
             if (value instanceof FunctionValue) {
                 this.addFunctionBinding(value.ast, binding);
             }
@@ -393,10 +413,10 @@ export class Analyzer {
             if (node.left.type === 'Identifier') {
                 const binding = path.scope.getBinding(node.left.name);
                 const op = node.operator;
-                if (typeof binding !== 'undefined') {
-                    this.setLocalVariable(binding, value, op);
-                } else {
+                if (typeof binding === 'undefined' || binding.scope.block.type === 'Program') {
                     this.setGlobalVariable(node.left.name, value, op);
+                } else {
+                    this.setLocalVariable(binding, value, op);
                 }
             } else if (node.left.type === 'MemberExpression') {
                 this.setObjectProperty(node.left, value);
@@ -627,7 +647,7 @@ export class Analyzer {
 
         const binding = this.currentPath.scope.getBinding(name);
 
-        if (typeof binding !== 'undefined') {
+        if (typeof binding !== 'undefined' && binding.scope.block.type !== 'Program') {
             if (this.memory.has(binding)) {
                 return this.memory.get(binding);
             }
@@ -647,6 +667,14 @@ export class Analyzer {
             if (hasattr(this.formalArgValues, name)) {
                 return this.formalArgValues[name];
             }
+
+            if (
+                this.selectedFunction &&
+                hasattr(this.globalDefinitions, name)
+            ) {
+                return this.globalDefinitions[name];
+            }
+
             return FROM_ARG;
         }
         if (this.upperArgumentExists(name)) {
