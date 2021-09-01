@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script>
+        obj = {'url': '/test'};
+    </script>
+    <script>
+        var obj = window.obj;
+        obj.data = {'a': '1'};
+        $.ajax({
+            url: obj.url,
+            data: window.obj.data
+        });
+    </script>
+</body>
+</html>
