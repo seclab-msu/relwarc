@@ -661,21 +661,14 @@ export class Analyzer {
             ];
         }
 
-        // TODO: this effectively breaks global variable lookups during call
-        // chain traversal. Improve
         if (~formalArgs.indexOf(name) || this.selectedFunction) {
             if (hasattr(this.formalArgValues, name)) {
                 return this.formalArgValues[name];
             }
 
-            if (
-                this.selectedFunction &&
-                hasattr(this.globalDefinitions, name)
-            ) {
-                return this.globalDefinitions[name];
+            if (formalArgs.includes(name)) {
+                return FROM_ARG;
             }
-
-            return FROM_ARG;
         }
         if (this.upperArgumentExists(name)) {
             return UNKNOWN;
