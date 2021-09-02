@@ -70,4 +70,109 @@ describe('Correct work with scopes', () => {
             'bodySize': 0,
         }));
     });
+
+    it('variables with \'var\' in global scope', async () => {
+        const scripts = [
+            `Data = {};
+            url = 'http://test.com/';
+            Data.url = url;
+
+            var Data = window.Data;
+
+            function f() {
+                $.ajax({
+                    dataType: 'JSON',
+                    url: Data.url + 'index.php?option=1',
+                });
+            }`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = analyzer.hars.map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(1);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/index.php?option=1',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    'name': 'option',
+                    'value': '1'
+                }
+            ],
+            'bodySize': 0,
+        }));
+    });
+
+    it('different variable scopes', async () => {
+        const scripts = [
+            `data = "/test1";
+            var data;
+
+            function f() {
+                var data = "/test2";
+                (function() {
+                    var data;
+                    data = '/test3';
+                    fetch(data);
+
+                    function g(data) {
+                        $.ajax(data);
+                    };
+                    g('/test4');
+
+                })();
+                fetch(data);
+            }
+
+            fetch(data);`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = analyzer.hars.map(JSONObjectFromHAR);
+
+        expect(hars.length).toEqual(4);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/test1',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [],
+            'bodySize': 0,
+        }));
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/test2',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [],
+            'bodySize': 0,
+        }));
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/test3',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [],
+            'bodySize': 0,
+        }));
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/test4',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [],
+            'bodySize': 0,
+        }));
+    });
 });
