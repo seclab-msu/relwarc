@@ -30,7 +30,7 @@ function parseArgs(funcName, args) {
             data = null;
         } else if (
             typeof args[1] === 'object' ||
-            funcName === 'post' && typeof args[1] === 'string'
+            (funcName === 'post' || funcName === 'get') && typeof args[1] === 'string'
         ) {
             data = args[1];
         }
