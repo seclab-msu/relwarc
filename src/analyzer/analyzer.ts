@@ -244,6 +244,22 @@ export class Analyzer {
         return !isUnknown(this.memory.get(key));
     }
 
+    private probeAddition(left: Value, right: Value): Value {
+        // TODO: custom toString is not supported, leads to UNKNOWN result
+        try {
+            // @ts-ignore
+            return left + right;
+        } catch {
+            if (typeof left === 'string') {
+                return left + UNKNOWN;
+            } else if (typeof right === 'string') {
+                return UNKNOWN + right;
+            }
+
+            return UNKNOWN;
+        }
+    }
+
     private setLocalVariable(binding: Binding, value: Value, op: string): void {
         if (op === '=' && this.lessConcreteThanOldVal(binding, value)) {
             return;
@@ -264,8 +280,7 @@ export class Analyzer {
                 return;
             }
 
-            // @ts-ignore
-            newValue = oldValue + value;
+            newValue = this.probeAddition(oldValue, value);
 
             if (
                 typeof newValue === 'string' &&
@@ -303,8 +318,7 @@ export class Analyzer {
                 return;
             }
 
-            // @ts-ignore
-            newValue = oldValue + value;
+            newValue = this.probeAddition(oldValue, value);
 
             if (
                 typeof newValue === 'string' &&
@@ -612,8 +626,7 @@ export class Analyzer {
         if (node.operator === '+') {
             const left = this.valueFromASTNode(node.left);
             const right = this.valueFromASTNode(node.right);
-            // @ts-ignore
-            return left + right;
+            return this.probeAddition(left, right);
         }
         return UNKNOWN;
     }
