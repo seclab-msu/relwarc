@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script>
+        eval("const z = 1234567;$.get('/getPage.php', {id: z});");
+    </script>
+    <script>
+        eval("const z = 7654321;$.get('/getPage.php', {id: z});");
+    </script>
+        <script>
+        eval("function z() { return null }; var $ = {get: function(url, options) {return 'RESPONSE'}}");
+    </script>
+</body>
+</html>

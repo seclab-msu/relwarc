@@ -202,6 +202,10 @@ export class Analyzer {
             return;
         }
 
+        if (url !== undefined && url.startsWith('dynamically evaled code from script')) {
+            sourceText = '{' + sourceText + '}';
+        }
+
         this.scripts.push({
             sourceText,
             startLine,
