@@ -48,7 +48,7 @@ function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
                 return null;
             }
             result = new HAR(String(url), baseURL);
-            result.method = String(method);
+            result.method = String(method).toUpperCase();
             break;
         }
         case 'send': {
