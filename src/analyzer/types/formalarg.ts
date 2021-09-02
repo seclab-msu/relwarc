@@ -8,7 +8,8 @@ class FromArg extends Unknown {
 export const FROM_ARG = new FromArg();
 
 function extractFormalArgsFromObject(
-    val: NontrivialValue
+    val: NontrivialValue,
+    computed: Value[]
 ): [NontrivialValue, boolean] {
     let haveArg = false,
         elt,
@@ -16,20 +17,25 @@ function extractFormalArgsFromObject(
         newPropName;
 
     for (const propName of Object.getOwnPropertyNames(val)) {
-        [newPropName, haveArgHere] = extractFormalArgs(propName);
+        [newPropName, haveArgHere] = extractFormalArgs(propName, computed);
         if (haveArgHere) {
             haveArg = true;
             val[newPropName] = val[propName];
             delete val[propName];
         }
-        [elt, haveArgHere] = extractFormalArgs(val[newPropName]);
+
+        [elt, haveArgHere] = extractFormalArgs(val[newPropName], computed);
         val[newPropName] = elt;
+
         haveArg = haveArg || haveArgHere;
     }
     return [val, haveArg];
 }
 
-export function extractFormalArgs(val: Value): [Value, boolean] {
+export function extractFormalArgs(
+    val: Value,
+    computed: Value[] = []
+): [Value, boolean] {
     if (val === FROM_ARG) {
         return [UNKNOWN, true];
     }
@@ -49,14 +55,19 @@ export function extractFormalArgs(val: Value): [Value, boolean] {
         elt,
         haveArgHere;
 
+    if (computed.includes(val)) {
+        return [{}, false];
+    }
+    computed.push(val);
+
     if (Array.isArray(val)) {
         for (let i = 0; i < val.length; i++) {
-            [elt, haveArgHere] = extractFormalArgs(val[i]);
+            [elt, haveArgHere] = extractFormalArgs(val[i], computed);
             val[i] = elt;
             haveArg = haveArg || haveArgHere;
         }
         return [val, haveArg];
     }
 
-    return extractFormalArgsFromObject(val);
+    return extractFormalArgsFromObject(val, computed);
 }
