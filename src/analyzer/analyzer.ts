@@ -125,13 +125,14 @@ export class Analyzer {
 
     private readonly globalDefinitions: VarScope;
     private readonly argsStack: string[][];
-    private readonly formalArgValues: VarScope;
+    private readonly formalArgValuesStack: VarScope[];
     private readonly callQueue: CallConfig[];
 
     private callChain: FunctionCallDescription[];
     private callChainPosition: number;
     private selectedFunction: NodePath | null;
     private formalArgs: string[];
+    private formalArgValues: VarScope;
 
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
@@ -170,6 +171,7 @@ export class Analyzer {
         this.argsStack = [];
         this.formalArgs = [];
         this.formalArgValues = {};
+        this.formalArgValuesStack = [this.formalArgValues];
 
         this.callQueue = [];
         this.callChain = [];
@@ -1037,14 +1039,26 @@ export class Analyzer {
     }
 
     private setArgValues(actualArgs: ASTNode[], formalArgs: string[]): void {
+        const currentFormalArgValues: VarScope = {};
         for (let i = 0; i < formalArgs.length; i++) {
             if (i >= actualArgs.length) {
                 break;
             }
-            this.formalArgValues[formalArgs[i]] = this.valueFromASTNode(
+            currentFormalArgValues[formalArgs[i]] = this.valueFromASTNode(
                 actualArgs[i]
             );
         }
+        this.formalArgValuesStack.push(currentFormalArgValues);
+        this.formalArgValues = this.formalArgValuesStack[
+            this.formalArgValuesStack.length - 1
+        ];
+    }
+
+    private unsetArgValues(): void {
+        this.formalArgValuesStack.pop();
+        this.formalArgValues = this.formalArgValuesStack[
+            this.formalArgValuesStack.length - 1
+        ];
     }
 
     private proceedAlongCallChain(node: CallExpression): void {
@@ -1052,6 +1066,7 @@ export class Analyzer {
         this.setArgValues(node.arguments, f.args);
         this.callChainPosition++;
         this.extractDEPs(f.code, f);
+        this.unsetArgValues();
         this.callChainPosition--;
     }
 
