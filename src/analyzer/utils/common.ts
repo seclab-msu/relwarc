@@ -42,3 +42,7 @@ export function withTimeout<T>(p: Promise<T>, timeout: number): Promise<T> {
         });
     });
 }
+
+export function isNotNullObject(obj: unknown): boolean {
+    return typeof obj === 'object' && obj !== null;
+}

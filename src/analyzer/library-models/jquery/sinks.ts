@@ -10,6 +10,7 @@ import { FormDataModel } from '../../types/form-data';
 import { FunctionValue } from '../../types/function';
 import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
+import { isNotNullObject } from '../../utils/common';
 
 function parseArgs(funcName, args) {
     let settings: Record<string, Value> = {},
@@ -115,10 +116,6 @@ function setData(har, isMultipart, data, qs) {
 function setHeaders(har: HAR, settings: Record<string, string>) {
     const headers = settings.headers || {};
     har.headers.push(...headersFromMap(headers));
-}
-
-function isNotNullObject(obj): boolean {
-    return typeof obj === 'object' && obj !== null;
 }
 
 function isLegalGetAndPostArgsTypes(args: Value[]): boolean {
