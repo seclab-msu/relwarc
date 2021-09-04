@@ -349,4 +349,25 @@ describe('Tests for jQuery library hars', () => {
             }
         );
     });
+
+    it('work correct with bad args types', function () {
+        const scripts = [
+            `
+            $.get(0);
+            $.get('http://example.com', null)
+            $.post('http://example.com', undefined)
+            $.getJSON('http://example.com/get_script', null)
+            $.load('http://example.com/load_script', undefined)
+            $.ajax(false);
+            $.post(Math.random());
+            $.ajax('http://example.com/admin?test=a', null)
+            $.ajax('http://example.com/admin?test=a', undefined)
+            $.getScript('http://example.com/admin?test=a', null)
+            $.getScript('http://example.com/admin?test2=a', undefined)
+            `
+        ];
+        const analyzer = makeAndRunSimple(scripts, true);
+        const convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
+        expect(convertedHars.length).toEqual(2);
+    });
 });

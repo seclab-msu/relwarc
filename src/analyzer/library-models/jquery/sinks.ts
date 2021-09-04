@@ -117,16 +117,65 @@ function setHeaders(har: HAR, settings: Record<string, string>) {
     har.headers.push(...headersFromMap(headers));
 }
 
+function isNotNullObject(obj): boolean {
+    return typeof obj === 'object' && obj !== null;
+}
+
+function isLegalGetAndPostArgsTypes(args: Value[]): boolean {
+    if (typeof args[0] === 'string') {
+        if (args.length > 1) {
+            return isNotNullObject(args[1]) || typeof args[1] === 'string' || typeof args[1] === 'function';
+        } else {
+            return true;
+        }
+    } else {
+        return isNotNullObject(args[0]);
+    }
+}
+
+function isLegalAjaxArgsTypes(args: Value[]): boolean {
+    if (typeof args[0] === 'string') {
+        if (args.length > 1) {
+            return isNotNullObject(args[1]);
+        } else {
+            return true;
+        }
+    } else {
+        return isNotNullObject(args[0]);
+    }
+}
+
+function isLegalGetJSONAndLoadArgsTypes(args: Value[]): boolean {
+    if (typeof args[0] === 'string') {
+        if (args.length > 1) {
+            return isNotNullObject(args[1]) || typeof args[1] === 'string' || typeof args[1] === 'function';
+        } else {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+
+function isLegalGetScriptArgsTypes(args: Value[]): boolean {
+    return typeof args[0] === 'string';
+}
+
 function isIllegal(funcName: string, args: Value[]) {
     if (args[0] === undefined || args[0] === null) {
         return true;
     }
-    if (funcName === 'load' && typeof args[0] !== 'string') {
-        // jQuery until 3.0 also had event-handling function .load
-        // See https://api.jquery.com/load/
-        // See https://github.com/jquery/jquery/blob/2.2-stable/src/ajax/load.js#L20
-        return true;
+
+    if (funcName === 'get' || funcName === 'post') {
+        return !isLegalGetAndPostArgsTypes(args);
+    } else if (funcName === 'ajax') {
+        return !isLegalAjaxArgsTypes(args);
+    } else if (funcName === 'getJSON' || funcName === 'load') {
+        return !isLegalGetJSONAndLoadArgsTypes(args);
+    } else if (funcName === 'getScript') {
+        return !isLegalGetScriptArgsTypes(args);
     }
+
     return false;
 }
 
