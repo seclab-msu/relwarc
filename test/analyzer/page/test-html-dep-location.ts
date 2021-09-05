@@ -10,7 +10,7 @@ function JSONObjectFromHAR(har: object): object {
 
 describe('Testing HTML info of dynamic HTML DEPS', () => {
     it('Script nested in class unique div tags', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -29,7 +29,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Script nested in not class unique div tags', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -48,7 +48,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Subdocument via iframe tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -67,7 +67,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Media load type via audio tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -86,7 +86,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Img load type via img tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -105,7 +105,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Imageset load type via img tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -124,7 +124,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Imageset load type via source tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -142,8 +142,8 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
         dpa.close();
     });
 
-    it('Styleseet load type via link tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+    it('Stylesheet load type via link tag', async () => {
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -162,7 +162,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Media load type via source tag', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -181,7 +181,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Imageset load type, for resource from srcset attr', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -200,7 +200,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Img from page with bad encoding', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/bad-encoding.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -219,7 +219,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('Script from page with bad encoding', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/bad-encoding.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -238,7 +238,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('URL from imgsrc with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -257,7 +257,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('URL from image with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -276,7 +276,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('URL from style with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
@@ -295,7 +295,7 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
     });
 
     it('URL from script with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer();
+        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);

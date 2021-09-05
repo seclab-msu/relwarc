@@ -42,6 +42,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         choices: validDomainFilteringModeValues,
         default: 'second-level'
     });
+    parser.add_argument('--no-static-filter', { action: 'store_true' });
     parser.add_argument('--load-timeout', { type: Number });
     parser.add_argument('--add-dynamic-html-dep-location', { action: 'store_true' });
     parser.add_argument('--record-request-stacks', { action: 'store_true' });
@@ -64,6 +65,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         onlyJSDynamicDEPs: args.only_js_dynamic_deps as boolean,
         loadTimeout: args.load_timeout || undefined,
         recordRequestStackTraces: args.record_request_stacks,
+        filterStatic: !args.no_static_filter
     };
 
     if (args.tar_page) {
