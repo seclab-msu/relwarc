@@ -1,3 +1,5 @@
+import * as stableStringify from 'json-stable-stringify';
+
 import { HAR, KeyValue } from './har';
 import { hasattr } from './utils/common';
 
@@ -326,12 +328,26 @@ function uniteDEPs(har1: HAR, har2: HAR): HAR {
     return har1;
 }
 
+function deduplicateStrictlyEqual(hars: HAR[]): HAR[] {
+    const already: Set<string> = new Set();
+    const result: HAR[] = [];
+    for (const h of hars) {
+        const s = stableStringify(h);
+        if (already.has(s)) {
+            continue;
+        }
+        already.add(s);
+        result.push(h);
+    }
+    return result;
+}
+
 export function deduplicateDEPs(
     hars: HAR[],
     workMode: DeduplicationMode
 ): HAR[] {
     if (workMode === DeduplicationMode.None) {
-        return hars;
+        return deduplicateStrictlyEqual(hars);
     }
     hars.forEach((har, id, hars) => {
         for (let i = id + 1; i < hars.length; i++) {

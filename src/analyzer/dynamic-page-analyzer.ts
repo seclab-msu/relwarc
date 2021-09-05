@@ -15,6 +15,7 @@ import {
     DeduplicationMode
 } from './dep-comparison';
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
+import { filterStaticDEPs } from './static-filter';
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
@@ -27,7 +28,8 @@ export class DynamicPageAnalyzer {
     private readonly dynamicAnalyzer: DynamicAnalyzer;
 
     private readonly domainFilteringMode: DomainFilteringMode;
-
+    private readonly filterStatic: boolean;
+    /* eslint max-lines-per-function: "off" */
     constructor({
         logRequests=false,
         debugRequestLoading=false,
@@ -36,7 +38,8 @@ export class DynamicPageAnalyzer {
         mineDynamicDEPs=true,
         onlyJSDynamicDEPs=false,
         recordRequestStackTraces=false,
-        loadTimeout=(undefined as number | undefined)
+        loadTimeout=(undefined as number | undefined),
+        filterStatic=true
     }={}) {
         let bot: HeadlessBot | OfflineHeadlessBot;
         if (mapURLs) {
@@ -75,6 +78,7 @@ export class DynamicPageAnalyzer {
         this.htmlDEPs = [];
         this.dynamicDEPs = [];
         this.analyzerDEPs = [];
+        this.filterStatic = filterStatic;
 
         if (mineDynamicDEPs) {
             this.setRequestHandler(onlyJSDynamicDEPs, recordRequestStackTraces);
@@ -219,10 +223,14 @@ export class DynamicPageAnalyzer {
     }
 
     getAllDeps(deduplicationMode = DeduplicationMode.None): HAR[] {
-        return deduplicateDEPs(
+        let hars = deduplicateDEPs(
             this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs),
             deduplicationMode
         );
+        if (this.filterStatic) {
+            hars = filterStaticDEPs(hars);
+        }
+        return hars;
     }
 
     close(): void {
