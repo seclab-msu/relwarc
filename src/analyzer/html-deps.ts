@@ -83,6 +83,11 @@ export function mineDEPsFromHTML(webpage: object): HAR[] {
             // TODO: add test for it
             continue;
         }
+        const origHref = a.getAttribute('href');
+        if (origHref !== null && origHref.trim().startsWith('#')) {
+            // links to fragments do not actually trigger requests to server
+            continue;
+        }
         result.push(new HAR(a.href));
     }
 
