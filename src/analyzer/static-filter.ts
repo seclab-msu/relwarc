@@ -13,18 +13,25 @@ const STATIC_LOAD_TYPES: LoadType[] = [
 const SERVED_STATIC_CONTENT_EXTENSIONS = [
     'doc',
     'docx',
+    'xls',
+    'xlsx',
+    'ppt',
+    'pptx',
     'rtf',
     'pdf',
     'jpg',
     'jpeg',
     'png',
     'gif',
+    'bmp',
+    'tif',
     'svg',
     'zip',
     'rar',
     'avi',
     'mp4',
-    'mp3'
+    'mp3',
+    'exe'
 ];
 
 export function filterStaticDEPs(hars: HAR[]): HAR[] {
