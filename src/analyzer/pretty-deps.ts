@@ -72,7 +72,7 @@ export function prettyPrintHAR(har: HAR): void {
         colorPrinter.magenta().write('?').cyan();
         prettyPrintQueryString(har.url.substring(qsIndex + 1));
     }
-    colorPrinter.write('\n');
+    colorPrinter.grey().write(' HTTP/1.1\n');
     let isForm = false;
     for (const h of har.headers) {
         colorPrinter
