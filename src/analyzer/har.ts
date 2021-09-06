@@ -54,6 +54,8 @@ export class HAR {
             throw new BadURLError(url);
         }
 
+        parsedURL.hash = '';
+
         this.method = 'GET';
         this.url = parsedURL.href;
         this.httpVersion = 'HTTP/1.1';
