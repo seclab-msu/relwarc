@@ -2,7 +2,7 @@ import { Unknown, isUnknown, UNKNOWN } from './types/unknown';
 import { LoadType } from './load-type';
 import type { StackFrame } from './browser/stack-frame';
 
-import { hasattr } from './utils/common';
+import { hasattr, isNotNullObject } from './utils/common';
 
 export interface KeyValue {
     name: string;
@@ -185,35 +185,64 @@ export function hasHeader(headers: KeyValue[], name: string): boolean {
     return false;
 }
 
+function buildParam(
+    key: string,
+    value,
+    resParts: string[]
+): string[] {
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            value = [UNKNOWN];
+        }
+        for (let i = 0; i < value.length; i++) {
+            if (!key.endsWith('[]')) {
+                resParts = buildParam(
+                    key + '[' + (isNotNullObject(value[i]) && !isUnknown(value[i]) ? i : '') + ']',
+                    value[i],
+                    resParts
+                );
+            } else {
+                // due to jQuery sources
+                // https://github.com/jquery/jquery/blob/a684e6ba836f7c553968d7d026ed7941e1a612d8/src/serialize.js#L25
+                // if key ends with '[]', then array is not deep-processed,
+                // instead of that just casting to string.
+                resParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value[i]));
+            }
+        }
+    } else if (
+        typeof value === 'object' &&
+        value !== null &&
+        !isUnknown(value)
+    ) {
+        for (const internalKey in value) {
+            if (hasattr(value, internalKey)) {
+                resParts = buildParam(
+                    key + '[' + internalKey + ']', value[internalKey], resParts
+                );
+            }
+        }
+    } else {
+        resParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    }
+
+    return resParts;
+}
+
 export function queryStringFromObject(
     ob: Record<string, string | string[]> | Unknown
 ): string | Unknown {
-    const resParts: string[] = [];
-
-    let val;
-
     if (ob instanceof Unknown) {
         return ob;
     }
 
-    for (let k in ob) {
+    let resParts: string[] = [];
+
+    for (const k in ob) {
         if (hasattr(ob, k)) {
-            val = ob[k];
-            if (Array.isArray(val)) {
-                if (!k.endsWith('[]')) {
-                    k += '[]';
-                }
-                if (val.length === 0) {
-                    val = [UNKNOWN];
-                }
-            } else {
-                val = [val];
-            }
-            for (const innerVal of val) {
-                resParts.push(encodeURIComponent(k) + '=' + encodeURIComponent(innerVal));
-            }
+            resParts = buildParam(k, ob[k], resParts);
         }
     }
+
     return resParts.join('&');
 }
 
