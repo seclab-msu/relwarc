@@ -1036,7 +1036,7 @@ export class Analyzer {
 
         this.saveResult({ funcName, args: argValues }, location);
 
-        if (argsDependOnFormalArg) {
+        if (argsDependOnFormalArg && this.functionsStack.length > 0) {
             this.buildCallChainsForMissingArgs();
         }
         this.argsStackOffset = null;
