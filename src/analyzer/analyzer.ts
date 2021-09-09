@@ -125,14 +125,12 @@ export class Analyzer {
 
     private readonly globalDefinitions: VarScope;
     private readonly argsStack: string[][];
-    private readonly formalArgValuesStack: VarScope[];
     private readonly callQueue: CallConfig[];
 
     private callChain: FunctionCallDescription[];
     private callChainPosition: number;
     private selectedFunction: NodePath | null;
     private formalArgs: string[];
-    private formalArgValues: VarScope;
 
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
@@ -170,8 +168,6 @@ export class Analyzer {
         this.globalDefinitions = { undefined };
         this.argsStack = [];
         this.formalArgs = [];
-        this.formalArgValues = {};
-        this.formalArgValuesStack = [this.formalArgValues];
 
         this.callQueue = [];
         this.callChain = [];
@@ -271,12 +267,33 @@ export class Analyzer {
             return;
         }
 
+        if (this.currentPath === null) {
+            throw new Error('setLocalVariable called without currentPath set');
+        }
+
         let newValue: Value;
 
         if (op === '=') {
             newValue = value;
         } else if (op === '+=') {
-            const oldValue = this.memory.get(binding);
+            let oldValue: Value;
+            if (!this.memory.has(binding)) {
+                if (!this.formalArgs.includes(binding.identifier.name)) {
+                    if (
+                        this.currentPath.scope.hasOwnBinding(
+                            binding.identifier.name
+                        )
+                    ) {
+                        return;
+                    } else {
+                        oldValue = UNKNOWN;
+                    }
+                } else {
+                    oldValue = FROM_ARG;
+                }
+            } else {
+                oldValue = this.memory.get(binding);
+            }
 
             if (
                 isUnknownOrUnknownString(oldValue) &&
@@ -681,10 +698,6 @@ export class Analyzer {
         }
 
         if (~formalArgs.indexOf(name) || this.selectedFunction) {
-            if (hasattr(this.formalArgValues, name)) {
-                return this.formalArgValues[name];
-            }
-
             if (formalArgs.includes(name)) {
                 return FROM_ARG;
             }
@@ -1042,35 +1055,37 @@ export class Analyzer {
         this.argsStackOffset = null;
     }
 
-    private setArgValues(actualArgs: ASTNode[], formalArgs: string[]): void {
-        const currentFormalArgValues: VarScope = {};
+    private setArgValues(
+        actualArgs: ASTNode[], formalArgs: string[], func: NodePath
+    ): void {
         for (let i = 0; i < formalArgs.length; i++) {
             if (i >= actualArgs.length) {
                 break;
             }
-            currentFormalArgValues[formalArgs[i]] = this.valueFromASTNode(
-                actualArgs[i]
-            );
+            const binding = func.scope.getBinding(formalArgs[i]);
+            if (typeof binding === 'undefined') {
+                throw new Error('Undefined binding for func argument within it\'s scope');
+            }
+            this.memory.set(binding, this.valueFromASTNode(actualArgs[i]));
         }
-        this.formalArgValuesStack.push(currentFormalArgValues);
-        this.formalArgValues = this.formalArgValuesStack[
-            this.formalArgValuesStack.length - 1
-        ];
     }
 
-    private unsetArgValues(): void {
-        this.formalArgValuesStack.pop();
-        this.formalArgValues = this.formalArgValuesStack[
-            this.formalArgValuesStack.length - 1
-        ];
+    private unsetArgValues(formalArgs: string[], func: NodePath): void {
+        for (let i = 0; i < formalArgs.length; i++) {
+            const binding = func.scope.getBinding(formalArgs[i]);
+            if (typeof binding === 'undefined') {
+                throw new Error('Undefined binding for func argument within it\'s scope');
+            }
+            this.memory.set(binding, UNKNOWN);
+        }
     }
 
     private proceedAlongCallChain(node: CallExpression): void {
         const f = this.callChain[this.callChainPosition];
-        this.setArgValues(node.arguments, f.args);
+        this.setArgValues(node.arguments, f.args, f.code);
         this.callChainPosition++;
         this.extractDEPs(f.code, f);
-        this.unsetArgValues();
+        this.unsetArgValues(f.args, f.code);
         this.callChainPosition--;
     }
 
