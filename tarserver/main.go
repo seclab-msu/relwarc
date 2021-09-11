@@ -162,12 +162,13 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 					}
 				}
 
+				w.WriteHeader(http.StatusOK)
+
 				n, err := w.Write(info.Body)
 				if n != len(info.Body) || err != nil {
 					log.Panic(err)
 				}
 
-				w.WriteHeader(http.StatusOK)
 				return
 			}
 		}
