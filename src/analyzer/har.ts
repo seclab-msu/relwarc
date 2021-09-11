@@ -27,6 +27,7 @@ export interface Initiator {
     lineNumber?: number;
     columnNumber?: number;
     htmlInfo?: HTMLInfo;
+    commented?: boolean;
 }
 
 export class HAR {

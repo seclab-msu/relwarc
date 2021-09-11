@@ -175,4 +175,81 @@ describe('Correct work with scopes', () => {
             'bodySize': 0,
         }));
     });
+    it('Handles addition assigment operator inside function call, where oldValue is arg', async () => {
+        const scripts = [
+            `function callAjax1(action,params)
+            {    
+              params+="&lang="+lang;
+              $.ajax({    
+                type: "POST",
+                url: "http://example.com/"+action,
+                data: params,       
+              })
+            }        
+            callAjax1("saveAvatar",'filename=');`,
+
+            `function callAjax2(action,params)
+            {    
+              params+="&lang="+"SOMETHING_KNOWN";
+              $.ajax({    
+                type: "POST",
+                url: "http://example.com/"+action,
+                data: params,       
+              })
+            }   
+            callAjax2("saveAvatar",'filename=');`
+        ];
+
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+
+        const hars = analyzer.hars.map(JSONObjectFromHAR);
+        expect(hars.length).toBeLessThanOrEqual(5);
+        console.log(JSON.stringify(hars, null, 4));
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://example.com/saveAvatar',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [],
+            'postData': {
+                'text': 'filename=&lang=UNKNOWN',
+                'mimeType': 'application/x-www-form-urlencoded',
+                'params': [
+                    {
+                        'name': 'filename',
+                        'value': ''
+                    },
+                    {
+                        'name': 'lang',
+                        'value': 'UNKNOWN'
+                    }
+                ]
+            },
+            'bodySize': 22
+        }));
+
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'POST',
+            'url': 'http://example.com/saveAvatar',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [],
+            'postData': {
+                'text': 'filename=&lang=SOMETHING_KNOWN',
+                'mimeType': 'application/x-www-form-urlencoded',
+                'params': [
+                    {
+                        'name': 'filename',
+                        'value': ''
+                    },
+                    {
+                        'name': 'lang',
+                        'value': 'SOMETHING_KNOWN'
+                    }
+                ]
+            },
+            'bodySize': 30
+        }));
+    });
 });
