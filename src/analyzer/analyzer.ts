@@ -1473,7 +1473,18 @@ export class Analyzer {
                 if (err instanceof BadURLError) {
                     continue;
                 } else {
-                    throw err;
+                    let argsStringified: string;
+                    try {
+                        argsStringified = JSON.stringify(result.args);
+                    } catch {
+                        argsStringified = '<JSON stringify failed>';
+                    }
+                    log(
+                        'Analyzer: Error: failed to convert args to HAR: ' +
+                        err + '\n' + err.stack + 'func: ' + result.funcName +
+                        ' args: ' + argsStringified
+                    );
+                    continue;
                 }
             }
 
