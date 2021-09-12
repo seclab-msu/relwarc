@@ -15,7 +15,8 @@ import {
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
-    isTemplateLiteral, isSpreadElement, isFunction, isCallExpression
+    isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
+    isAssignmentPattern
 } from '@babel/types';
 
 import {
@@ -1064,7 +1065,8 @@ export class Analyzer {
             }
             const binding = func.scope.getBinding(formalArgs[i]);
             if (typeof binding === 'undefined') {
-                throw new Error('Undefined binding for func argument within it\'s scope');
+                log('Warning: Undefined binding for func argument within it\'s scope');
+                continue;
             }
             this.memory.set(binding, this.valueFromASTNode(actualArgs[i]));
         }
@@ -1074,7 +1076,8 @@ export class Analyzer {
         for (let i = 0; i < formalArgs.length; i++) {
             const binding = func.scope.getBinding(formalArgs[i]);
             if (typeof binding === 'undefined') {
-                throw new Error('Undefined binding for func argument within it\'s scope');
+                log('Warning: Undefined binding for func argument within it\'s scope');
+                continue;
             }
             this.memory.set(binding, UNKNOWN);
         }
@@ -1108,6 +1111,12 @@ export class Analyzer {
         return node.params.map(param => {
             if (isIdentifier(param)) {
                 return param.name;
+            } else if (isAssignmentPattern(param)) {
+                const left = param.left;
+                if (isIdentifier(left)) {
+                    return left.name;
+                }
+                // TODO: support default arg values
             }
             // TODO: support other parameter forms
             return 'unknownParam';

@@ -207,7 +207,6 @@ describe('Correct work with scopes', () => {
 
         const hars = analyzer.hars.map(JSONObjectFromHAR);
         expect(hars.length).toBeLessThanOrEqual(5);
-        console.log(JSON.stringify(hars, null, 4));
         expect(hars).toContain(jasmine.objectContaining({
             'method': 'POST',
             'url': 'http://example.com/saveAvatar',
