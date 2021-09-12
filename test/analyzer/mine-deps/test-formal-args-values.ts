@@ -86,4 +86,29 @@ describe('Tests for formal arg values', () => {
             }
         }));
     });
+
+    it('handles AssignmentPattern in function args', async () => {
+        const scripts = [
+            `const y = (a, b = 'supersecret') => {
+                $.get(a, 'password=' + b);
+            }
+            y('/admin', '5a$$w0rd');`
+        ];
+        const analyzer = makeAndRunSimple(
+            scripts,
+            true
+        );
+        const hars = analyzer.hars.map(JSONObjectFromHAR);
+        expect(hars).toContain(jasmine.objectContaining({
+            'method': 'GET',
+            'url': 'http://test.com/admin?password=5a$$w0rd',
+            'httpVersion': 'HTTP/1.1',
+            'queryString': [
+                {
+                    'name': 'password',
+                    'value': '5a$$w0rd'
+                }
+            ]
+        }));
+    });
 });
