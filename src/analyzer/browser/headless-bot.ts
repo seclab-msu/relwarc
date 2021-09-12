@@ -54,7 +54,7 @@ interface ResourceResponse {
 interface ResourceError {
     id: number;
     url: string;
-    errorCode: string;
+    errorCode: number;
     errorString: string;
     status: number;
     statusText: string;
@@ -88,6 +88,7 @@ interface Webpage {
     stopJavaScript: () => void;
     content: string;
     close(): void;
+    stop(): void;
 }
 
 export interface HeadlessBotOptions {
@@ -121,6 +122,9 @@ export class HeadlessBot {
 
     private closed: boolean;
     private windowCreatedCallback: null | WindowCreatedCallback = null;
+
+    pageLoadingStopped: boolean;
+    ignoreSSLError: boolean;
 
     constructor({
         printPageErrors=false,
@@ -158,6 +162,9 @@ export class HeadlessBot {
         if (recordRequestStackTraces) {
             enableRequestStackTraceRecording(true);
         }
+
+        this.ignoreSSLError = false;
+        this.pageLoadingStopped = false;
 
         this.closed = false;
     }
@@ -248,6 +255,16 @@ export class HeadlessBot {
                 `count now ${this.pendingRequests.size}`
             );
         }
+
+        if (
+            resError.errorCode === 99 &&
+            resError.errorString.includes('NS_ERROR_ABORT') &&
+            !this.ignoreSSLError
+        ) {
+            this.webpage.stop();
+            this.webpage.close();
+            this.pageLoadingStopped = true;
+        }
     }
 
     protected handleResponse(response: ResourceResponse): void {
@@ -322,6 +339,7 @@ export class HeadlessBot {
             throw new Error('can\'t navigate: headless bot is already closed');
         }
 
+        this.pageLoadingStopped = false;
         let status: string | null = null;
         try {
             this.loadStartTimestamp = Date.now();

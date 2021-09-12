@@ -17,6 +17,8 @@ import {
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
 import { filterStaticDEPs } from './static-filter';
 
+const MAX_LOAD_ATTEMPTS = 3;
+
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
     dynamicDEPs: HAR[];
@@ -120,7 +122,17 @@ export class DynamicPageAnalyzer {
         };
 
         log(`Navigating to URL: ${url}`);
-        await this.bot.navigate(url);
+
+        for (let i = 0; i <= MAX_LOAD_ATTEMPTS; i++) {
+            if (i === MAX_LOAD_ATTEMPTS) {
+                this.bot.ignoreSSLError = true;
+            }
+            await this.bot.navigate(url);
+            if (!this.bot.pageLoadingStopped) {
+                break;
+            }
+            log(`Page loading was stopped, will retry: ${i+1}`);
+        }
 
         this.bot.triggerParsingOfEventHandlerAttributes();
 
