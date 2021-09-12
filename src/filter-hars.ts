@@ -54,8 +54,10 @@ const parsedHARs = JSON.parse(
 const hars: HAR[] = [];
 for (const parsedHAR of parsedHARs) {
     const har = HAR.fromJSON(parsedHAR);
-    if (harFilter(har)) {
-        hars.push(har);
+    if (har !== null) {
+        if (harFilter(har)) {
+            hars.push(har);
+        }
     }
 }
 

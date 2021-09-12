@@ -1,5 +1,6 @@
-import { HAR, KeyValue } from './har';
+import { HAR, KeyValue, BadURLError } from './har';
 import { getWrappedWindow } from './utils/window';
+import { log } from './logging';
 
 type SupportedFormInput =
     | HTMLInputElement
@@ -16,7 +17,7 @@ function isSupportedFormInput(el: Element): el is SupportedFormInput {
         el instanceof HTMLSelectElement;
 }
 
-function harFromGETForm(form: HTMLFormElement): HAR {
+function harFromGETForm(form: HTMLFormElement): HAR | null {
     const url = new URL(form.action);
 
     for (const el of form.elements) {
@@ -29,11 +30,33 @@ function harFromGETForm(form: HTMLFormElement): HAR {
         }
         url.searchParams.append(el.name, el.value);
     }
-    return new HAR(url.href);
+
+    let har;
+    try {
+        har = new HAR(url.href);
+    } catch (err) {
+        if (err instanceof BadURLError) {
+            log('warning: BadURLError exception at ' + url.href);
+            return null;
+        } else {
+            throw err;
+        }
+    }
+    return har;
 }
 
-function harFromPOSTForm(form: HTMLFormElement): HAR {
-    const har = new HAR(form.action);
+function harFromPOSTForm(form: HTMLFormElement): HAR | null {
+    let har;
+    try {
+        har = new HAR(form.action);
+    } catch (err) {
+        if (err instanceof BadURLError) {
+            log('warning: BadURLError exception at ' + form.action);
+            return null;
+        } else {
+            throw err;
+        }
+    }
 
     const encType = form.enctype || defaultEncType;
 
@@ -88,14 +111,33 @@ export function mineDEPsFromHTML(webpage: object): HAR[] {
             // links to fragments do not actually trigger requests to server
             continue;
         }
-        result.push(new HAR(a.href));
+
+        let har;
+        try {
+            har = new HAR(a.href);
+        } catch (err) {
+            if (err instanceof BadURLError) {
+                log('warning: BadURLError exception at ' + a.href);
+                continue;
+            } else {
+                throw err;
+            }
+        }
+
+        result.push(har);
     }
 
     for (const form of document.getElementsByTagName('form')) {
         if (form.method === 'get') {
-            result.push(harFromGETForm(form));
+            const har = harFromGETForm(form);
+            if (har !== null) {
+                result.push(har);
+            }
         } else if (form.method === 'post') {
-            result.push(harFromPOSTForm(form));
+            const har = harFromPOSTForm(form);
+            if (har !== null) {
+                result.push(har);
+            }
         } else {
             // TODO: implement other methods
             console.error('HTML DEPS: non-GET or non-POST forms not implemened yet');
