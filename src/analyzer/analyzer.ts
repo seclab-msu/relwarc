@@ -200,8 +200,12 @@ export class Analyzer {
             return;
         }
 
-        if (url !== undefined && url.startsWith('dynamically evaled code from script')) {
-            sourceText = '{' + sourceText + '}';
+        if (url !== undefined) {
+            if (url.startsWith('dynamically evaled code')) {
+                sourceText = '{' + sourceText + '}';
+            } else if (url.startsWith('code from new Function constructor')) {
+                sourceText = '(function () {' + sourceText + '})';
+            }
         }
 
         this.scripts.push({
