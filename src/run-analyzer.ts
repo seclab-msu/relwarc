@@ -47,6 +47,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--add-dynamic-html-dep-location', { action: 'store_true' });
     parser.add_argument('--record-request-stacks', { action: 'store_true' });
     parser.add_argument('--output', { type: String, default: null });
+    parser.add_argument('--no-reload-page', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -76,16 +77,15 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     const analyzer = new DynamicPageAnalyzer(analyzerOptions);
 
-    const mineHTMLDEPs = !args.no_html_deps;
-
     const addHtmlDynamicDEPsLocation =
         args.add_dynamic_html_dep_location as boolean;
 
     await analyzer.run(
         targetURL,
         args.uncomment,
-        mineHTMLDEPs,
-        addHtmlDynamicDEPsLocation
+        !args.no_html_deps,
+        addHtmlDynamicDEPsLocation,
+        !args.no_reload_page
     );
 
     if (args.args) {

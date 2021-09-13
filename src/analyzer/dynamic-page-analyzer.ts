@@ -17,7 +17,7 @@ import {
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
 import { filterStaticDEPs } from './static-filter';
 
-const MAX_LOAD_ATTEMPTS = 3;
+const MAX_LOAD_ATTEMPTS = 5;
 
 export class DynamicPageAnalyzer {
     htmlDEPs: HAR[];
@@ -111,11 +111,13 @@ export class DynamicPageAnalyzer {
         };
     }
 
+    /* eslint-disable-next-line max-params */
     async run(
         url: string,
-        uncomment?: boolean,
+        uncomment=false,
         mineHTMLDEPs=true,
-        addHtmlDynamicDEPsLocation=false
+        addHtmlDynamicDEPsLocation=false,
+        reloadPage=true
     ): Promise<void> {
         this.analyzer.harFilter = (har: HAR): boolean => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
@@ -124,7 +126,7 @@ export class DynamicPageAnalyzer {
         log(`Navigating to URL: ${url}`);
 
         for (let i = 0; i <= MAX_LOAD_ATTEMPTS; i++) {
-            if (i === MAX_LOAD_ATTEMPTS) {
+            if (!reloadPage || i === MAX_LOAD_ATTEMPTS) {
                 this.bot.ignoreSSLError = true;
             }
             await this.bot.navigate(url);
