@@ -1,6 +1,7 @@
 import { Unknown, isUnknown, UNKNOWN } from './types/unknown';
 import { LoadType } from './load-type';
 import type { StackFrame } from './browser/stack-frame';
+import { log } from './logging';
 
 import { hasattr, isNotNullObject } from './utils/common';
 
@@ -140,8 +141,18 @@ export class HAR {
         return this.postData;
     }
 
-    static fromJSON(jsonHAR: ReturnType<JSON['parse']>): HAR {
-        const har = new HAR(jsonHAR['url']);
+    static fromJSON(jsonHAR: ReturnType<JSON['parse']>): HAR | null {
+        let har;
+        try {
+            har = new HAR(jsonHAR['url']);
+        } catch (err) {
+            if (err instanceof BadURLError) {
+                log('warning: BadURLError exception at ' + jsonHAR['url']);
+                return null;
+            } else {
+                throw err;
+            }
+        }
         har.httpVersion = jsonHAR['httpVersion'];
         har.method = jsonHAR['method'];
         har.bodySize = jsonHAR['bodySize'];

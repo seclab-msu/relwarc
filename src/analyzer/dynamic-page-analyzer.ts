@@ -98,6 +98,10 @@ export class DynamicPageAnalyzer {
                 return;
             }
             const har = requestToHar(req);
+            if (har === null) {
+                log('dynamic-page-analyzer: can not create har');
+                return;
+            }
             if (recordRequestStackTraces) {
                 if (typeof har.initiator == 'undefined') {
                     throw new Error('initiator not set by requestToHar');
