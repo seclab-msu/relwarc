@@ -261,6 +261,10 @@ export class HeadlessBot {
             resError.errorString.includes('NS_ERROR_ABORT') &&
             !this.ignoreSSLError
         ) {
+            log(
+                `request: ${resError.url} was aborted ` +
+                `with ${resError.errorCode} error code`
+            );
             this.webpage.stop();
             this.webpage.close();
             this.pageLoadingStopped = true;
