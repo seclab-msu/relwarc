@@ -206,6 +206,8 @@ export class Analyzer {
                 sourceText = '{' + sourceText + '}';
             } else if (url.startsWith('code from new Function constructor')) {
                 sourceText = '(function () {' + sourceText + '})';
+            } else if (url.startsWith('code from inline event handler')) {
+                sourceText = '(function () {' + sourceText + '})';
             }
         }
 
