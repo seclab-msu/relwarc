@@ -22,13 +22,12 @@ interface Script {
 }
 
 const dynamicEvaled = 'dynamically evaled code from script ';
+const fromNewFunction = 'code from new Function constructor from script ';
 
 export class DynamicAnalyzer {
-    newScriptCallback: ((
-        source: string,
-        startLine: number,
-        url: string) => void
-    ) | null;
+    newScriptCallback:
+        | ((source: string, startLine: number, url: string) => void)
+        | null;
 
     private dbg: Debugger | null;
 
@@ -45,6 +44,9 @@ export class DynamicAnalyzer {
                 let url = script.url;
                 if (script.source.introductionType === 'eval') {
                     url = dynamicEvaled + script.source.introductionScript.url;
+                } else if (script.source.introductionType === 'Function') {
+                    url =
+                        fromNewFunction + script.source.introductionScript.url;
                 }
 
                 this.newScriptCallback(
