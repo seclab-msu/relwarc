@@ -23,6 +23,7 @@ interface Script {
 
 const dynamicEvaled = 'dynamically evaled code from script ';
 const fromNewFunction = 'code from new Function constructor from script ';
+const fromInlineHandler = 'code from inline event handler described at ';
 
 export class DynamicAnalyzer {
     newScriptCallback:
@@ -47,6 +48,8 @@ export class DynamicAnalyzer {
                 } else if (script.source.introductionType === 'Function') {
                     url =
                         fromNewFunction + script.source.introductionScript.url;
+                } else if (script.source.introductionType === 'eventHandler') {
+                    url = fromInlineHandler + script.url;
                 }
 
                 this.newScriptCallback(
