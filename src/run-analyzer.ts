@@ -21,6 +21,8 @@ import { outputDEPs, outputArgs } from './analyzer/output';
 
 import { log } from './analyzer/logging';
 
+let targetURL;
+
 /* eslint max-lines-per-function:off */
 async function main(argc: number, argv: string[]): Promise<number> {
     const parser = new ArgumentParser({ prog: `slimerjs ${argv[0]}` });
@@ -55,7 +57,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         return 1;
     }
 
-    let targetURL = args.target_url;
+    targetURL = args.target_url;
 
     const analyzerOptions = {
         logRequests: args.log_requests,
@@ -111,7 +113,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         system.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
         exitStatus = 1;
     }
-    log('All done, exiting');
+    log(`All done on ${targetURL}, exiting`);
     if (!slimer.isExiting()) {
         slimer.exit(exitStatus);
     }
