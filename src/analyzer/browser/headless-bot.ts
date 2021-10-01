@@ -361,7 +361,7 @@ export class HeadlessBot {
             }
         }
 
-        if (status !== null && status !== 'success') {
+        if (status !== null && status !== 'success' && !this.pageLoadingStopped) {
             throw new Error('Failed to open URL ' + url);
         }
 
