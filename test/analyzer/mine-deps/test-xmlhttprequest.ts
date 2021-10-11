@@ -177,4 +177,49 @@ describe('Analyzer mining DEPs from XMLHttpRequest calls', () => {
         const analyzer = makeAndRunSimple(scripts, true);
         expect(analyzer.hars).toEqual([]);
     });
+
+    it('test with form-data param', () => {
+        const scripts = [
+            `const formData = new FormData()
+            formData.append('name', 'value')
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', '/api/attachment', true)
+            xhr.send(formData)`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                method: 'POST',
+                url: 'http://example.com/api/attachment',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'example.com'
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'multipart/form-data'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '0'
+                    }
+                ],
+                queryString: [],
+                bodySize: 0,
+                postData: {
+                    text: null,
+                    mimeType: 'multipart/form-data',
+                    params: [
+                        {
+                            name: 'name',
+                            value: 'value'
+                        }
+                    ]
+                },
+                httpVersion: 'HTTP/1.1'
+            },
+            'http://example.com/',
+        );
+    });
 });

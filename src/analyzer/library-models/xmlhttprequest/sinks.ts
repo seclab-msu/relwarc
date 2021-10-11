@@ -1,5 +1,6 @@
-import { HAR, hasHeader } from '../../har';
+import { HAR, hasHeader, KeyValue } from '../../har';
 import { isUnknown } from '../../types/unknown';
+import { FormDataModel } from '../../types/form-data';
 
 import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
@@ -11,21 +12,58 @@ interface XHRCalls {
 
 const DEFAULT_CONTENT_TYPE = 'text/plain';
 
-function addBody(result, body) {
+function setData(har: HAR, isMultipart, data) {
+    if (isMultipart) {
+        const forcedPostData: KeyValue[] = [];
+        for (const [name, value] of Object.entries(data.getData())) {
+            // TODO: dirty type conversion to string in value
+            // reconsider type of value in KeyValue (change to Value?)
+            // @ts-ignore
+            forcedPostData.push({ name, value: String(value) });
+        }
+        har.setPostData('', false, forcedPostData);
+    } else {
+        har.setPostData(data);
+    }
+}
+
+function getBody(data): [boolean, string | FormDataModel] {
+    let body: string | FormDataModel,
+        isMultipart = false;
+    if (data instanceof FormDataModel) {
+        isMultipart = true;
+        body = data;
+    } else {
+        body = String(data);
+    }
+    return [isMultipart, body];
+}
+
+function addBody(result: HAR | null, body, isMultipart) {
     if (result === null) {
         console.error('Warning: unexpected XMLHttpRequest args without open');
         return result;
     }
 
+    if (result.method === 'GET' || result.method === 'HEAD') {
+        return result;
+    }
+
     if (body !== null) {
         if (!hasHeader(result.headers, 'Content-Type')) {
-            result.headers.push({
-                'name': 'Content-Type',
-                'value': DEFAULT_CONTENT_TYPE
-            });
+            if (isMultipart) {
+                result.headers.push({
+                    'name': 'Content-Type',
+                    'value': 'multipart/form-data'
+                });
+            } else {
+                result.headers.push({
+                    'name': 'Content-Type',
+                    'value': DEFAULT_CONTENT_TYPE
+                });
+            }
         }
-
-        result.setPostData(body);
+        setData(result, isMultipart, body);
     }
     return result;
 }
@@ -36,7 +74,8 @@ function isIllegalURL(url: Value): boolean {
 
 function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
     let result: HAR | null = null,
-        body: string | null = null;
+        body: string | FormDataModel | null = null,
+        isMultipart = false;
 
     const xhrCallSequence = (args as unknown) as XHRCalls[];
 
@@ -58,7 +97,8 @@ function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
             if (callArgs.length === 0 || callArgs[0] === null) {
                 continue;
             }
-            body = String(callArgs[0]);
+            const data = callArgs[0];
+            [isMultipart, body] = getBody(data);
             break;
         }
         case 'setRequestHeader': {
@@ -76,7 +116,7 @@ function makeHARXHR(name: string, args: Value[], baseURL: string): HAR | null {
         }
     }
 
-    return addBody(result, body);
+    return addBody(result, body, isMultipart);
 }
 
 const sinks: SinkDescr[] = [
