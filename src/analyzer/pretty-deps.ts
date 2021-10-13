@@ -74,7 +74,7 @@ export function prettyPrintHAR(har: HAR): void {
     }
     colorPrinter.grey().write(' HTTP/1.1\n');
     let isForm = false;
-    for (const h of har.headers) {
+    for (const h of (har.headers || [])) {
         colorPrinter
             .yellow()
             .write(h.name + ':')
