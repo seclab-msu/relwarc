@@ -267,6 +267,7 @@ export class HeadlessBot {
             );
             this.webpage.stop();
             this.webpage.close();
+            this.pendingRequests.clear();
             this.pageLoadingStopped = true;
         }
     }
