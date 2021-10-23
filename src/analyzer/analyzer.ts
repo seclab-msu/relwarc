@@ -532,6 +532,11 @@ export class Analyzer {
 
         if (methodName === 'concat') {
             args = args.map(arg => String(arg));
+        } else if (methodName === 'replace' || methodName === 'replaceAll') {
+            if (isUnknown(args[0])) {
+                return UNKNOWN;
+            }
+            args = [args[0]].concat(args.slice(1).map(arg => String(arg)));
         } else {
             if (!args.every(v => !isUnknown(v))) {
                 return UNKNOWN;

@@ -4,7 +4,7 @@ import { HAR } from '../../../src/analyzer/har';
 import { TestHAR, UnorderedHAR } from './types';
 import * as fs from 'fs';
 
-function makeUnorderedHARS(hars: (HAR|TestHAR)[]): UnorderedHAR[] {
+export function makeUnorderedHARS(hars: (HAR|TestHAR)[]): UnorderedHAR[] {
     return hars.map(function (har: HAR|TestHAR): UnorderedHAR {
         const newHAR: UnorderedHAR = {
             method: har.method,
@@ -28,7 +28,7 @@ function makeUnorderedHARS(hars: (HAR|TestHAR)[]): UnorderedHAR[] {
     });
 }
 
-function getArgsFromFile(path: string): SinkCall[] {
+export function getArgsFromFile(path: string): SinkCall[] {
     return JSON.parse(fs.readFileSync(path).toString(), function (k, v) {
         if (v === 'UNKNOWN') {
             if (k === 'Content-Type') {
@@ -43,7 +43,7 @@ function getArgsFromFile(path: string): SinkCall[] {
     });
 }
 
-function removeEmpty(obj: SinkCall[]): SinkCall[] {
+export function removeEmpty(obj: SinkCall[]): SinkCall[] {
     Object.keys(obj).forEach(key => {
         if (obj[key] && typeof obj[key] === 'object') {
             removeEmpty(obj[key]);
