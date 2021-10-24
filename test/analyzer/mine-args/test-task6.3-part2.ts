@@ -1,5 +1,5 @@
 import { SinkCall } from '../../../src/analyzer/analyzer';
-import { runSingleTestSinkCall, getArgsFromFile, removeEmpty, makeAndRunSimple } from '../utils/utils';
+import { runSingleTestSinkCall, getArgsFromFile, removeEmpty, removeLocation, makeAndRunSimple } from '../utils/utils';
 import { UNKNOWN } from '../../../src/analyzer/types/unknown';
 import * as fs from 'fs';
 
@@ -34,8 +34,10 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const checkingObjWithRegexUrl = __dirname + '/../data/6_3task_tests/args9-regexurl.json';
         const argsFromFile = getArgsFromFile(checkingObj);
         const argsFromFileWithRegexUrl = getArgsFromFile(checkingObjWithRegexUrl);
-        const results = removeEmpty(analyzer.results);
+        const results = removeLocation(removeEmpty(analyzer.results));
+        console.log(JSON.stringify(results, null, 4));
         for (let i = 0; i < argsFromFile.length; i++) {
+            delete results[i].location;
             expect(results).toContain(argsFromFile[i] as SinkCall);
         }
         argsFromFileWithRegexUrl.forEach(function (test) {

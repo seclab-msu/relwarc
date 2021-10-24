@@ -54,7 +54,7 @@ export function removeEmpty(obj: SinkCall[]): SinkCall[] {
     return obj;
 }
 
-function removeLocation(obj: SinkCall[]): SinkCall[] {
+export function removeLocation(obj: SinkCall[]): SinkCall[] {
     obj.forEach(arg => delete arg.location);
     return obj;
 }
