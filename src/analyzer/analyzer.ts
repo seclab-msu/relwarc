@@ -10,7 +10,7 @@ import {
     File as AST,
     Function as FunctionASTNode,
     Comment as CommentASTNode,
-    CallExpression, BinaryExpression, UnaryExpression,
+    CallExpression, BinaryExpression, UnaryExpression, AssignmentExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     // validators
@@ -1299,6 +1299,39 @@ export class Analyzer {
         }
     }
 
+    private extractDEPsFromAssignmentExpression(
+        node: AssignmentExpression
+    ): void {
+        if (node.left.type === 'MemberExpression') {
+            const ob = this.valueFromASTNode(node.left.object);
+            const val = this.valueFromASTNode(node.left);
+
+            const isLocationObject = (
+                (
+                    ob === this.globalDefinitions.window ||
+                    ob === this.globalDefinitions.document
+                ) && val === this.globalDefinitions.location
+            );
+
+            const isLocationHref = (
+                this.globalDefinitions.location instanceof URL &&
+                ob === this.globalDefinitions.location &&
+                val === this.globalDefinitions.location.href
+            );
+
+            if (isLocationObject || isLocationHref) {
+                this.extractDEPFromArgs('replace_location', [node.right], node.loc);
+            }
+        }
+        if (node.left.type === 'Identifier') {
+            const ob = this.valueFromASTNode(node.left);
+
+            if (ob === this.globalDefinitions.location) {
+                this.extractDEPFromArgs('replace_location', [node.right], node.loc);
+            }
+        }
+    }
+
     private traverseASTForDEPExtraction(code: AST | NodePath): void {
         const visitor = {
             enter: (path: NodePath): void => {
@@ -1310,6 +1343,10 @@ export class Analyzer {
                     this.functionsStack.push(path);
                     this.trackedCallSequencesStack.push(new Map());
                 }
+                if (node.type === 'AssignmentExpression') {
+                    this.extractDEPsFromAssignmentExpression(node);
+                }
+
                 if (
                     this.functionsStack.length > 0 &&
                     (node.type === 'VariableDeclarator' ||

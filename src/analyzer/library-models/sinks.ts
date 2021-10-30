@@ -6,6 +6,7 @@ import jQuerySinks from './jquery/sinks';
 import angularSinks from './angular/sinks';
 import axiosSinks from './axios/sinks';
 import xmlHttpRequestSinks from './xmlhttprequest/sinks';
+import locationSinks from './location/sinks';
 
 import type { Value } from '../types/generic';
 
@@ -36,7 +37,8 @@ const sinkList: SinkDescr[] = ([] as SinkDescr[])
     .concat(angularSinks)
     .concat(fetchSinks)
     .concat(xmlHttpRequestSinks)
-    .concat(axiosSinks);
+    .concat(axiosSinks)
+    .concat(locationSinks);
 
 for (const sinkDescr of sinkList) {
     if (sinkDescr.type === 'freeStanding') {
