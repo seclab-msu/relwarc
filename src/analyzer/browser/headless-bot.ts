@@ -84,6 +84,7 @@ interface Webpage {
     onResourceReceived: null | ResourceReceivedCallback;
     onResourceError: null | ResourceErrorCallback;
     onError: (message: string, stack: ErrorStackTraceFrame[]) => void;
+    onLoadFinished: (status: string, url: string, isFrame: boolean, httpStatus: number | null) => void; // eslint-disable-line max-len
     evaluate: (callback: () => void) => void;
     stopJavaScript: () => void;
     content: string;
@@ -105,6 +106,7 @@ export class HeadlessBot {
     requestCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
+
     private readonly loadTimeout: number;
     protected readonly printPageErrors: boolean;
     protected readonly logRequests: boolean;
@@ -122,6 +124,7 @@ export class HeadlessBot {
 
     private closed: boolean;
     private windowCreatedCallback: null | WindowCreatedCallback = null;
+    private pageLoadHTTPStatus: number | null = null;
 
     pageLoadingStopped: boolean;
     ignoreSSLError: boolean;
@@ -200,6 +203,16 @@ export class HeadlessBot {
                 );
             }
         };
+
+        this.webpage.onLoadFinished = (_, __, isSubframe, statusCode) => {
+            if (!isSubframe) {
+                this.pageLoadHTTPStatus = statusCode;
+            }
+        };
+    }
+
+    getPageLoadHTTPStatus(): number | null {
+        return this.pageLoadHTTPStatus;
     }
 
     triggerParsingOfEventHandlerAttributes(): void {

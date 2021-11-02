@@ -144,7 +144,10 @@ export class DynamicPageAnalyzer {
 
         // this.bot.webpage.render("/tmp/page.png");
 
-        log(`Opened URL ${url}, now run analyzer`);
+        const status = this.bot.getPageLoadHTTPStatus();
+
+        // NOTE: status can actually indicate load of different URL due to JS redirect (see #5283)
+        log(`Opened URL ${url} with http status ${status}, now run analyzer`);
 
         this.analyzer.analyze(url, uncomment);
 
