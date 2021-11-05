@@ -25,7 +25,6 @@ function parseArgs(funcName, args) {
         if (funcName === 'ajax' && args.length > 1) {
             settings = args[1];
         } else if (args[1] === UNKNOWN_FUNCTION ||
-            funcName === 'getJSON' &&
             args[1] instanceof FunctionValue
         ) {
             data = null;

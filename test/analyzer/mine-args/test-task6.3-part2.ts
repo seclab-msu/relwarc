@@ -35,7 +35,6 @@ describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {
         const argsFromFile = getArgsFromFile(checkingObj);
         const argsFromFileWithRegexUrl = getArgsFromFile(checkingObjWithRegexUrl);
         const results = removeLocation(removeEmpty(analyzer.results));
-        console.log(JSON.stringify(results, null, 4));
         for (let i = 0; i < argsFromFile.length; i++) {
             delete results[i].location;
             expect(results).toContain(argsFromFile[i] as SinkCall);
