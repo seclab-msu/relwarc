@@ -239,6 +239,109 @@ describe('Tests for jQuery library hars', () => {
         );
     });
 
+    it('process callback as 2-nd $.getScript param properly', function () {
+        const scripts = [
+            `cb = function() {}
+            $.getScript("/misha.html", cb)
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/misha.html',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET',
+            }
+        );
+    });
+
+    it('process callback as 2-nd $.get param properly', function () {
+        const scripts = [
+            `cb = function() {}
+            $.get("/misha.html", cb)
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/misha.html',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET',
+            }
+        );
+    });
+
+    it('process callback as 2-nd $.post param properly', function () {
+        const scripts = [
+            `cb = (() => {})
+            $.post("/denis.html", cb)
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/denis.html',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    },
+                    {
+                        value: '0',
+                        name: 'Content-Length'
+                    }
+                ],
+                bodySize: 0,
+                postData: {
+                    text: ''
+                },
+                method: 'POST',
+            }
+        );
+    });
+
+    it('process callback as 2-nd $.load param properly', function () {
+        const scripts = [
+            `cb = (() => {})
+            $("body").load("/vitalik.html", cb)
+            `
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/vitalik.html',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0,
+                method: 'GET',
+            }
+        );
+    });
+
     it('processes null/undefined ajax args properly', function () {
         const scripts = [
             `let url1 = {a:3}; $.ajax(url1.b);
