@@ -708,14 +708,27 @@ export class Analyzer {
     }
 
     private processUnaryExpression(node: UnaryExpression): Value {
-        if (node.operator === '!') {
-            const operand = this.valueFromASTNode(node.argument);
-            if (isUnknown(operand)) {
-                return UNKNOWN;
-            }
-            return !operand;
+        let op: (Value) => Value;
+        switch (node.operator) {
+        case '!':
+            op = x => !x;
+            break;
+        case '-':
+            op = x => -x;
+            break;
+        default:
+            return UNKNOWN;
         }
-        return UNKNOWN;
+        const operand = this.valueFromASTNode(node.argument);
+
+        if (operand instanceof ValueSet) {
+            return operand.map(op);
+        }
+
+        if (isUnknown(operand)) {
+            return UNKNOWN;
+        }
+        return op(operand);
     }
 
     private upperArgumentExists(name: string): boolean {
