@@ -16,7 +16,7 @@ import {
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
-    isAssignmentPattern
+    isAssignmentPattern, isMemberExpression, isIfStatement
 } from '@babel/types';
 
 import {
@@ -520,6 +520,25 @@ export class Analyzer {
                 if (isFunction(node)) {
                     this.argsStack.pop();
                 }
+            },
+            CallExpression: path => {
+                const node = path.node;
+
+                const callee = node.callee;
+
+                if (!isMemberExpression(callee)) {
+                    return;
+                }
+
+                const ob = callee.object;
+                const prop = callee.property;
+
+                if (!isIdentifier(ob) || !isIdentifier(prop)) {
+                    return;
+                }
+                if (ob.name === '$analyzer' && prop.name === 'log') {
+                    this.debugLogValues(node.arguments);
+                }
             }
         });
         this.argsStack.length = 0; // clear args stack just in case
@@ -551,6 +570,17 @@ export class Analyzer {
         const method = STRING_METHODS[methodName];
 
         return method.apply(val, args);
+    }
+
+    private debugLogValues(args: ASTNode[]): void {
+        for (const a of args) {
+            const v = this.valueFromASTNode(a);
+            if (v instanceof ValueSet) {
+                console.log(v.toString(ValueSet.toStringToken));
+            } else {
+                console.log(String(v));
+            }
+        }
     }
 
     private processFreeStandingFunctionCall(
