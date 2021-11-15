@@ -33,6 +33,7 @@ import { FROM_ARG, extractFormalArgs } from './types/formalarg';
 import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
+import { ValueSet } from './types/value-set';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -749,10 +750,17 @@ export class Analyzer {
     private processConditionalExpression(node: ConditionalExpression): Value {
         const test = this.valueFromASTNode(node.test);
 
+        if (isUnknown(test)) {
+            return ValueSet.join(
+                this.valueFromASTNode(node.consequent),
+                this.valueFromASTNode(node.alternate)
+            );
+        }
+
         let [first, second] = [node.consequent, node.alternate];
 
         // try to preserve evaluation order && lazyness
-        if (!isUnknown(test) && !test) {
+        if (!test) {
             [second, first] = [first, second];
         }
 
