@@ -666,6 +666,12 @@ export class Analyzer {
         if (node.operator === '+') {
             const left = this.valueFromASTNode(node.left);
             const right = this.valueFromASTNode(node.right);
+
+            if ((left instanceof ValueSet) || (right instanceof ValueSet)) {
+                return ValueSet.map2(left, right, (l, r) => {
+                    return this.probeAddition(l, r);
+                });
+            }
             return this.probeAddition(left, right);
         }
         return UNKNOWN;
