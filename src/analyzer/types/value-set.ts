@@ -4,6 +4,8 @@ import { isUnknown } from './unknown';
 import { FormDataModel } from './form-data';
 import { FunctionValue } from './function';
 
+import { log } from '../logging';
+
 function deepCopyObject(o: Value): Value {
     if (typeof o === 'function') {
         throw new Error('deepCopyObject: unexpected function');
@@ -126,7 +128,12 @@ export class ValueSet {
         if (tok === ValueSet.toStringToken) {
             return 'ValueSet {' + Array.from(this.values).join(', ') + '}';
         }
-        throw new Error('ValueSet converted to string');
+        log(
+            'warning: ' + this.toString(ValueSet.toStringToken) +
+            'converted to string'
+        );
+        return 'UNKNOWN';
+        // throw new Error('ValueSet converted to string');
     }
 
     static map(v: Value, f: (Value) => Value): Value {
