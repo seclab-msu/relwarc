@@ -1074,22 +1074,27 @@ export class Analyzer {
         result: SinkCall,
         location: SourceLocation|null|undefined
     ): void {
-        const resultStringified = stableStringify(result);
+        for (const argSet of ValueSet.produceCombinations(result.args)) {
+            const resultVariant: SinkCall = {
+                funcName: result.funcName,
+                args: argSet as Value[]
+            };
+            const resultStringified = stableStringify(resultVariant);
 
-        // deduplicate results
-        if (this.resultsAlready.has(resultStringified)) {
-            return;
+            // deduplicate results
+            if (this.resultsAlready.has(resultStringified)) {
+                return;
+            }
+            this.resultsAlready.add(resultStringified);
+
+            if (location) {
+                resultVariant.location = { ...location, 'start': { ...location.start } };
+
+                // for 0-based lineNumber
+                resultVariant.location.start.line--;
+            }
+            this.results.push(resultVariant);
         }
-        this.resultsAlready.add(resultStringified);
-
-        if (location) {
-            result.location = { ...location, 'start': { ...location.start } };
-
-            // for 0-based lineNumber
-            result.location.start.line--;
-        }
-
-        this.results.push(result);
     }
 
     private extractDEPFromArgs(
