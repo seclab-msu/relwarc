@@ -1518,9 +1518,11 @@ export class Analyzer {
         }
     }
 
-    makeHARsFromMinedDEPCallArgs(url: string): void {
+    makeHARsFromMinedDEPCallArgs(url: string, baseURI?: string): void {
         const harsAlready: Set<string> = new Set();
-
+        if (typeof baseURI === 'string') {
+            url = baseURI;
+        }
         for (const result of this.results) {
             let har;
 
@@ -1578,9 +1580,9 @@ export class Analyzer {
         }
     }
 
-    analyze(url: string, uncomment?: boolean): void {
+    analyze(url: string, uncomment?: boolean, baseURI?: string): void {
         this.mineArgsForDEPCalls(url, uncomment);
         log('Analyzer: code analysis done, now make HARs from found calls');
-        this.makeHARsFromMinedDEPCallArgs(url);
+        this.makeHARsFromMinedDEPCallArgs(url, baseURI);
     }
 }
