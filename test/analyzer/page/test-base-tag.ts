@@ -74,9 +74,9 @@ describe('Handling of <base> tag', () => {
         }));
         dpa.close();
     });
-    it('Works with relative base', async () => {
+    it('Works with base tag without trailing slash in URL', async () => {
         const dpa = new DynamicPageAnalyzer();
-        const url = testWS.getFullURL('/test-rel-base-tag.html');
+        const url = testWS.getFullURL('/test-base-tag-no-trailing-slash.html');
 
         await dpa.run(url);
 
@@ -87,6 +87,22 @@ describe('Handling of <base> tag', () => {
         expect(hars).toContain(jasmine.objectContaining({
             "method": "GET",
             "url": testWS.getFullURL('/kek/index.php?route=tovary/1633'),
+        }));
+        dpa.close();
+    });
+    it('Works with relative base', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/basetag-testdir/test-rel-base-tag.html');
+
+        await dpa.run(url);
+
+        expect(dpa.analyzer.hars.length).toBeGreaterThan(0);
+
+        const hars = dpa.analyzer.hars.map(JSONObjectFromHAR);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            "method": "GET",
+            "url": testWS.getFullURL('/basetag-testdir/kek/lol/index.php?route=tovary/1633'),
         }));
         dpa.close();
     });
