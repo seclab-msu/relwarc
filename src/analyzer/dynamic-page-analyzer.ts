@@ -16,6 +16,7 @@ import {
 } from './dep-comparison';
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
 import { filterStaticDEPs } from './static-filter';
+import { getWrappedWindow } from './utils/window';
 
 const MAX_LOAD_ATTEMPTS = 5;
 
@@ -149,7 +150,8 @@ export class DynamicPageAnalyzer {
         // NOTE: status can actually indicate load of different URL due to JS redirect (see #5283)
         log(`Opened URL ${url} with http status ${status}, now run analyzer`);
 
-        this.analyzer.analyze(url, uncomment);
+        const baseURI = this.extractBaseURI();
+        this.analyzer.analyze(url, uncomment, baseURI);
 
         this.analyzerDEPs = this.analyzer.hars;
 
@@ -241,6 +243,12 @@ export class DynamicPageAnalyzer {
         parsedBaseURL.port = parsedReplaceURL.port;
 
         return parsedBaseURL.href;
+    }
+
+    private extractBaseURI(): string {
+        const window: Window = getWrappedWindow(this.bot.webpage);
+        const document = window.document;
+        return document.baseURI;
     }
 
     getAllDeps(deduplicationMode = DeduplicationMode.None): HAR[] {
