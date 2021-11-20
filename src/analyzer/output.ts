@@ -10,7 +10,20 @@ export function outputDEPs(deps: HAR[], outputFile: string | null): void {
         console.log('\nDEPS (' + deps.length + '):');
         deps.forEach(prettyPrintHAR);
     } else {
-        const depJSON = JSON.stringify(deps, null, 4);
+        const requestParameterFields = ['name', 'value'];
+        const isRequestParameterField = Array.prototype.includes.bind(
+            requestParameterFields
+        );
+        const depJSON = JSON.stringify(deps, function (k, v) {
+            if (
+                requestParameterFields.includes(k) &&
+                // eslint-disable-next-line no-invalid-this
+                Object.keys(this).every(isRequestParameterField)
+            ) {
+                return String(v);
+            }
+            return v;
+        }, 4);
         if (outputFile) {
             log('Writing results to ' + outputFile);
             fs.writeFileSync(outputFile, depJSON);
