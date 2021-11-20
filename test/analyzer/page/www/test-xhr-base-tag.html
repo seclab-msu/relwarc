@@ -8,9 +8,11 @@
 <body>
   <base href="http://api.example.com/">
   <script>
-    let xhr = new XMLHttpRequest();
-    xhr.open('POST', 'index.php?route=user/logout');
-    xhr.send();
+    function f() {
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', 'index.php?route=user/logout');
+      xhr.send();
+    }
   </script>
 </body>
 </html>
