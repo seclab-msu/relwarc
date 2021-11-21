@@ -497,6 +497,10 @@ export class Analyzer {
                         return;
                     }
 
+                    if (path.parentPath === null) {
+                        return;
+                    }
+
                     const binding = path.parentPath.scope.getBinding(
                         node.id.name
                     );
@@ -1011,7 +1015,7 @@ export class Analyzer {
 
     private saveResult(
         result: SinkCall,
-        location: SourceLocation|null
+        location: SourceLocation|null|undefined
     ): void {
         const resultStringified = stableStringify(result);
 
@@ -1034,7 +1038,7 @@ export class Analyzer {
     private extractDEPFromArgs(
         funcName: string,
         args: ASTNode[],
-        location: SourceLocation|null
+        location: SourceLocation|null|undefined
     ): void {
         let argsDependOnFormalArg = false;
 
@@ -1205,7 +1209,7 @@ export class Analyzer {
         ob: ASTNode,
         funcName: string,
         args: ASTNode[],
-        location: SourceLocation|null
+        location: SourceLocation|null|undefined
     ): boolean {
         if (!callSequenceMethodNames.has(funcName)) {
             return false;
