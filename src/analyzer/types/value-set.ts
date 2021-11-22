@@ -8,6 +8,8 @@ import { log } from '../logging';
 
 import { deepCopyObject } from './deep-copy';
 
+const VALUE_SET_MAX: number | null = 100;
+
 type TravCb = (
     ob: Array<Value> | Record<string, Value> | FormDataModel,
     k: string | number
@@ -68,12 +70,12 @@ function traverseKVObject(
 }
 
 export class ValueSet {
-    values: Set<Value>;
+    private values: Set<Value>;
 
     static toStringToken = Symbol();
 
-    constructor() {
-        this.values = new Set();
+    constructor(values?: Set<Value>) {
+        this.values = values || new Set();
     }
 
     static join(...sets: Value[]): ValueSet {
@@ -82,13 +84,24 @@ export class ValueSet {
         for (const s of sets) {
             if (s instanceof ValueSet) {
                 for (const v of s.values) {
-                    vs.values.add(v);
+                    vs.add(v);
                 }
             } else {
-                vs.values.add(s);
+                vs.add(s);
             }
         }
         return vs;
+    }
+
+    add(elem: Value): void {
+        if (VALUE_SET_MAX !== null && this.values.size >= VALUE_SET_MAX) {
+            return;
+        }
+        this.values.add(elem);
+    }
+
+    clone(): ValueSet {
+        return new ValueSet(this.values);
     }
 
     join(...sets: Value[]): ValueSet {
@@ -118,17 +131,17 @@ export class ValueSet {
         const result = new ValueSet();
 
         for (const v of this.values) {
-            result.values.add(f(v));
+            result.add(f(v));
         }
         return result;
     }
 
-    static map2(v1: Value, v2: Value, f: (x: Value, y: Value) => Value): Value {
+    static map2(v1: Value, v2: Value, f: (x: Value, y: Value) => Value): ValueSet {
         const result = new ValueSet();
 
         const applyToFirst = val1 => {
             const applyToSecond = val2 => {
-                result.values.add(f(val1, val2));
+                result.add(f(val1, val2));
             };
             if (v2 instanceof ValueSet) {
                 v2.values.forEach(val2 => applyToSecond(val2));
@@ -144,7 +157,7 @@ export class ValueSet {
         return result;
     }
 
-    static produceCombinations(ob: Value, results?: Value[]): Value[] {
+    private static _produceCombinations(ob: Value, results?: Value[]): Value[] {
         results = results || [];
 
         if (isUnknown(ob)) {
@@ -183,5 +196,13 @@ export class ValueSet {
             results.push(ob);
         }
         return results;
+    }
+
+    static produceCombinations(ob: Value, results?: Value[]): Value[] {
+        return ValueSet._produceCombinations(deepCopyObject(ob), results);
+    }
+
+    getValues(): Value[] {
+        return Array.from(this.values.values());
     }
 }
