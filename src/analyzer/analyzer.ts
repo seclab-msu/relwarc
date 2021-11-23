@@ -16,7 +16,7 @@ import {
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
-    isAssignmentPattern, isMemberExpression, isIfStatement
+    isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement
 } from '@babel/types';
 
 import {
@@ -150,6 +150,8 @@ export class Analyzer {
 
     private trackedCallSequencesStack: Map<string, TrackedCallSequence>[];
 
+    private readonly ifStack: number[];
+
     harFilter: null | ((had: HAR) => boolean);
 
     suppressedError: boolean;
@@ -195,6 +197,8 @@ export class Analyzer {
         this.suppressedError = false;
 
         this.debugCallChains = false;
+
+        this.ifStack = [0];
     }
 
     addScript(sourceText: string, startLine?: number, url?: string): void {
@@ -279,30 +283,32 @@ export class Analyzer {
             throw new Error('setLocalVariable called without currentPath set');
         }
 
+        if (
+            op === '+=' &&
+            !this.memory.has(binding) &&
+            !this.formalArgs.includes(binding.identifier.name) &&
+            this.currentPath.scope.hasOwnBinding(binding.identifier.name)
+        ) {
+            return;
+        }
+
+        const oldValue: Value = (() => { // Rust style
+            if (!this.memory.has(binding)) {
+                if (this.formalArgs.includes(binding.identifier.name)) {
+                    return FROM_ARG;
+                } else {
+                    return UNKNOWN;
+                }
+            } else {
+                return this.memory.get(binding);
+            }
+        })();
+
         let newValue: Value;
 
         if (op === '=') {
             newValue = value;
         } else if (op === '+=') {
-            let oldValue: Value;
-            if (!this.memory.has(binding)) {
-                if (!this.formalArgs.includes(binding.identifier.name)) {
-                    if (
-                        this.currentPath.scope.hasOwnBinding(
-                            binding.identifier.name
-                        )
-                    ) {
-                        return;
-                    } else {
-                        oldValue = UNKNOWN;
-                    }
-                } else {
-                    oldValue = FROM_ARG;
-                }
-            } else {
-                oldValue = this.memory.get(binding);
-            }
-
             if (
                 isUnknownOrUnknownString(oldValue) &&
                 isUnknownOrUnknownString(value)
@@ -311,7 +317,13 @@ export class Analyzer {
                 return;
             }
 
-            newValue = this.probeAddition(oldValue, value);
+            if ((oldValue instanceof ValueSet) || (value instanceof ValueSet)) {
+                newValue = ValueSet.map2(oldValue, value, (l, r) => {
+                    return this.probeAddition(l, r);
+                });
+            } else {
+                newValue = this.probeAddition(oldValue, value);
+            }
 
             if (
                 typeof newValue === 'string' &&
@@ -322,6 +334,9 @@ export class Analyzer {
         } else {
             // TODO: support other type of assignment
             return;
+        }
+        if (oldValue !== newValue && this.ifStack[0] > 0) {
+            newValue = ValueSet.join(oldValue, newValue);
         }
         this.memory.set(binding, newValue);
     }
@@ -337,11 +352,11 @@ export class Analyzer {
 
         let newValue: Value;
 
+        const oldValue = this.globalDefinitions[name];
+
         if (op === '=') {
             newValue = value;
         } else if (op === '+=') {
-            const oldValue = this.globalDefinitions[name];
-
             if (
                 isUnknownOrUnknownString(oldValue) &&
                 isUnknownOrUnknownString(value)
@@ -349,7 +364,13 @@ export class Analyzer {
                 return;
             }
 
-            newValue = this.probeAddition(oldValue, value);
+            if ((oldValue instanceof ValueSet) || (value instanceof ValueSet)) {
+                newValue = ValueSet.map2(oldValue, value, (l, r) => {
+                    return this.probeAddition(l, r);
+                });
+            } else {
+                newValue = this.probeAddition(oldValue, value);
+            }
 
             if (
                 typeof newValue === 'string' &&
@@ -359,6 +380,9 @@ export class Analyzer {
             }
         } else {
             return;
+        }
+        if (oldValue !== newValue && this.ifStack[0] > 0) {
+            newValue = ValueSet.join(oldValue, newValue);
         }
         this.globalDefinitions[name] = newValue;
     }
@@ -430,7 +454,7 @@ export class Analyzer {
 
     private setVariable(path: NodePath): void {
         const node: ASTNode = path.node;
-        if (node.type === 'VariableDeclarator' && node.init) {
+        if (node.type === 'VariableDeclarator') {
             if (node.id.type !== 'Identifier') {
                 return;
             }
@@ -439,6 +463,11 @@ export class Analyzer {
 
             if (binding === null || typeof binding === 'undefined') {
                 log('Warning: no binding for declared local var');
+                return;
+            }
+
+            if (!node.init) {
+                this.memory.set(binding, undefined);
                 return;
             }
 
@@ -479,6 +508,10 @@ export class Analyzer {
                 const node: ASTNode = path.node;
                 if (isFunction(node)) {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
+                    this.ifStack.unshift(0);
+                }
+                if (isIfStatement(node) || isSwitchStatement(node)) {
+                    this.ifStack[0]++;
                 }
             },
             exit: (path: NodePath) => {
@@ -519,6 +552,10 @@ export class Analyzer {
                 }
                 if (isFunction(node)) {
                     this.argsStack.pop();
+                    this.ifStack.shift();
+                }
+                if (isIfStatement(node) || isSwitchStatement(node)) {
+                    this.ifStack[0]--;
                 }
             },
             CallExpression: path => {
@@ -575,11 +612,15 @@ export class Analyzer {
     private debugLogValues(args: ASTNode[]): void {
         for (const a of args) {
             const v = this.valueFromASTNode(a);
-            if (v instanceof ValueSet) {
-                console.log(v.toString(ValueSet.toStringToken));
-            } else {
-                console.log(String(v));
-            }
+            console.log(JSON.stringify(v, (key, value) => {
+                if (value instanceof ValueSet) {
+                    return {
+                        'type': 'ValueSet',
+                        'values': value.getValues()
+                    };
+                }
+                return value;
+            }, 4));
         }
     }
 
@@ -1074,7 +1115,8 @@ export class Analyzer {
         result: SinkCall,
         location: SourceLocation|null|undefined
     ): void {
-        for (const argSet of ValueSet.produceCombinations(result.args)) {
+        const comb = ValueSet.produceCombinations(result.args);
+        for (const argSet of comb) {
             const resultVariant: SinkCall = {
                 funcName: result.funcName,
                 args: argSet as Value[]
@@ -1083,7 +1125,7 @@ export class Analyzer {
 
             // deduplicate results
             if (this.resultsAlready.has(resultStringified)) {
-                return;
+                continue;
             }
             this.resultsAlready.add(resultStringified);
 
@@ -1408,7 +1450,13 @@ export class Analyzer {
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
                     this.trackedCallSequencesStack.push(new Map());
+                    this.ifStack.unshift(0);
                 }
+
+                if (isIfStatement(node) || isSwitchStatement(node)) {
+                    this.ifStack[0]++;
+                }
+
                 if (node.type === 'AssignmentExpression') {
                     this.extractDEPsFromAssignmentExpression(node);
                 }
@@ -1428,10 +1476,34 @@ export class Analyzer {
             exit: (path: NodePath): void => {
                 if (isFunction(path.node)) {
                     this.argsStack.pop();
+                    this.ifStack.shift();
                     this.formalArgs =
                         this.argsStack[this.argsStack.length - 1] || [];
                     this.functionsStack.pop();
                     this.trackedCallSequencesStack.pop();
+                }
+
+                if (isIfStatement(path.node) || isSwitchStatement(path.node)) {
+                    this.ifStack[0]--;
+                }
+            },
+            CallExpression: path => {
+                const node = path.node;
+
+                const callee = node.callee;
+
+                if (!isMemberExpression(callee)) {
+                    return;
+                }
+
+                const ob = callee.object;
+                const prop = callee.property;
+
+                if (!isIdentifier(ob) || !isIdentifier(prop)) {
+                    return;
+                }
+                if (ob.name === '$analyzer' && prop.name === 'log') {
+                    this.debugLogValues(node.arguments);
                 }
             }
         };
