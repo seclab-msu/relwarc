@@ -239,7 +239,7 @@ export class ValueSet {
     getValues(): Value[] {
         return Array.from(this.values.values());
     }
-    forEach(f: (v: Value) => void) {
+    forEach(f: (v: Value) => void): void {
         this.values.forEach(f);
     }
 }
