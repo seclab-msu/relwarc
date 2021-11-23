@@ -1,5 +1,7 @@
+import { log } from '../logging';
+
 import type { Value } from './generic';
-import { isUnknown } from './unknown';
+import { isUnknown, UNKNOWN } from './unknown';
 import { FormDataModel } from './form-data';
 import { FunctionValue } from './function';
 
@@ -7,7 +9,9 @@ import { ValueSet } from './value-set';
 
 export function deepCopyObject(o: Value): Value {
     if (typeof o === 'function') {
-        throw new Error('deepCopyObject: unexpected function');
+        log('warning: deepCopyObject: unexpected function');
+        return UNKNOWN;
+        // throw new Error('deepCopyObject: unexpected function');
     }
     if (typeof o !== 'object' || o === null) {
         return o;
