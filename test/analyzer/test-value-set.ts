@@ -51,6 +51,41 @@ describe('Test ValueSet', () => {
             expect(values.includes(v * 3)).toBe(true);
         }
     });
+    describe('clone', () => {
+        it('primitive values', () => {
+            const a = new ValueSet([1, 2, 3]);
+            const b = a.clone();
+
+            b.add(4);
+
+            const aValues = a.getValues();
+
+            expect(aValues.length).toEqual(3);
+            expect(aValues.includes(4)).toBe(false);
+        });
+        it('structures', () => {
+            const a = new ValueSet([
+                {
+                    x: 1,
+                    y: 2
+                },
+                {
+                    z: [1, 2, 3]
+                }
+            ]);
+            const b = a.clone();
+
+            // @ts-ignore
+            const bValueWithXY = b.getValues().filter(v => 'x' in v)[0];
+            // @ts-ignore
+            bValueWithXY.y = 99;
+
+            // @ts-ignore
+            const aValueWithXY = a.getValues().filter(v => 'x' in v)[0];
+            // @ts-ignore
+            expect(aValueWithXY.y).toEqual(2);
+        });
+    });
     describe('map2', () => {
         const multiply = ((a, b) => a * b) as unknown as ValueReducer;
 
@@ -120,6 +155,14 @@ describe('Test ValueSet', () => {
                 ValueSet.map2(2, vs, f as ValueReducer).getValues(),
                 [12, 22, 32]
             )).toBe(true);
+        });
+    });
+    describe('produceCombinations', () => {
+        it('3 numbers', () => {
+            const vs = new ValueSet([1, 2, 3]);
+            const combinations = ValueSet.produceCombinations(vs);
+
+            expect(setEqual(combinations, [1, 2, 3])).toBe(true);
         });
     });
 });
