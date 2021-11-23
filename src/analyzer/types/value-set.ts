@@ -99,7 +99,7 @@ export class ValueSet {
     }
 
     clone(): ValueSet {
-        return new ValueSet(this.values);
+        return this.map(deepCopyObject);
     }
 
     join(...sets: Value[]): ValueSet {
@@ -108,7 +108,9 @@ export class ValueSet {
 
     toString(tok?: symbol): string {
         if (tok === ValueSet.toStringToken) {
-            return 'ValueSet {' + Array.from(this.values).join(', ') + '}';
+            return 'ValueSet {' + Array.from(this.values).map(
+                v => JSON.stringify(v)
+            ).join(', ') + '}';
         }
         log(
             'warning: ' + this.toString(ValueSet.toStringToken) +
@@ -134,7 +136,10 @@ export class ValueSet {
         return result;
     }
 
-    static map2(v1: Value, v2: Value, f: (x: Value, y: Value) => Value): ValueSet {
+    static map2(
+        v1: Value, v2: Value,
+        f: (x: Value, y: Value) => Value
+    ): ValueSet {
         const result = new ValueSet();
 
         const applyToFirst = val1 => {
@@ -155,9 +160,7 @@ export class ValueSet {
         return result;
     }
 
-    private static _produceCombinations(ob: Value, results?: Value[]): Value[] {
-        results = results || [];
-
+    private static _produceCombinations(ob: Value, results: Value[]): Value[] {
         if (isUnknown(ob)) {
             return [ob];
         }
@@ -168,6 +171,10 @@ export class ValueSet {
 
         if (typeof ob !== 'object') {
             return [ob];
+        }
+
+        if (ob instanceof ValueSet) {
+            return ob.getValues(); // this assumes ValueSet cannot hold another ValueSet inside
         }
 
         const newObVersions: Value[] = [];
@@ -197,7 +204,7 @@ export class ValueSet {
     }
 
     static produceCombinations(ob: Value, results?: Value[]): Value[] {
-        return ValueSet._produceCombinations(deepCopyObject(ob), results);
+        return ValueSet._produceCombinations(deepCopyObject(ob), results || []);
     }
 
     getValues(): Value[] {
