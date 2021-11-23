@@ -164,5 +164,70 @@ describe('Test ValueSet', () => {
 
             expect(setEqual(combinations, [1, 2, 3])).toBe(true);
         });
+        it('two sets in object', () => {
+            const ob = {
+                x: new ValueSet([1, 2]),
+                y: new ValueSet([3, 4])
+            };
+            const combinations = ValueSet.produceCombinations(ob) as object[];
+
+            expect(combinations.length).toEqual(4);
+            expect(combinations).toContain({ x: 1, y: 3 });
+            expect(combinations).toContain({ x: 2, y: 3 });
+            expect(combinations).toContain({ x: 1, y: 4 });
+            expect(combinations).toContain({ x: 1, y: 4 });
+        });
+        it('nested value sets', () => {
+            const vs = new ValueSet([
+                {
+                    kek: new ValueSet([1, 2])
+                },
+                {
+                    lol: new ValueSet([3, 4])
+                }
+            ]);
+            const combinations = ValueSet.produceCombinations(vs) as object[];
+
+            expect(combinations.length).toEqual(4);
+            expect(combinations).toContain({ kek: 1 });
+            expect(combinations).toContain({ kek: 2 });
+            expect(combinations).toContain({ lol: 3 });
+            expect(combinations).toContain({ lol: 4 });
+        });
+        it('double nested value sets', () => {
+            const vs = new ValueSet([
+                {
+                    kek: new ValueSet([
+                        {
+                            a: new ValueSet([1, 2]),
+                        },
+                        {
+                            b: new ValueSet([3, 4])
+                        }
+                    ])
+                },
+                {
+                    lol: new ValueSet([
+                        {
+                            c: new ValueSet([5, 6])
+                        },
+                        {
+                            d: new ValueSet([7, 8])
+                        }
+                    ])
+                }
+            ]);
+            const combinations = ValueSet.produceCombinations(vs) as object[];
+
+            expect(combinations.length).toEqual(8);
+            expect(combinations).toContain({ kek: { a: 1 } });
+            expect(combinations).toContain({ kek: { a: 2 } });
+            expect(combinations).toContain({ kek: { b: 3 } });
+            expect(combinations).toContain({ kek: { b: 4 } });
+            expect(combinations).toContain({ lol: { c: 5 } });
+            expect(combinations).toContain({ lol: { c: 6 } });
+            expect(combinations).toContain({ lol: { d: 7 } });
+            expect(combinations).toContain({ lol: { d: 8 } });
+        });
     });
 });
