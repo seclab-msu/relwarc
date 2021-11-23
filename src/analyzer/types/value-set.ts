@@ -84,12 +84,8 @@ export class ValueSet {
         const vs = new ValueSet();
 
         for (const s of sets) {
-            if (s instanceof ValueSet) {
-                for (const v of s.values) {
-                    vs.add(v);
-                }
-            } else {
-                vs.add(s);
+            for (const v of this.produceCombinations(s)) {
+                vs.add(v);
             }
         }
         return vs;
