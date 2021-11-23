@@ -76,8 +76,8 @@ export class ValueSet {
 
     static toStringToken = Symbol();
 
-    constructor(values?: Set<Value>) {
-        this.values = values || new Set();
+    constructor(values?: Iterable<Value>) {
+        this.values = new Set(values);
     }
 
     static join(...sets: Value[]): ValueSet {
