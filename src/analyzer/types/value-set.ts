@@ -72,7 +72,7 @@ function traverseKVObject(
 }
 
 export class ValueSet {
-    private values: Set<Value>;
+    private readonly values: Set<Value>;
 
     static toStringToken = Symbol();
 
