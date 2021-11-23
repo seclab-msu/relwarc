@@ -10,10 +10,7 @@ import { deepCopyObject } from './deep-copy';
 
 const VALUE_SET_MAX: number | null = 100;
 
-type TravCb = (
-    ob: Array<Value> | Record<string, Value> | FormDataModel,
-    k: string | number
-) => boolean;
+type TravCb = (val: Value, replace: (newVal: Value) => void) => boolean;
 
 function traverseObject(o: Value, f: TravCb): boolean {
     if (typeof o !== 'object' || o === null || isUnknown(o)) {
@@ -27,7 +24,7 @@ function traverseObject(o: Value, f: TravCb): boolean {
         return true;
     }
     if (o instanceof ValueSet) {
-        throw new Error('Unexpected ValueSet');
+        return traverseValueSet(o, f);
     }
     if (Array.isArray(o)) {
         return traverseArrayObject(o, f);
@@ -35,9 +32,30 @@ function traverseObject(o: Value, f: TravCb): boolean {
     return traverseKVObject(o as (Record<string, Value> | FormDataModel), f);
 }
 
+function traverseValueSet(vs: ValueSet, f: TravCb): boolean {
+    for (const el of vs.getValues()) {
+        let shouldContinue = f(el, newVal => {
+            vs.delete(el);
+            vs.add(newVal);
+        });
+        if (!shouldContinue) {
+            return false;
+        }
+        if (typeof el === 'object' && el !== null) {
+            shouldContinue = traverseObject(el, f);
+            if (!shouldContinue) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 function traverseArrayObject(o: Value[], f: TravCb): boolean {
     for (let i = 0; i < o.length; i++) {
-        let shouldContinue = f(o, i);
+        let shouldContinue = f(o[i], newVal => {
+            o[i] = newVal;
+        });
         if (!shouldContinue) {
             return false;
         }
@@ -56,7 +74,9 @@ function traverseKVObject(
     f: TravCb
 ): boolean {
     for (const k of Object.keys(o)) {
-        let shouldContinue = f(o as Record<string, Value>, k);
+        let shouldContinue = f(o[k], newVal => {
+            o[k] = newVal;
+        });
 
         if (!shouldContinue) {
             return false;
@@ -84,8 +104,12 @@ export class ValueSet {
         const vs = new ValueSet();
 
         for (const s of sets) {
-            for (const v of this.produceCombinations(s)) {
-                vs.add(v);
+            if (s instanceof ValueSet) {
+                for (const val of s.values) {
+                    vs.add(val);
+                }
+            } else {
+                vs.add(s);
             }
         }
         return vs;
@@ -98,8 +122,12 @@ export class ValueSet {
         this.values.add(elem);
     }
 
-    clone(): ValueSet {
-        return this.map(deepCopyObject);
+    delete(elem: Value): void {
+        this.values.delete(elem);
+    }
+
+    clone(already?: Map<Value, Value>): ValueSet {
+        return this.map(el => deepCopyObject(el, already));
     }
 
     join(...sets: Value[]): ValueSet {
@@ -162,7 +190,8 @@ export class ValueSet {
 
     private static _produceCombinations(ob: Value, results: Value[]): Value[] {
         if (isUnknown(ob)) {
-            return [ob];
+            results.push(ob);
+            return results;
         }
 
         if (typeof ob === 'function') {
@@ -170,21 +199,21 @@ export class ValueSet {
         }
 
         if (typeof ob !== 'object') {
-            return [ob];
-        }
-
-        if (ob instanceof ValueSet) {
-            return ob.getValues(); // this assumes ValueSet cannot hold another ValueSet inside
+            results.push(ob);
+            return results;
         }
 
         const newObVersions: Value[] = [];
 
-        traverseObject(ob, (innerObject, k) => {
-            const v = innerObject[k];
+        if (ob instanceof ValueSet) {
+            ob.forEach(el => ValueSet.produceCombinations(el, results));
+            return results;
+        }
 
+        traverseObject(ob, (v, replace) => {
             if (v instanceof ValueSet) {
                 for (const el of v.values) {
-                    innerObject[k] = el;
+                    replace(el);
                     newObVersions.push(deepCopyObject(ob));
                 }
                 return false; // stop traversal here
@@ -209,5 +238,8 @@ export class ValueSet {
 
     getValues(): Value[] {
         return Array.from(this.values.values());
+    }
+    forEach(f: (v: Value) => void) {
+        this.values.forEach(f);
     }
 }
