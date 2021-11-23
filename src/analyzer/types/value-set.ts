@@ -20,12 +20,14 @@ function traverseObject(o: Value, f: TravCb): boolean {
         return true;
     }
     if (
-        o instanceof ValueSet ||
         o instanceof FunctionValue ||
         o instanceof RegExp ||
         o instanceof URL
     ) {
         return true;
+    }
+    if (o instanceof ValueSet) {
+        throw new Error('Unexpected ValueSet');
     }
     if (Array.isArray(o)) {
         return traverseArrayObject(o, f);
