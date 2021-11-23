@@ -2,7 +2,7 @@ import { HAR, HTMLInfo } from './har';
 import { getWrappedWindow } from './utils/window';
 import { LoadType } from './load-type';
 import { findCssSelector } from './browser/find-css-selector';
-import { parse as parseSrcSet } from 'srcset';
+import parse from 'srcset-parse';
 import * as htmlparser from 'htmlparser2';
 
 const LoadTypeTagAssociation = {
@@ -39,7 +39,7 @@ function srcSetContainsURL(
     srcSet: string,
     originURL: string
 ): boolean {
-    const parsedSrcSet = parseSrcSet(srcSet);
+    const parsedSrcSet = parse(srcSet);
     for (const src of parsedSrcSet) {
         const fullURL = new URL(src.url, originURL);
         if (fullURL.toString() == url) {
@@ -102,7 +102,7 @@ function getURLCandidateForElemWithSet(
         return urlCandidate;
     }
     if (typeof attribs.srcset !== 'undefined') {
-        const parsedSrcSet = parseSrcSet(attribs.srcset);
+        const parsedSrcSet = parse(attribs.srcset);
         for (const src of parsedSrcSet) {
             urlCandidate = new URL(src.url, originURL);
             if (urlCandidate.toString() === url) {
