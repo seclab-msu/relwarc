@@ -255,6 +255,32 @@ describe('Test ValueSet', () => {
                 args: ['/test?y=10']
             });
         });
+        it('read prop with multi name', () => {
+            const src = `
+            let x = { a: 10, b: 20 };
+            let y = nonexist() ? 'a' : 'b';
+
+            fetch('/test?param=' + x[y]);
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?param=10']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?param=20']
+            });
+        });
     });
     describe('call chains', () => {
         it('ternary', () => {

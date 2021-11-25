@@ -866,7 +866,14 @@ export class Analyzer {
         if (!propName || isUnknown(propName)) {
             return UNKNOWN;
         }
-        return this.getObjectProperty(ob, String(propName));
+        const getProp = n => {
+            return this.getObjectProperty(ob, String(n));
+        };
+        if (propName instanceof ValueSet) {
+            return ValueSet.join(...propName.getValues().map(getProp));
+        } else {
+            return getProp(propName);
+        }
     }
 
     private processConditionalExpression(node: ConditionalExpression): Value {
