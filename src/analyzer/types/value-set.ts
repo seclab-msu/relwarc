@@ -116,6 +116,10 @@ export class ValueSet {
     }
 
     add(elem: Value): void {
+        if (elem instanceof ValueSet) {
+            elem.forEach(el => this.add(el));
+            return;
+        }
         if (VALUE_SET_MAX !== null && this.values.size >= VALUE_SET_MAX) {
             return;
         }
