@@ -256,4 +256,121 @@ describe('Test ValueSet', () => {
             });
         });
     });
+    describe('call chains', () => {
+        it('ternary', () => {
+            const src = `
+            function f(x) {
+                const v = hui() ? x : x + 1;
+
+                fetch('/test?v=' + v);
+            }
+            function g() {
+                f(5);
+            }
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?v=5']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?v=6']
+            });
+        });
+        it('FROM_ARG substring', () => {
+            const src = `
+            function f(x) {
+                let v;
+
+                if (hui()) {
+                    v = 'kek_' + x;
+                } else {
+                    v = x + '_lol';
+                }
+
+                fetch('/test?v=' + v);
+            }
+            function g() {
+                f('test');
+            }
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?v=kek_test']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?v=test_lol']
+            });
+        });
+        it('FROM_ARG in deeper object', () => {
+            const src = `
+            function f(x) {
+                let v;
+
+                if (hui()) {
+                    v = {
+                        n: ['kek_' + x]
+                    }
+                } else {
+                    v = {
+                        m: [x + '_lol']
+                    }
+                }
+
+                $.ajax('/test', { data: v });
+            }
+            function g() {
+                f('test');
+            }
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', {
+                    data: {
+                        n: ['kek_test']
+                    }
+                }]
+            });
+
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', {
+                    data: {
+                        m: ['test_lol']
+                    }
+                }]
+            });
+        });
+    });
 });

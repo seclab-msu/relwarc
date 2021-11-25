@@ -1,5 +1,6 @@
 import { Unknown, isUnknown, UNKNOWN } from './unknown';
 import type { Value, NontrivialValue } from './generic';
+import { ValueSet } from './value-set';
 
 class FromArg extends Unknown {
     readonly tag: string = 'FROM_ARG';
@@ -28,6 +29,27 @@ function extractFormalArgsFromObject(
         val[newPropName] = elt;
 
         haveArg = haveArg || haveArgHere;
+    }
+    return [val, haveArg];
+}
+
+function extractFormalArgsFromValueSet(
+    val: ValueSet,
+    computed: Value[]
+): [Value, boolean] {
+    const replacements: Array<[Value, Value]> = [];
+    let haveArg = false;
+
+    val.forEach(v => {
+        const [nv, haveArgHere] = extractFormalArgs(v, computed);
+        haveArg = haveArg || haveArgHere;
+        if (nv !== v) {
+            replacements.push([v, nv]);
+        }
+    });
+    for (const [oldVal, newVal] of replacements) {
+        val.delete(oldVal);
+        val.add(newVal);
     }
     return [val, haveArg];
 }
@@ -67,6 +89,10 @@ export function extractFormalArgs(
             haveArg = haveArg || haveArgHere;
         }
         return [val, haveArg];
+    }
+
+    if (val instanceof ValueSet) {
+        return extractFormalArgsFromValueSet(val, computed);
     }
 
     return extractFormalArgsFromObject(val, computed);
