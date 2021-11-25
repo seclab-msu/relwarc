@@ -407,7 +407,7 @@ export class Analyzer {
         return true;
     }
 
-    private setObjectProperty(node: MemberExpression, value): void {
+    private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
         let propName;
 
@@ -433,15 +433,23 @@ export class Analyzer {
             return;
         }
 
-        const ob = this.valueFromASTNode(node.object);
+        const updatedObject = this.valueFromASTNode(node.object);
 
-        if (
-            ob &&
-            typeof ob === 'object' &&
-            !isUnknown(ob) &&
-            ob !== this.globalDefinitions.location
-        ) {
-            ob[propName] = value;
+        const update = ob => {
+            if (
+                ob &&
+                typeof ob === 'object' &&
+                !isUnknown(ob) &&
+                ob !== this.globalDefinitions.location
+            ) {
+                ob[propName] = value;
+            }
+        };
+
+        if (updatedObject instanceof ValueSet) {
+            updatedObject.forEach(update);
+        } else {
+            update(updatedObject);
         }
     }
 
