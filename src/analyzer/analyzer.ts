@@ -606,22 +606,39 @@ export class Analyzer {
         }
         let args = this.valuesForArgs(argNodes);
 
-        if (methodName === 'concat') {
-            args = args.map(arg => String(arg));
-        } else if (methodName === 'replace' || methodName === 'replaceAll') {
-            if (isUnknown(args[0])) {
-                return UNKNOWN;
+        const applyMethod = args => {
+            if (methodName === 'concat') {
+                args = args.map(arg => String(arg));
+            } else if (methodName === 'replace' || methodName === 'replaceAll') {
+                if (isUnknown(args[0])) {
+                    return UNKNOWN;
+                }
+                args = [args[0]].concat(args.slice(1).map(arg => String(arg)));
+            } else {
+                if (!args.every(v => !isUnknown(v))) {
+                    return UNKNOWN;
+                }
             }
-            args = [args[0]].concat(args.slice(1).map(arg => String(arg)));
-        } else {
-            if (!args.every(v => !isUnknown(v))) {
-                return UNKNOWN;
-            }
+
+            const method = STRING_METHODS[methodName];
+
+            return method.apply(val, args);
+        };
+
+        if (!args.some(a => a instanceof ValueSet)) {
+            return applyMethod(args);
         }
-
-        const method = STRING_METHODS[methodName];
-
-        return method.apply(val, args);
+        args = args.map(a => {
+            if (a instanceof ValueSet) {
+                return a.toStringValueSet();
+            }
+            return a;
+        });
+        const result = new ValueSet();
+        for (const argSet of ValueSet.produceCombinations(args)) {
+            result.add(applyMethod(argSet));
+        }
+        return result;
     }
 
     private debugLogValues(args: ASTNode[]): void {

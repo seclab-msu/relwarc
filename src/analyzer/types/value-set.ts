@@ -242,4 +242,12 @@ export class ValueSet {
     forEach(f: (v: Value) => void): void {
         this.values.forEach(f);
     }
+    toStringValueSet(): ValueSet {
+        const result = new ValueSet();
+
+        for (const v of this.values) {
+            result.add(String(v));
+        }
+        return result;
+    }
 }

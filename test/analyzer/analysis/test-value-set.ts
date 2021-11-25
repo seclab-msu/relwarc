@@ -373,4 +373,90 @@ describe('Test ValueSet', () => {
             });
         });
     });
+    describe('builtins', () => {
+        it('String.prototype.concat', () => {
+            const src = `
+            function f() {
+                var x = hui() ? 'foo' : 'bar';
+                var url = '/test?x='.concat(x);
+
+                fetch(url);
+            }
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?x=foo']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?x=bar']
+            });
+        });
+        it('String.prototype.replace', () => {
+            const src = `
+            function f() {
+                var x = hui() ? 'x' : 'n';
+                var url = '/test?x=' + 'test'.replace('s', x);
+
+                fetch(url);
+            }
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?x=text']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?x=tent']
+            });
+        });
+        xit('String.prototype.replaceAll (delayed till browser upgrade)', () => {
+            const src = `
+            function f() {
+                var x = hui() ? 'l' : 'd';
+                var url = '/test?x=' + 'test'.replaceAll('t', x);
+
+                fetch(url);
+            }
+            `;
+
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toBeGreaterThanOrEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?x=lesl']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test?x=desd']
+            });
+        });
+    });
 });
