@@ -157,6 +157,7 @@ export class Analyzer {
     suppressedError: boolean;
 
     private readonly debugCallChains: boolean;
+    private readonly debugValueSets: boolean;
 
     constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
         this.parsedScripts = [];
@@ -197,6 +198,7 @@ export class Analyzer {
         this.suppressedError = false;
 
         this.debugCallChains = false;
+        this.debugValueSets = false;
 
         this.ifStack = [0];
     }
@@ -444,10 +446,12 @@ export class Analyzer {
             ) {
                 if (propName instanceof ValueSet) {
                     // TODO(asterite): maybe implement this somehow
-                    log(
-                        'Warning: assigning props with ValueSet names are ' +
-                        'currently skipped'
-                    );
+                    if (this.debugValueSets) {
+                        log(
+                            'Warning: assigning props with ValueSet names ' +
+                            'are currently skipped'
+                        );
+                    }
                     return;
                 }
                 ob[propName] = value;

@@ -4,7 +4,7 @@ import { isUnknown } from './unknown';
 import { FormDataModel } from './form-data';
 import { FunctionValue } from './function';
 
-import { log } from '../logging';
+// import { log } from '../logging';
 
 import { deepCopyObject } from './deep-copy';
 
@@ -144,10 +144,11 @@ export class ValueSet {
                 v => JSON.stringify(v)
             ).join(', ') + '}';
         }
-        log(
+        // TODO(asterite): debug reasons for this
+        /* log(
             'warning: ' + this.toString(ValueSet.toStringToken) +
             'converted to string'
-        );
+        );*/
         return 'UNKNOWN';
         // throw new Error('ValueSet converted to string');
     }
