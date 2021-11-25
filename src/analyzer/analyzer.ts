@@ -442,6 +442,14 @@ export class Analyzer {
                 !isUnknown(ob) &&
                 ob !== this.globalDefinitions.location
             ) {
+                if (propName instanceof ValueSet) {
+                    // TODO(asterite): maybe implement this somehow
+                    log(
+                        'Warning: assigning props with ValueSet names are ' +
+                        'currently skipped'
+                    );
+                    return;
+                }
                 ob[propName] = value;
             }
         };
