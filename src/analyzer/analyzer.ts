@@ -454,10 +454,17 @@ export class Analyzer {
     }
 
     private getObjectProperty(ob: NontrivialValue, propName: string): Value {
-        if (!this.shouldGetObjectProperty(propName)) {
-            return;
+        const getProp = (ob: Value): Value => {
+            if (!ob || !this.shouldGetObjectProperty(propName)) {
+                return undefined;
+            }
+            return ob[propName];
+        };
+        if (ob instanceof ValueSet) {
+            return ob.map(getProp);
+        } else {
+            return getProp(ob);
         }
-        return ob[propName];
     }
 
     private setVariable(path: NodePath): void {
