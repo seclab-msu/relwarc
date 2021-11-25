@@ -38,7 +38,7 @@ describe('Analyzer finding args of DEPs in stands', () => {
                     {
                         'type': 'GET',
                         'url': '/sepete-ekle-hizli?islem=hizliekle',
-                        'data': 'urunkodu=UNKNOWN&adet_lefkosa=0&adet_magosa=UNKNOWN',
+                        'data': 'urunkodu=UNKNOWN&adet_lefkosa=0&adet_magosa=undefined',
                         'cache': false,
                         'success': UNKNOWN
                     }

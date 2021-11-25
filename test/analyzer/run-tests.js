@@ -9,7 +9,8 @@ const PAGE_SPEC_FILES = 'page/test*.js';
 const defaultSpecFiles = [
     'test*.js',
     'mine-args/test*.js',
-    'mine-deps/test*.js'
+    'mine-deps/test*.js',
+    'analysis/test*.js'
 ];
 
 

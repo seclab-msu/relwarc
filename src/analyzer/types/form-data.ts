@@ -22,4 +22,8 @@ export class FormDataModel {
     toString(): string {
         return 'FORMDATA';
     }
+
+    copy(): FormDataModel {
+        return new FormDataModel(Object.assign({}, this.data));
+    }
 }

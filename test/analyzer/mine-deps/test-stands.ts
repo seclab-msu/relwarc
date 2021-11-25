@@ -50,12 +50,12 @@ describe('Analyzer mining HARs for DEPs in stands', () => {
             scripts,
             {
                 httpVersion: 'HTTP/1.1',
-                url: 'http://example.com/sepete-ekle-hizli?islem=hizliekle&urunkodu=UNKNOWN&adet_lefkosa=0&adet_magosa=UNKNOWN',
+                url: 'http://example.com/sepete-ekle-hizli?islem=hizliekle&urunkodu=UNKNOWN&adet_lefkosa=0&adet_magosa=undefined',
                 queryString: [
                     { name: 'islem', value: 'hizliekle' },
                     { name: 'urunkodu', value: 'UNKNOWN' },
                     { name: 'adet_lefkosa', value: '0' },
-                    { name: 'adet_magosa', value: 'UNKNOWN' }
+                    { name: 'adet_magosa', value: 'undefined' }
                 ],
                 headers: [
                     {
