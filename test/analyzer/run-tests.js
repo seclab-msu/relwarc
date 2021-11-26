@@ -3,7 +3,7 @@ const fs = require('fs');
 const Jasmine = require('jasmine');
 const Reporter = require('jasmine-terminal-reporter');
 
-const logging = require('../../src/analyzer/logging');
+const logging = require('../../src/logging');
 
 const PAGE_SPEC_FILES = 'page/test*.js';
 const defaultSpecFiles = [

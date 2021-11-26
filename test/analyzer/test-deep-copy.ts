@@ -1,4 +1,4 @@
-import { deepCopyObject } from '../../src/analyzer/types/deep-copy';
+import { deepCopyObject } from '../../src/types/deep-copy';
 
 describe('Test deepCopyObject function', () => {
     it('smoke test', () => {

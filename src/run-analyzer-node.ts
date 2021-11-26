@@ -2,18 +2,18 @@ import { promises as fs } from 'fs';
 
 import { ArgumentParser } from 'argparse';
 
-import { Analyzer } from './analyzer/analyzer';
+import { Analyzer } from './analyzer';
 
 import {
     deduplicationModeFromString,
     validDeduplicationModeValues,
     deduplicateDEPs
-} from './analyzer/dep-comparison';
-import { outputDEPs, outputArgs } from './analyzer/output';
+} from './dep-comparison';
+import { outputDEPs, outputArgs } from './output';
 
-import { log } from './analyzer/logging';
+import { log } from './logging';
 
-import { uncommenterRetry } from './analyzer/uncommenter';
+import { uncommenterRetry } from './uncommenter';
 
 async function main(): Promise<number> {
     const parser = new ArgumentParser();

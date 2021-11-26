@@ -1,6 +1,6 @@
-import { Analyzer, SinkCall } from '../../../src/analyzer/analyzer';
-import { UNKNOWN } from '../../../src/analyzer/types/unknown';
-import { HAR } from '../../../src/analyzer/har';
+import { Analyzer, SinkCall } from '../../../src/analyzer';
+import { UNKNOWN } from '../../../src/types/unknown';
+import { HAR } from '../../../src/har';
 import { TestHAR, UnorderedHAR } from './types';
 import * as fs from 'fs';
 

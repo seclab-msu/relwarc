@@ -1,4 +1,4 @@
-import { DynamicPageAnalyzer } from '../../../src/analyzer/dynamic-page-analyzer';
+import { DynamicPageAnalyzer } from '../../../src/dynamic-page-analyzer';
 import { readTar } from '../../../src/read-tar';
 
 function JSONObjectFromHAR(har: object): object {

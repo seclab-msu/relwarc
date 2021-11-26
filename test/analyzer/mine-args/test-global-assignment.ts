@@ -1,4 +1,4 @@
-import { SinkCall } from '../../../src/analyzer/analyzer';
+import { SinkCall } from '../../../src/analyzer';
 import { runSingleTestSinkCall } from '../utils/utils';
 
 describe('Test for right assignment computing in global scope', () => {

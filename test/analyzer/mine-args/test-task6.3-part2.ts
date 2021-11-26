@@ -1,6 +1,6 @@
-import { SinkCall } from '../../../src/analyzer/analyzer';
+import { SinkCall } from '../../../src/analyzer';
 import { runSingleTestSinkCall, getArgsFromFile, removeEmpty, removeLocation, makeAndRunSimple } from '../utils/utils';
-import { UNKNOWN } from '../../../src/analyzer/types/unknown';
+import { UNKNOWN } from '../../../src/types/unknown';
 import * as fs from 'fs';
 
 describe('Analyzer finding args of DEP sinks (from task 6.3) - part 2', () => {

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-exec "$SCRIPT_DIR/src/slimerjs" "$SCRIPT_DIR/test/analyzer/run-tests.js" $@
+exec "$SCRIPT_DIR/src/backend/slimerjs/slimerjs" "$SCRIPT_DIR/test/analyzer/run-tests.js" $@

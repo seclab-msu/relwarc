@@ -1,7 +1,7 @@
 const { create: createWebpage } = require('webpage');
 
-import * as WindowEvents from '../../../src/analyzer/browser/window-events';
-import { getWrappedWindow } from '../../../src/analyzer/utils/window';
+import * as WindowEvents from '../../../src/browser/window-events';
+import { getWrappedWindow } from '../../../src/utils/window';
 
 import { run as runTestWebServer } from './webserver';
 
