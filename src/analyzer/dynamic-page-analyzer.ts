@@ -119,7 +119,7 @@ export class DynamicPageAnalyzer {
     /* eslint-disable-next-line max-params */
     async run(
         url: string,
-        uncomment=false,
+        uncomment=true,
         mineHTMLDEPs=true,
         addHtmlDynamicDEPsLocation=false,
         reloadPage=true

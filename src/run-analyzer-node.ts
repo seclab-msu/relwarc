@@ -13,12 +13,14 @@ import { outputDEPs, outputArgs } from './analyzer/output';
 
 import { log } from './analyzer/logging';
 
+import { uncommenterRetry } from './analyzer/uncommenter';
+
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
 
     parser.add_argument('script_path');
     parser.add_argument('base_url', { nargs: '?' });
-    parser.add_argument('--uncomment', { action: 'store_true' });
+    parser.add_argument('--no-comments', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--dep-deduplication', {
         choices: validDeduplicationModeValues,
@@ -32,23 +34,25 @@ async function main(): Promise<number> {
 
     const source = await fs.readFile(args.script_path, { encoding: 'utf8' });
 
-    const analyzer = new Analyzer();
+    await uncommenterRetry(uncomment => {
+        const analyzer = new Analyzer();
 
-    analyzer.addScript(source);
+        analyzer.addScript(source);
 
-    analyzer.analyze(baseURL, args.uncomment);
+        analyzer.analyze(baseURL, uncomment);
 
-    if (args.args) {
-        outputArgs(analyzer.results, args.output);
-    } else {
-        // hars
-        const deps = deduplicateDEPs(
-            analyzer.hars,
-            deduplicationModeFromString(args.dep_deduplication)
-        );
+        if (args.args) {
+            outputArgs(analyzer.results, args.output);
+        } else {
+            // hars
+            const deps = deduplicateDEPs(
+                analyzer.hars,
+                deduplicationModeFromString(args.dep_deduplication)
+            );
 
-        outputDEPs(deps, args.output);
-    }
+            outputDEPs(deps, args.output);
+        }
+    }, !args.no_comments);
 
     return 0;
 }

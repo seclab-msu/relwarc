@@ -21,6 +21,8 @@ import { outputDEPs, outputArgs } from './analyzer/output';
 
 import { log } from './analyzer/logging';
 
+import { uncommenterRetry } from './analyzer/uncommenter';
+
 let targetURL;
 
 /* eslint max-lines-per-function:off */
@@ -29,7 +31,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
 
     parser.add_argument('target_url');
     parser.add_argument('--tar-page', { type: String });
-    parser.add_argument('--uncomment', { action: 'store_true' });
+    parser.add_argument('--no-comments', { action: 'store_true' });
     parser.add_argument('--args', { action: 'store_true' });
     parser.add_argument('--dep-deduplication', {
         choices: validDeduplicationModeValues,
@@ -77,28 +79,30 @@ async function main(argc: number, argv: string[]): Promise<number> {
         targetURL = indexURL;
     }
 
-    const analyzer = new DynamicPageAnalyzer(analyzerOptions);
-
     const addHtmlDynamicDEPsLocation =
         args.add_dynamic_html_dep_location as boolean;
 
-    await analyzer.run(
-        targetURL,
-        args.uncomment,
-        !args.no_html_deps,
-        addHtmlDynamicDEPsLocation,
-        !args.no_reload_page
-    );
+    await uncommenterRetry(async uncomment => {
+        const analyzer = new DynamicPageAnalyzer(analyzerOptions);
 
-    if (args.args) {
-        outputArgs(analyzer.analyzer.results, args.output);
-    } else {
-        // hars
-        const deps = analyzer.getAllDeps(
-            deduplicationModeFromString(args.dep_deduplication)
+        await analyzer.run(
+            targetURL,
+            uncomment,
+            !args.no_html_deps,
+            addHtmlDynamicDEPsLocation,
+            !args.no_reload_page
         );
-        outputDEPs(deps, args.output);
-    }
+
+        if (args.args) {
+            outputArgs(analyzer.analyzer.results, args.output);
+        } else {
+            // hars
+            const deps = analyzer.getAllDeps(
+                deduplicationModeFromString(args.dep_deduplication)
+            );
+            outputDEPs(deps, args.output);
+        }
+    }, !args.no_comments);
 
     return 0;
 }

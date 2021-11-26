@@ -92,7 +92,7 @@ interface FunctionDescription {
 }
 
 interface FunctionCallDescription extends FunctionDescription {
-    binding: Binding;
+    binding: Binding | undefined;
 }
 
 interface CallConfig {
@@ -1067,6 +1067,40 @@ export class Analyzer {
         return result;
     }
 
+    private findCallSitesForGlobalVariables(
+        identifier: Identifier
+    ): NodePath[] {
+        const name = identifier.name;
+
+        const result: NodePath[] = [];
+
+        if (this.mergedProgram === null) {
+            throw new Error('findCallSitesForGlobalVariables was called before mergeASTs');
+        }
+
+        traverse(this.mergedProgram, {
+            // XXX: ReferencedIdentifier is not defined in Babel's TypeScript
+            // type definitions, but it is used in Babel's own code
+            // @ts-ignore
+            ReferencedIdentifier(path) {
+                if (
+                    path.node.name === name &&
+                    isCallExpression(path.parentPath.node) &&
+                    path.parentPath.node.callee === path.node
+                ) {
+                    result.push(path);
+                }
+            },
+            Scope(path) {
+                if (path.scope.getBindingIdentifier(name)) {
+                    path.skip();
+                }
+            }
+        });
+
+        return result;
+    }
+
     private makeFunctionDescription(path: NodePath): FunctionDescription {
         const node = path.node;
         if (isFunction(node)) {
@@ -1120,45 +1154,63 @@ export class Analyzer {
             );
         }
         if (typeof bindings === 'undefined') {
-            return;
-        }
-
-        for (const binding of bindings) {
-            if (this.debugCallChains) {
-                log('found binding ' + binding.identifier.name);
+            if (
+                func.parent.type !== 'AssignmentExpression' ||
+                func.parent.left.type !== 'Identifier'
+            ) {
+                return;
             }
-            const callSites = this.findCallSitesForBinding(binding);
 
-            const uniqueCallers = new Set();
+            const identifier = func.parent.left;
+            const callSites = this.findCallSitesForGlobalVariables(identifier);
 
-            for (const callSite of callSites) {
-                const caller = this.getFunctionForCallSite(callSite);
-
-                if (uniqueCallers.has(caller)) {
-                    continue;
-                }
-                uniqueCallers.add(caller);
-
-                if (
-                    this.callChain.length > 0 &&
-                    this.callChain[0].code === caller
-                ) {
-                    log('Found recursive call, limiting depth to 1');
-                    continue;
-                }
-
+            this.buildCallChain(func, callSites);
+        } else {
+            for (const binding of bindings) {
                 if (this.debugCallChains) {
-                    const description = String(caller).substring(0, 75);
-                    log(`for it, found call site ${description}`);
+                    log('found binding ' + binding.identifier.name);
                 }
-                const funcDescr = this.makeFunctionDescription(func);
-                const callDescr: FunctionCallDescription = {
-                    binding,
-                    ...funcDescr
-                };
-                const chain = [callDescr].concat(this.callChain);
-                this.callQueue.push({ func: caller, chain });
+                const callSites = this.findCallSitesForBinding(binding);
+
+                this.buildCallChain(func, callSites, binding);
             }
+        }
+    }
+
+    private buildCallChain(
+        func: NodePath,
+        callSites: NodePath[],
+        binding: Binding | undefined = undefined
+    ) {
+        const uniqueCallers = new Set();
+
+        for (const callSite of callSites) {
+            const caller = this.getFunctionForCallSite(callSite);
+
+            if (uniqueCallers.has(caller)) {
+                continue;
+            }
+            uniqueCallers.add(caller);
+
+            if (
+                this.callChain.length > 0 &&
+                this.callChain[0].code === caller
+            ) {
+                log('Found recursive call, limiting depth to 1');
+                continue;
+            }
+
+            if (this.debugCallChains) {
+                const description = String(caller).substring(0, 75);
+                log(`for it, found call site ${description}`);
+            }
+            const funcDescr = this.makeFunctionDescription(func);
+            const callDescr: FunctionCallDescription = {
+                binding,
+                ...funcDescr
+            };
+            const chain = [callDescr].concat(this.callChain);
+            this.callQueue.push({ func: caller, chain });
         }
     }
 
