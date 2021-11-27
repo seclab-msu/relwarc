@@ -1,7 +1,7 @@
-import { HAR, HTMLInfo } from './har';
-import { getWrappedWindow } from './utils/window';
-import { LoadType } from './load-type';
-import { findCssSelector } from './browser/find-css-selector';
+import { HAR, HTMLInfo } from '../../../../har';
+import { getWrappedWindow } from '../utils/window';
+import { LoadType } from '../../../../load-type';
+import { findCssSelector } from '../../../../browser/find-css-selector';
 import parse from 'srcset-parse';
 import * as htmlparser from 'htmlparser2';
 

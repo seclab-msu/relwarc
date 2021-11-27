@@ -4,8 +4,8 @@ const { Cu } = require('chrome');
 
 Cu.import('resource://gre/modules/Services.jsm'); /* global Services */
 
-const { hasattr } = require('../utils/common');
-const { log } = require('../logging');
+const { hasattr } = require('../../../../utils/common');
+const { log } = require('../../../../logging');
 
 const DOCUMENT_ELEMENT_INSERTED_EVENT = 'document-element-inserted';
 const DOCUMENT_CREATED_EVENT = 'document-created';
