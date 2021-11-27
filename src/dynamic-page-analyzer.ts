@@ -55,10 +55,10 @@ export class DynamicPageAnalyzer {
 
         this.dynamicAnalyzer = dynamicAnalyzer;
 
-        bot.addWindowCreatedListener((bot: HeadlessBot) => {
-            dynamicAnalyzer.close();
+        bot.addWindowCreatedListener(async (bot: HeadlessBot) => {
+            await dynamicAnalyzer.close();
             analyzer.resetScripts();
-            dynamicAnalyzer.addWindow(bot);
+            await dynamicAnalyzer.addWindow(bot);
         });
 
         this.analyzer = analyzer;
@@ -116,7 +116,7 @@ export class DynamicPageAnalyzer {
         // NOTE: status can actually indicate load of different URL due to JS redirect (see #5283)
         log(`Opened URL ${url} with http status ${status}, now run analyzer`);
 
-        const baseURI = this.bot.extractBaseURI();
+        const baseURI = await this.bot.extractBaseURI();
         this.analyzer.analyze(url, uncomment, baseURI);
 
         this.analyzerDEPs = this.analyzer.hars;
@@ -196,15 +196,15 @@ export class DynamicPageAnalyzer {
         return hars;
     }
 
-    close(): void {
+    async close(): Promise<void> {
         this.bot.resetWindowCreatedListeners();
 
         if (this.dynamicDEPMiner !== null) {
             this.dynamicDEPMiner.close();
         }
 
-        this.dynamicAnalyzer.close();
+        await this.dynamicAnalyzer.close();
 
-        this.bot.close();
+        await this.bot.close();
     }
 }

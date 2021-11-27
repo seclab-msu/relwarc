@@ -21,6 +21,11 @@ import type { StackFrame } from '../../../../browser/stack-frame';
 
 import { log } from '../../../../logging';
 
+import type {
+    HeadlessBot as GenericHeadlessBot,
+    WindowCreatedListener
+} from '../../../../browser/headless-bot';
+
 import { HeadlessBotOptions } from '../../../../browser/options';
 
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
@@ -69,7 +74,6 @@ export interface NetworkRequest {
     changeUrl: (url: string) => void;
 }
 
-type WindowCreatedListener = (bot: HeadlessBot) => void;
 type ResourceRequestedCallback = (req: ResourceRequest, netReq: NetworkRequest) => void; // eslint-disable-line max-len
 type ResourceReceivedCallback = (response: ResourceResponse) => void;
 type ResourceErrorCallback = (resError: ResourceError) => void;
@@ -96,7 +100,7 @@ interface Webpage {
     stop(): void;
 }
 
-export class HeadlessBot {
+export class HeadlessBot implements GenericHeadlessBot {
     private readonly windowCreatedListeners: WindowCreatedListener[];
     requestCallback: null | ((req: ResourceRequest) => void);
 
@@ -211,7 +215,7 @@ export class HeadlessBot {
         return this.pageLoadHTTPStatus;
     }
 
-    triggerParsingOfEventHandlerAttributes(): void {
+    async triggerParsingOfEventHandlerAttributes(): Promise<void> {
         if (this.closed) {
             throw new Error('headless bot is already closed');
         }
@@ -412,7 +416,7 @@ export class HeadlessBot {
         return utf8Decoder.decode(rawContentArray);
     }
 
-    extractBaseURI(): string {
+    async extractBaseURI(): Promise<string> {
         const window: Window = getWrappedWindow(this.webpage);
         const document = window.document;
         return document.baseURI;
@@ -434,7 +438,7 @@ export class HeadlessBot {
         this.windowCreatedListeners.length = 0;
     }
 
-    close(): void {
+    async close(): Promise<void> {
         this.closed = true;
 
         WindowEvents.off(

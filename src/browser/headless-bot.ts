@@ -8,9 +8,12 @@ export interface HeadlessBot {
 
     navigate(url: string): Promise<void>;
     getPageLoadHTTPStatus(): number | null;
-    triggerParsingOfEventHandlerAttributes(): void;
-    extractBaseURI(): string;
+    triggerParsingOfEventHandlerAttributes(): Promise<void>;
+    extractBaseURI(): Promise<string>;
     addHTMLDynamicDEPLocation(har: HAR): HAR;
+    addWindowCreatedListener(cb: WindowCreatedListener): void;
     resetWindowCreatedListeners(): void;
-    close(): void;
+    close(): Promise<void>;
 }
+
+export type WindowCreatedListener = (bot: HeadlessBot) => void;

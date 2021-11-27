@@ -1,7 +1,10 @@
 import type { HeadlessBot as GenericHeadlessBot } from '../../../../browser/headless-bot';
 import { HeadlessBot } from '../browser/headless-bot';
 import { getWrappedWindow } from '../utils/window';
-import type { BackendNewScriptCallback as NewScriptCallback } from '../../../../dynamic/analyzer';
+import type {
+    DynamicAnalyzerBackend as GenericDynamicAnalyzerBackend,
+    BackendNewScriptCallback as NewScriptCallback
+} from '../../../../dynamic/analyzer';
 
 declare class Debugger {
     constructor(win: object);
@@ -26,7 +29,7 @@ interface Script {
     url: string;
 }
 
-export class DynamicAnalyzerBackend {
+export class DynamicAnalyzerBackend implements GenericDynamicAnalyzerBackend {
     newScriptCallback: NewScriptCallback | null;
 
     private dbg: Debugger | null;
@@ -36,7 +39,7 @@ export class DynamicAnalyzerBackend {
         this.newScriptCallback = null;
     }
 
-    addWindow(bot: GenericHeadlessBot): void {
+    async addWindow(bot: GenericHeadlessBot): Promise<void> {
         if (!(bot instanceof HeadlessBot)) {
             throw new Error('Only Slimer\'s HeadlessBot is supported here');
         }
@@ -58,7 +61,7 @@ export class DynamicAnalyzerBackend {
         this.dbg = dbg;
     }
 
-    close(): void {
+    async close(): Promise<void> {
         if (this.dbg === null) {
             return;
         }

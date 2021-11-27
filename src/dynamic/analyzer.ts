@@ -15,10 +15,10 @@ export interface BackendNewScriptData {
 
 export type BackendNewScriptCallback = (data: BackendNewScriptData) => void;
 
-interface DynamicAnalyzerBackend {
+export interface DynamicAnalyzerBackend {
     newScriptCallback: BackendNewScriptCallback | null;
-    addWindow(bot: HeadlessBot);
-    close(): void;
+    addWindow(bot: HeadlessBot): Promise<void>;
+    close(): Promise<void>;
 }
 
 export class DynamicAnalyzer {
@@ -53,12 +53,12 @@ export class DynamicAnalyzer {
         }
     }
 
-    addWindow(bot: HeadlessBot): void {
+    async addWindow(bot: HeadlessBot): Promise<void> {
         this.backend.newScriptCallback = this.handleNewScript.bind(this);
-        this.backend.addWindow(bot);
+        await this.backend.addWindow(bot);
     }
 
-    close(): void {
-        this.backend.close();
+    async close(): Promise<void> {
+        await this.backend.close();
     }
 }

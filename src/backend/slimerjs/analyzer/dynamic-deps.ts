@@ -1,4 +1,5 @@
 import type { HeadlessBot as GenericHeadlessBot } from '../../../browser/headless-bot';
+import type { DynamicDEPMiner as GenericDynamicDEPMiner } from '../../../dynamic-deps';
 import { ResourceRequest, HeadlessBot } from './browser/headless-bot';
 import { decodeLoadType } from './browser/decode-load-type';
 import { BadURLError } from '../../../har';
@@ -30,7 +31,7 @@ function requestToHar(req: ResourceRequest): HAR | null {
     return har;
 }
 
-export class DynamicDEPMiner {
+export class DynamicDEPMiner implements GenericDynamicDEPMiner {
     private readonly deps: HAR[];
     private bot: HeadlessBot | null;
 
