@@ -1,7 +1,7 @@
 const { create: createWebpage } = require('webpage');
 
-import * as WindowEvents from '../../../src/browser/window-events';
-import { getWrappedWindow } from '../../../src/utils/window';
+import * as WindowEvents from '../../../src/backend/slimerjs/analyzer/browser/window-events';
+import { getWrappedWindow } from '../../../src/backend/slimerjs/analyzer/utils/window';
 
 import { run as runTestWebServer } from './webserver';
 

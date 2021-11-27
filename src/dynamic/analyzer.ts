@@ -1,75 +1,64 @@
-declare class Debugger {
-    constructor(win: object);
-
-    enabled: boolean;
-
-    onNewScript: (script: Script) => void;
-    removeAllDebuggees(): void;
-}
-
-require('./debugger').addDebuggerToGlobal(global);
-
-interface Source {
-    text: string;
-    introductionType: string;
-    introductionScript: Script;
-}
-
-interface Script {
-    source: Source;
-    startLine: number;
-    url: string;
-}
+import { DynamicAnalyzerBackend } from '../backend';
+import type { HeadlessBot } from '../browser/headless-bot';
 
 const dynamicEvaled = 'dynamically evaled code from script ';
 const fromNewFunction = 'code from new Function constructor from script ';
 const fromInlineHandler = 'code from inline event handler described at ';
+
+export interface BackendNewScriptData {
+    source: string,
+    startLine: number,
+    url: string,
+    introductionType: string,
+    introductionScriptURL: string
+}
+
+export type BackendNewScriptCallback = (data: BackendNewScriptData) => void;
+
+interface DynamicAnalyzerBackend {
+    newScriptCallback: BackendNewScriptCallback | null;
+    addWindow(bot: HeadlessBot);
+    close(): void;
+}
 
 export class DynamicAnalyzer {
     newScriptCallback:
         | ((source: string, startLine: number, url: string) => void)
         | null;
 
-    private dbg: Debugger | null;
+    private backend: DynamicAnalyzerBackend;
 
     constructor() {
-        this.dbg = null;
+        this.backend = new DynamicAnalyzerBackend();
         this.newScriptCallback = null;
     }
 
-    addWindow(win: object): void {
-        const dbg = new Debugger(win);
-
-        dbg.onNewScript = (script: Script): void => {
-            if (this.newScriptCallback) {
-                let url = script.url;
-                if (script.source.introductionType === 'eval') {
-                    url = dynamicEvaled + script.source.introductionScript.url;
-                } else if (script.source.introductionType === 'Function') {
-                    url =
-                        fromNewFunction + script.source.introductionScript.url;
-                } else if (script.source.introductionType === 'eventHandler') {
-                    url = fromInlineHandler + script.url;
-                }
-
-                this.newScriptCallback(
-                    script.source.text,
-                    script.startLine,
-                    url
-                );
+    handleNewScript({
+        source,
+        startLine,
+        url,
+        introductionType,
+        introductionScriptURL
+    }: BackendNewScriptData): void {
+        if (this.newScriptCallback) {
+            if (introductionType === 'eval') {
+                url = dynamicEvaled + introductionScriptURL;
+            } else if (introductionType === 'Function') {
+                url = fromNewFunction + introductionScriptURL;
+            } else if (introductionType === 'eventHandler') {
+                url = fromInlineHandler + url;
             }
-        };
 
-        this.dbg = dbg;
+            this.newScriptCallback(source, startLine, url);
+        }
+    }
+
+    addWindow(bot: HeadlessBot): void {
+        this.backend.newScriptCallback = this.handleNewScript.bind(this);
+        this.backend.addWindow(bot);
     }
 
     close(): void {
-        if (this.dbg === null) {
-            return;
-        }
-
-        this.dbg.removeAllDebuggees();
-        this.dbg.enabled = false;
-        this.dbg = null;
+        this.backend.close();
     }
 }

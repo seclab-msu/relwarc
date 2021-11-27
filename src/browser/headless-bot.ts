@@ -1,9 +1,16 @@
-import { HeadlessBotOptions } from './options';
+import { HAR } from '../har';
+
+export { HeadlessBot } from '../backend';
 
 export interface HeadlessBot {
-    // hui
-}
+    pageLoadingStopped: boolean;
+    ignoreSSLError: boolean;
 
-export interface HeadlessBotImpl {
-    new (options: HeadlessBotOptions): HeadlessBot;
+    navigate(url: string): Promise<void>;
+    getPageLoadHTTPStatus(): number | null;
+    triggerParsingOfEventHandlerAttributes(): void;
+    extractBaseURI(): string;
+    addHTMLDynamicDEPLocation(har: HAR): HAR;
+    resetWindowCreatedListeners(): void;
+    close(): void;
 }
