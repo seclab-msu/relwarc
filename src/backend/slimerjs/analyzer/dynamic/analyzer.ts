@@ -6,6 +6,8 @@ import type {
     BackendNewScriptCallback as NewScriptCallback
 } from '../../../../dynamic/analyzer';
 
+import { synchronousePromiseResolve } from './synchronous-promise';
+
 declare class Debugger {
     constructor(win: object);
 
@@ -39,7 +41,7 @@ export class DynamicAnalyzerBackend implements GenericDynamicAnalyzerBackend {
         this.newScriptCallback = null;
     }
 
-    async addWindow(bot: GenericHeadlessBot): Promise<void> {
+    addWindow(bot: GenericHeadlessBot): PromiseLike<void> {
         if (!(bot instanceof HeadlessBot)) {
             throw new Error('Only Slimer\'s HeadlessBot is supported here');
         }
@@ -59,15 +61,17 @@ export class DynamicAnalyzerBackend implements GenericDynamicAnalyzerBackend {
         };
 
         this.dbg = dbg;
+        // use this to run synchronously under SlimerJS
+        return synchronousePromiseResolve();
     }
 
-    async close(): Promise<void> {
-        if (this.dbg === null) {
-            return;
+    close(): PromiseLike<void> {
+        if (this.dbg !== null) {
+            this.dbg.removeAllDebuggees();
+            this.dbg.enabled = false;
+            this.dbg = null;
         }
-
-        this.dbg.removeAllDebuggees();
-        this.dbg.enabled = false;
-        this.dbg = null;
+        // use this to run synchronously under SlimerJS
+        return synchronousePromiseResolve();
     }
 }

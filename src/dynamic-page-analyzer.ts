@@ -55,10 +55,11 @@ export class DynamicPageAnalyzer {
 
         this.dynamicAnalyzer = dynamicAnalyzer;
 
-        bot.addWindowCreatedListener(async (bot: HeadlessBot) => {
-            await dynamicAnalyzer.close();
-            analyzer.resetScripts();
-            await dynamicAnalyzer.addWindow(bot);
+        bot.addWindowCreatedListener((bot: HeadlessBot) => {
+            dynamicAnalyzer.close().then(() => {
+                analyzer.resetScripts();
+                dynamicAnalyzer.addWindow(bot);
+            });
         });
 
         this.analyzer = analyzer;
@@ -107,7 +108,7 @@ export class DynamicPageAnalyzer {
             log(`Page loading was stopped, will retry: ${i+1}`);
         }
 
-        this.bot.triggerParsingOfEventHandlerAttributes();
+        await this.bot.triggerParsingOfEventHandlerAttributes();
 
         // this.bot.webpage.render("/tmp/page.png");
 
