@@ -1,6 +1,5 @@
 import { Analyzer } from './analyzer';
 import { HeadlessBot } from './browser/headless-bot';
-import { OfflineHeadlessBot } from './browser/offline-headless-bot';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
 import { requestToHar } from './dynamic-deps';
@@ -26,7 +25,7 @@ export class DynamicPageAnalyzer {
     analyzerDEPs: HAR[];
 
     readonly analyzer: Analyzer;
-    readonly bot: HeadlessBot | OfflineHeadlessBot;
+    readonly bot: HeadlessBot;
 
     private readonly dynamicAnalyzer: DynamicAnalyzer;
 
@@ -36,7 +35,6 @@ export class DynamicPageAnalyzer {
     constructor({
         logRequests=false,
         debugRequestLoading=false,
-        mapURLs=(null as object | null),
         domainFilteringMode=DomainFilteringMode.Any,
         mineDynamicDEPs=true,
         onlyJSDynamicDEPs=false,
@@ -44,26 +42,14 @@ export class DynamicPageAnalyzer {
         loadTimeout=(undefined as number | undefined),
         filterStatic=true
     }={}) {
-        let bot: HeadlessBot | OfflineHeadlessBot;
-        if (mapURLs) {
-            bot = new OfflineHeadlessBot(mapURLs, {
-                printPageErrors: false,
-                printPageConsoleLog: false,
-                logRequests,
-                debugRequestLoading,
-                loadTimeout,
-                recordRequestStackTraces
-            });
-        } else {
-            bot = new HeadlessBot({
-                printPageErrors: false,
-                printPageConsoleLog: false,
-                logRequests,
-                debugRequestLoading,
-                loadTimeout,
-                recordRequestStackTraces
-            });
-        }
+        const bot = new HeadlessBot({
+            printPageErrors: false,
+            printPageConsoleLog: false,
+            logRequests,
+            debugRequestLoading,
+            loadTimeout,
+            recordRequestStackTraces
+        });
 
         const dynamicAnalyzer = new DynamicAnalyzer();
         const analyzer = new Analyzer(dynamicAnalyzer);
@@ -161,11 +147,6 @@ export class DynamicPageAnalyzer {
             this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage);
         }
 
-        const bot = this.bot;
-        if (bot instanceof OfflineHeadlessBot) {
-            this.fixLocalURLForOfflineMode(url, bot);
-        }
-
         this.filterDEPsByDomain(url);
 
         if (addHtmlDynamicDEPsLocation) {
@@ -187,23 +168,6 @@ export class DynamicPageAnalyzer {
 
         this.htmlDEPs = this.htmlDEPs.filter(har => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
-        });
-    }
-
-    private fixLocalURLForOfflineMode(
-        url: string,
-        bot: OfflineHeadlessBot
-    ): void {
-        this.analyzerDEPs = this.analyzerDEPs.filter(har => {
-            return this.changeLocalURL(har, url, bot.getServerPort());
-        });
-
-        this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-            return this.changeLocalURL(har, url, bot.getServerPort());
-        });
-
-        this.htmlDEPs = this.htmlDEPs.filter(har => {
-            return this.changeLocalURL(har, url, bot.getServerPort());
         });
     }
 
