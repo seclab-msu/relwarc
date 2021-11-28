@@ -125,7 +125,7 @@ export class DynamicPageAnalyzer {
         if (mineHTMLDEPs) {
             log('Analyzer done, now mine HTML DEPs');
 
-            this.htmlDEPs = mineDEPsFromHTML(this.bot);
+            this.htmlDEPs = await mineDEPsFromHTML(this.bot);
         }
 
         this.filterDEPsByDomain(url);
