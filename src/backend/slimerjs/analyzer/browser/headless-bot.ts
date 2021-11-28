@@ -26,6 +26,10 @@ import type {
     WindowCreatedListener
 } from '../../../../browser/headless-bot';
 
+import {
+    triggerParsingOfEventHandlerAttributes
+} from '../../../../browser/event-handler-parsing-trigger';
+
 import { HeadlessBotOptions } from '../../../../browser/options';
 
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
@@ -220,18 +224,7 @@ export class HeadlessBot implements GenericHeadlessBot {
             throw new Error('headless bot is already closed');
         }
 
-        this.webpage.evaluate(() => {
-            const allElements = document.querySelectorAll('*');
-
-            allElements.forEach(elem => {
-                const eventHandlers = elem.getAttributeNames().filter(name => {
-                    return !name.indexOf('on');
-                });
-                for (const eventHandler of eventHandlers) {
-                    elem[eventHandler];
-                }
-            });
-        });
+        await triggerParsingOfEventHandlerAttributes(this.webpage);
     }
 
     protected onLongRunningScript(): void {
