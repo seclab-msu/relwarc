@@ -4,8 +4,8 @@
 
 const { Ci } = require('chrome');
 
-const { loadTypeFromString } = require('../load-type');
-const { hasattr } = require('../utils/common');
+const { loadTypeFromString } = require('../../../../load-type');
+const { hasattr } = require('../../../../utils/common');
 
 // Taken from 'devtools/server/actors/network-monitor/network-observer.js'
 // from Firefox Source

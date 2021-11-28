@@ -12,3 +12,10 @@ export function combineComments(
 export function parseComments(comments: Comment[]): AST[] {
     return [];
 }
+
+export async function uncommenterRetry(
+    cb: (uncomment) => void,
+    uncomment: boolean
+): Promise<void> {
+    await cb(uncomment);
+}

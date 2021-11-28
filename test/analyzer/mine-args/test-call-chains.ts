@@ -1,4 +1,4 @@
-import { Analyzer, SinkCall } from '../../../src/analyzer/analyzer';
+import { Analyzer, SinkCall } from '../../../src/analyzer';
 import { runSingleTestSinkCall } from '../utils/utils';
 
 describe('Tests for correct analysis of call chains', () => {

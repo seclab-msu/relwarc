@@ -1,4 +1,4 @@
-import { KeyValue } from '../../../src/analyzer/har';
+import { KeyValue } from '../../../src/har';
 
 interface PostData {
     text: string|null;

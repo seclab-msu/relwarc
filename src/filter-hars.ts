@@ -6,15 +6,15 @@ import {
     validDeduplicationModeValues,
     deduplicateDEPs,
     deduplicationModeFromString,
-} from './analyzer/dep-comparison';
+} from './dep-comparison';
 import {
     filterByDomain,
     validDomainFilteringModeValues,
     domainFilteringModeFromString
-} from './analyzer/domain-filtering';
-import { HAR } from './analyzer/har';
+} from './domain-filtering';
+import { HAR } from './har';
 
-import { prettyPrintHAR } from './analyzer/pretty-deps';
+import { prettyPrintHAR } from './pretty-deps';
 
 const STDIN_PATH = '/dev/stdin';
 

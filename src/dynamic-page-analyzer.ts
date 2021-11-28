@@ -1,9 +1,8 @@
 import { Analyzer } from './analyzer';
 import { HeadlessBot } from './browser/headless-bot';
-import { OfflineHeadlessBot } from './browser/offline-headless-bot';
 import { DynamicAnalyzer } from './dynamic/analyzer';
 import { mineDEPsFromHTML } from './html-deps';
-import { requestToHar } from './dynamic-deps';
+import { DynamicDEPMiner } from './dynamic-deps';
 import { HAR } from './har';
 import { log } from './logging';
 import {
@@ -14,9 +13,7 @@ import {
     deduplicateDEPs,
     DeduplicationMode
 } from './dep-comparison';
-import { addHTMLDynamicDEPLocation } from './html-dep-location';
 import { filterStaticDEPs } from './static-filter';
-import { getWrappedWindow } from './utils/window';
 
 const MAX_LOAD_ATTEMPTS = 5;
 
@@ -26,17 +23,17 @@ export class DynamicPageAnalyzer {
     analyzerDEPs: HAR[];
 
     readonly analyzer: Analyzer;
-    readonly bot: HeadlessBot | OfflineHeadlessBot;
+    readonly bot: HeadlessBot;
 
     private readonly dynamicAnalyzer: DynamicAnalyzer;
 
     private readonly domainFilteringMode: DomainFilteringMode;
     private readonly filterStatic: boolean;
+    private readonly dynamicDEPMiner: DynamicDEPMiner | null;
     /* eslint max-lines-per-function: "off" */
     constructor({
         logRequests=false,
         debugRequestLoading=false,
-        mapURLs=(null as object | null),
         domainFilteringMode=DomainFilteringMode.Any,
         mineDynamicDEPs=true,
         onlyJSDynamicDEPs=false,
@@ -44,76 +41,46 @@ export class DynamicPageAnalyzer {
         loadTimeout=(undefined as number | undefined),
         filterStatic=true
     }={}) {
-        let bot: HeadlessBot | OfflineHeadlessBot;
-        if (mapURLs) {
-            bot = new OfflineHeadlessBot(mapURLs, {
-                printPageErrors: false,
-                printPageConsoleLog: false,
-                logRequests,
-                debugRequestLoading,
-                loadTimeout,
-                recordRequestStackTraces
-            });
-        } else {
-            bot = new HeadlessBot({
-                printPageErrors: false,
-                printPageConsoleLog: false,
-                logRequests,
-                debugRequestLoading,
-                loadTimeout,
-                recordRequestStackTraces
-            });
-        }
+        const bot = new HeadlessBot({
+            printPageErrors: false,
+            printPageConsoleLog: false,
+            logRequests,
+            debugRequestLoading,
+            loadTimeout,
+            recordRequestStackTraces
+        });
 
         const dynamicAnalyzer = new DynamicAnalyzer();
         const analyzer = new Analyzer(dynamicAnalyzer);
 
         this.dynamicAnalyzer = dynamicAnalyzer;
 
-        bot.onWindowCreated = (win: object) => {
-            dynamicAnalyzer.close();
-            analyzer.resetScripts();
-            dynamicAnalyzer.addWindow(win);
-        };
+        bot.addWindowCreatedListener((bot: HeadlessBot) => {
+            dynamicAnalyzer.close().then(() => {
+                analyzer.resetScripts();
+                dynamicAnalyzer.addWindow(bot);
+            });
+        });
 
         this.analyzer = analyzer;
         this.bot = bot;
         this.htmlDEPs = [];
-        this.dynamicDEPs = [];
         this.analyzerDEPs = [];
+        this.dynamicDEPs = [];
         this.filterStatic = filterStatic;
 
         if (mineDynamicDEPs) {
-            this.setRequestHandler(onlyJSDynamicDEPs, recordRequestStackTraces);
+            this.dynamicDEPMiner = new DynamicDEPMiner(
+                this.bot,
+                onlyJSDynamicDEPs,
+                recordRequestStackTraces
+            );
+            this.dynamicDEPs = this.dynamicDEPMiner.getDEPs();
+        } else {
+            this.dynamicDEPMiner = null;
         }
 
         this.domainFilteringMode = domainFilteringMode;
-    }
-
-    private setRequestHandler(
-        onlyJSDynamicDEPs: boolean,
-        recordRequestStackTraces: boolean
-    ) {
-        this.bot.requestCallback = req => {
-            if (onlyJSDynamicDEPs && (!req.isXHR && !req.isFetch)) {
-                return;
-            }
-            const har = requestToHar(req);
-            if (har === null) {
-                log('dynamic-page-analyzer: can not create har');
-                return;
-            }
-            if (recordRequestStackTraces) {
-                if (typeof har.initiator == 'undefined') {
-                    throw new Error('initiator not set by requestToHar');
-                }
-                const stacktrace = req.stacktrace;
-                if (stacktrace !== null) {
-                    har.initiator.stack = stacktrace;
-                }
-            }
-            this.dynamicDEPs.push(har);
-        };
     }
 
     /* eslint-disable-next-line max-params */
@@ -141,7 +108,7 @@ export class DynamicPageAnalyzer {
             log(`Page loading was stopped, will retry: ${i+1}`);
         }
 
-        this.bot.triggerParsingOfEventHandlerAttributes();
+        await this.bot.triggerParsingOfEventHandlerAttributes();
 
         // this.bot.webpage.render("/tmp/page.png");
 
@@ -150,7 +117,7 @@ export class DynamicPageAnalyzer {
         // NOTE: status can actually indicate load of different URL due to JS redirect (see #5283)
         log(`Opened URL ${url} with http status ${status}, now run analyzer`);
 
-        const baseURI = this.extractBaseURI();
+        const baseURI = await this.bot.extractBaseURI();
         this.analyzer.analyze(url, uncomment, baseURI);
 
         this.analyzerDEPs = this.analyzer.hars;
@@ -158,12 +125,7 @@ export class DynamicPageAnalyzer {
         if (mineHTMLDEPs) {
             log('Analyzer done, now mine HTML DEPs');
 
-            this.htmlDEPs = mineDEPsFromHTML(this.bot.webpage);
-        }
-
-        const bot = this.bot;
-        if (bot instanceof OfflineHeadlessBot) {
-            this.fixLocalURLForOfflineMode(url, bot);
+            this.htmlDEPs = await mineDEPsFromHTML(this.bot);
         }
 
         this.filterDEPsByDomain(url);
@@ -171,11 +133,7 @@ export class DynamicPageAnalyzer {
         if (addHtmlDynamicDEPsLocation) {
             log('HTML DEPs mining done, now build CSS Selectors for html dynamic DEPs');
             this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                return addHTMLDynamicDEPLocation(
-                    har,
-                    this.bot.webpage,
-                    this.bot.getDecodedInitialContent()
-                );
+                return this.bot.addHTMLDynamicDEPLocation(har);
             });
         }
     }
@@ -187,23 +145,6 @@ export class DynamicPageAnalyzer {
 
         this.htmlDEPs = this.htmlDEPs.filter(har => {
             return filterByDomain(har.url, url, this.domainFilteringMode);
-        });
-    }
-
-    private fixLocalURLForOfflineMode(
-        url: string,
-        bot: OfflineHeadlessBot
-    ): void {
-        this.analyzerDEPs = this.analyzerDEPs.filter(har => {
-            return this.changeLocalURL(har, url, bot.getServerPort());
-        });
-
-        this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-            return this.changeLocalURL(har, url, bot.getServerPort());
-        });
-
-        this.htmlDEPs = this.htmlDEPs.filter(har => {
-            return this.changeLocalURL(har, url, bot.getServerPort());
         });
     }
 
@@ -245,12 +186,6 @@ export class DynamicPageAnalyzer {
         return parsedBaseURL.href;
     }
 
-    private extractBaseURI(): string {
-        const window: Window = getWrappedWindow(this.bot.webpage);
-        const document = window.document;
-        return document.baseURI;
-    }
-
     getAllDeps(deduplicationMode = DeduplicationMode.None): HAR[] {
         let hars = deduplicateDEPs(
             this.analyzerDEPs.concat(this.dynamicDEPs, this.htmlDEPs),
@@ -262,12 +197,15 @@ export class DynamicPageAnalyzer {
         return hars;
     }
 
-    close(): void {
-        this.bot.onWindowCreated = null;
-        this.bot.requestCallback = null;
+    async close(): Promise<void> {
+        this.bot.resetWindowCreatedListeners();
 
-        this.dynamicAnalyzer.close();
+        if (this.dynamicDEPMiner !== null) {
+            this.dynamicDEPMiner.close();
+        }
 
-        this.bot.close();
+        await this.dynamicAnalyzer.close();
+
+        await this.bot.close();
     }
 }

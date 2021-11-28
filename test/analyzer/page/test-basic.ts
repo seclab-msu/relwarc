@@ -1,8 +1,6 @@
-import { DynamicPageAnalyzer } from '../../../src/analyzer/dynamic-page-analyzer';
+import { DynamicPageAnalyzer } from '../../../src/dynamic-page-analyzer';
 
-import { run as runTestWebServer } from './webserver';
-
-const testWS = runTestWebServer();
+import { testWS } from './webserver'
 
 function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));

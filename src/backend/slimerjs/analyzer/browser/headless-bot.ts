@@ -7,7 +7,7 @@ const WindowEvents = require('./window-events');
 
 import { observeMutations } from './mutation-observer';
 
-import { KeyValue } from '../har';
+import { HAR, KeyValue } from '../../../../har';
 
 import { getWrappedWindow } from '../utils/window';
 import {
@@ -15,11 +15,24 @@ import {
     formatStack,
     ErrorStackTraceFrame,
     withTimeout, TimeoutError
-} from '../utils/common';
+} from '../../../../utils/common';
 
-import type { StackFrame } from './stack-frame';
+import type { StackFrame } from '../../../../browser/stack-frame';
 
-import { log } from '../logging';
+import { log } from '../../../../logging';
+
+import type {
+    HeadlessBot as GenericHeadlessBot,
+    WindowCreatedListener
+} from '../../../../browser/headless-bot';
+
+import {
+    triggerParsingOfEventHandlerAttributes
+} from '../../../../browser/event-handler-parsing-trigger';
+
+import { HeadlessBotOptions } from '../../../../browser/options';
+
+import { addHTMLDynamicDEPLocation } from './html-dep-location';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
 
@@ -65,7 +78,6 @@ export interface NetworkRequest {
     changeUrl: (url: string) => void;
 }
 
-type WindowCreatedCallback = (win: Window, doc: object) => void;
 type ResourceRequestedCallback = (req: ResourceRequest, netReq: NetworkRequest) => void; // eslint-disable-line max-len
 type ResourceReceivedCallback = (response: ResourceResponse) => void;
 type ResourceErrorCallback = (resError: ResourceError) => void;
@@ -92,38 +104,29 @@ interface Webpage {
     stop(): void;
 }
 
-export interface HeadlessBotOptions {
-    printPageErrors: boolean;
-    printPageConsoleLog: boolean;
-    logRequests: boolean;
-    debugRequestLoading: boolean;
-    recordRequestStackTraces?: boolean;
-    loadTimeout?: number;
-}
-
-export class HeadlessBot {
-    onWindowCreated: null | WindowCreatedCallback = null;
+export class HeadlessBot implements GenericHeadlessBot {
+    private readonly windowCreatedListeners: WindowCreatedListener[];
     requestCallback: null | ((req: ResourceRequest) => void);
 
     readonly webpage: Webpage;
 
     private readonly loadTimeout: number;
-    protected readonly printPageErrors: boolean;
-    protected readonly logRequests: boolean;
-    protected readonly debugRequestLoading: boolean;
-    protected readonly trackDOMMutations: boolean;
-    protected initialContent: string;
+    private readonly printPageErrors: boolean;
+    private readonly logRequests: boolean;
+    private readonly debugRequestLoading: boolean;
+    private readonly trackDOMMutations: boolean;
+    private initialContent: string;
 
-    protected readonly pendingRequests: Map<number, string>;
-    protected notifyPageIsLoaded: null | (() => void);
-    protected loadedWatchdog: number | null;
-    protected lastDOMMutation: number | null;
-    protected loadStartTimestamp: number | null;
+    private readonly pendingRequests: Map<number, string>;
+    private notifyPageIsLoaded: null | (() => void);
+    private loadedWatchdog: number | null;
+    private lastDOMMutation: number | null;
+    private loadStartTimestamp: number | null;
 
-    protected mutationObserver: MutationObserver | null;
+    private mutationObserver: MutationObserver | null;
 
     private closed: boolean;
-    private windowCreatedCallback: null | WindowCreatedCallback = null;
+    private windowCreatedCallback: ((win: Window) => void) | null = null;
     private pageLoadHTTPStatus: number | null = null;
 
     pageLoadingStopped: boolean;
@@ -157,6 +160,7 @@ export class HeadlessBot {
         this.lastDOMMutation = null;
         this.loadStartTimestamp = null;
         this.initialContent = '';
+        this.windowCreatedListeners = [];
 
         this.pendingRequests = new Map();
 
@@ -173,11 +177,11 @@ export class HeadlessBot {
     }
 
     private setupEventHandlers() {
-        this.windowCreatedCallback = (win, doc) => {
-            if (
-                win === getWrappedWindow(this.webpage) && this.onWindowCreated
-            ) {
-                this.onWindowCreated(win, doc);
+        this.windowCreatedCallback = (win: Window): void => {
+            if (win === getWrappedWindow(this.webpage)) {
+                for (const cb of this.windowCreatedListeners) {
+                    cb(this);
+                }
                 if (this.trackDOMMutations) {
                     this.mutationObserver = observeMutations(win, () => {
                         this.lastDOMMutation = Date.now();
@@ -215,23 +219,12 @@ export class HeadlessBot {
         return this.pageLoadHTTPStatus;
     }
 
-    triggerParsingOfEventHandlerAttributes(): void {
+    async triggerParsingOfEventHandlerAttributes(): Promise<void> {
         if (this.closed) {
             throw new Error('headless bot is already closed');
         }
 
-        this.webpage.evaluate(() => {
-            const allElements = document.querySelectorAll('*');
-
-            allElements.forEach(elem => {
-                const eventHandlers = elem.getAttributeNames().filter(name => {
-                    return !name.indexOf('on');
-                });
-                for (const eventHandler of eventHandlers) {
-                    elem[eventHandler];
-                }
-            });
-        });
+        await triggerParsingOfEventHandlerAttributes(this.webpage);
     }
 
     protected onLongRunningScript(): void {
@@ -407,7 +400,7 @@ export class HeadlessBot {
         }
     }
 
-    getDecodedInitialContent(): string {
+    private getDecodedInitialContent(): string {
         const rawContentArray = new Uint8Array(this.initialContent.length);
         for (let i = 0; i < this.initialContent.length; i++) {
             rawContentArray[i] = this.initialContent.charCodeAt(i);
@@ -416,7 +409,29 @@ export class HeadlessBot {
         return utf8Decoder.decode(rawContentArray);
     }
 
-    close(): void {
+    async extractBaseURI(): Promise<string> {
+        const window: Window = getWrappedWindow(this.webpage);
+        const document = window.document;
+        return document.baseURI;
+    }
+
+    addHTMLDynamicDEPLocation(har: HAR): HAR {
+        return addHTMLDynamicDEPLocation(
+            har,
+            this.webpage,
+            this.getDecodedInitialContent()
+        );
+    }
+
+    addWindowCreatedListener(cb: WindowCreatedListener): void {
+        this.windowCreatedListeners.push(cb);
+    }
+
+    resetWindowCreatedListeners(): void {
+        this.windowCreatedListeners.length = 0;
+    }
+
+    async close(): Promise<void> {
         this.closed = true;
 
         WindowEvents.off(
@@ -425,7 +440,7 @@ export class HeadlessBot {
         );
         this.webpage.onResourceRequested = null;
         this.webpage.onResourceReceived = null;
-        this.onWindowCreated = null;
+        this.windowCreatedListeners.length = 0;
         this.requestCallback = null;
         if (this.notifyPageIsLoaded !== null) {
             this.notifyPageIsLoaded();

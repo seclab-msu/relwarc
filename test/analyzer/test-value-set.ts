@@ -1,5 +1,5 @@
-import { Value } from '../../src/analyzer/types/generic';
-import { ValueSet } from '../../src/analyzer/types/value-set';
+import { Value } from '../../src/types/generic';
+import { ValueSet } from '../../src/types/value-set';
 
 function _setEqual<T>(s1: Set<T>, s2: Set<T>): boolean {
     if (s1.size != s2.size) {

@@ -1,7 +1,7 @@
 import {
     deduplicateDEPs,
     DeduplicationMode
-} from '../../../src/analyzer/dep-comparison';
+} from '../../../src/dep-comparison';
 import { makeAndRunSimple } from '../utils/utils';
 
 function JSONObjectFromHAR(har: object): object {

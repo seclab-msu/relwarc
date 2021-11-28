@@ -26,8 +26,8 @@ const (
 var (
 	sslCrtPath     = "%s/ssl/server.crt"
 	sslKeyPath     = "%s/ssl/server.key"
-	slimerPath     = "%s/../src/slimerjs"
-	analyzerPath   = "%s/../src/run-analyzer.js"
+	slimerPath     = "%s/../src/backend/slimerjs/slimerjs"
+	analyzerPath   = "%s/../src/backend/slimerjs/run-analyzer.js"
 	excludeHeaders = map[string]struct{}{
 		"age":               struct{}{},
 		"alt-svc":           struct{}{},

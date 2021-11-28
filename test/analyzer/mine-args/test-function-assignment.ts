@@ -1,4 +1,4 @@
-import { SinkCall } from '../../../src/analyzer/analyzer';
+import { SinkCall } from '../../../src/analyzer';
 import { runSingleTestSinkCall } from '../utils/utils';
 
 describe('Analyzer finding calls of assigned functions', () => {

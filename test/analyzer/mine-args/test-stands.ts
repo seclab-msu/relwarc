@@ -1,7 +1,7 @@
-import { SinkCall } from '../../../src/analyzer/analyzer';
+import { SinkCall } from '../../../src/analyzer';
 import { runSingleTestSinkCall } from '../utils/utils';
-import { UNKNOWN } from '../../../src/analyzer/types/unknown';
-import { FormDataModel } from '../../../src/analyzer/types/form-data';
+import { UNKNOWN } from '../../../src/types/unknown';
+import { FormDataModel } from '../../../src/types/form-data';
 import * as fs from 'fs';
 
 describe('Analyzer finding args of DEPs in stands', () => {

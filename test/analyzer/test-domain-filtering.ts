@@ -1,4 +1,4 @@
-import { filterByDomain, DomainFilteringMode } from '../../src/analyzer/domain-filtering';
+import { filterByDomain, DomainFilteringMode } from '../../src/domain-filtering';
 
 describe('Unit-tests for domain-filtering module', () => {
     describe('filterByDomain Any mode', () => {

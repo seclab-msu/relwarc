@@ -1,5 +1,5 @@
-run-analyzer.js
-run-analyzer-managed.js
 run-analyzer-node.js
 read-tar.js
 filter-hars.js
+/*.js
+!parser.js

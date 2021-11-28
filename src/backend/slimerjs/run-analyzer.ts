@@ -7,21 +7,21 @@ declare const slimer: {
 
 import { ArgumentParser } from 'argparse';
 
-import { DynamicPageAnalyzer } from 'analyzer/dynamic-page-analyzer';
-import { readTar } from './read-tar';
+import { DynamicPageAnalyzer } from '../../dynamic-page-analyzer';
+import { readTar } from '../../read-tar';
 import {
     domainFilteringModeFromString,
     validDomainFilteringModeValues
-} from './analyzer/domain-filtering';
+} from '../../domain-filtering';
 import {
     deduplicationModeFromString,
     validDeduplicationModeValues
-} from './analyzer/dep-comparison';
-import { outputDEPs, outputArgs } from './analyzer/output';
+} from '../../dep-comparison';
+import { outputDEPs, outputArgs } from '../../output';
 
-import { log } from './analyzer/logging';
+import { log } from '../../logging';
 
-import { uncommenterRetry } from './analyzer/uncommenter';
+import { uncommenterRetry } from '../../uncommenter';
 
 let targetURL;
 

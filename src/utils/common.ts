@@ -46,3 +46,12 @@ export function withTimeout<T>(p: Promise<T>, timeout: number): Promise<T> {
 export function isNotNullObject(obj: unknown): boolean {
     return typeof obj === 'object' && obj !== null;
 }
+
+export function isSuperset<T>(set: Set<T>, subset: Set<T>): boolean {
+    for (const elem of subset) {
+        if (!set.has(elem)) {
+            return false;
+        }
+    }
+    return true;
+}

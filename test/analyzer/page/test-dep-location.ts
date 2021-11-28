@@ -1,8 +1,6 @@
-import { DynamicPageAnalyzer } from '../../../src/analyzer/dynamic-page-analyzer';
+import { DynamicPageAnalyzer } from '../../../src/dynamic-page-analyzer';
 import { readTar } from '../../../src/read-tar';
-import { run as runTestWebServer } from './webserver';
-
-const testWS = runTestWebServer();
+import { testWS } from './webserver'
 
 function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
@@ -50,30 +48,6 @@ describe('Tests for DEPs location on web page', () => {
                 'lineNumber': 0,
                 'columnNumber': 0,
                 'url': testWS.getFullURL('/test-dep-location2.js')
-            }
-        }));
-        dpa.close();
-    });
-
-    it('correct initiator url in TAR-mode', async () => {
-        const [url, mapURLs] = await readTar('test/analyzer/page/www/test-dep-location3.tar');
-
-        const dpa = new DynamicPageAnalyzer({mapURLs});
-
-        await dpa.run(url);
-
-        const hars = dpa.analyzer.hars.map(JSONObjectFromHAR);
-
-        expect(hars).toContain(jasmine.objectContaining({
-            'method': 'GET',
-            'url': 'http://test123.com/qwerty',
-            'queryString': [],
-            'bodySize': 0,
-            'initiator': {
-                'type': 'analyzer',
-                'lineNumber': 1,
-                'columnNumber': 0,
-                'url': 'http://test123.com/example.js'
             }
         }));
         dpa.close();
