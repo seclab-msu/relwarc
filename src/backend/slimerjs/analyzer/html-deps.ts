@@ -2,22 +2,11 @@ import { HAR, KeyValue, BadURLError } from '../../../har';
 import { getWrappedWindow } from './utils/window';
 import { log } from '../../../logging';
 import type { HeadlessBot as GenericHeadlessBot } from '../../../browser/headless-bot';
+
+import { isSupportedFormInput, defaultEncType } from '../../../html-deps';
+
 import { HeadlessBot } from './browser/headless-bot';
 
-type SupportedFormInput =
-    | HTMLInputElement
-    | HTMLButtonElement
-    | HTMLTextAreaElement
-    | HTMLSelectElement;
-
-const defaultEncType = 'application/x-www-form-urlencoded';
-
-function isSupportedFormInput(el: Element): el is SupportedFormInput {
-    return el instanceof HTMLInputElement ||
-        el instanceof HTMLButtonElement ||
-        el instanceof HTMLTextAreaElement ||
-        el instanceof HTMLSelectElement;
-}
 
 function harFromGETForm(form: HTMLFormElement): HAR | null {
     const url = new URL(form.action);
