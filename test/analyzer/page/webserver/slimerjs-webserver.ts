@@ -1,26 +1,25 @@
 const webServerFactory = require("webserver");
 
-const LOCALHOST_BASE = 'http://127.0.0.1:';
+import { LOCALHOST_BASE } from './common';
 
-
-class TestWebServer {
+export class TestWebServer {
     private static instance: TestWebServer | null = null;
 
     readonly port: number;
 
     private constructor() {
         const webServer = webServerFactory.create();
-        webServer.registerDirectory('/', __dirname + '/www');
+        webServer.registerDirectory('/', __dirname + '/../www');
         webServer.listen(-1);
         this.port = webServer.port;
     }
 
-    static run(): TestWebServer {
+    static async run(): Promise<TestWebServer> {
         if (TestWebServer.instance !== null) {
             return TestWebServer.instance;
         }
         const ws = new TestWebServer();
-        TestWebServer.instance = ws
+        TestWebServer.instance = ws;
         return ws;
     }
 
@@ -30,6 +29,6 @@ class TestWebServer {
     }
 }
 
-export function run(): TestWebServer {
-    return TestWebServer.run();
+export async function run(): Promise<TestWebServer> {
+    return await TestWebServer.run();
 }

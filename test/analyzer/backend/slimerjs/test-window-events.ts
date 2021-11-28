@@ -1,11 +1,9 @@
 const { create: createWebpage } = require('webpage');
 
-import * as WindowEvents from '../../../src/backend/slimerjs/analyzer/browser/window-events';
-import { getWrappedWindow } from '../../../src/backend/slimerjs/analyzer/utils/window';
+import * as WindowEvents from '../../../../src/backend/slimerjs/analyzer/browser/window-events';
+import { getWrappedWindow } from '../../../../src/backend/slimerjs/analyzer/utils/window';
 
-import { run as runTestWebServer } from './webserver';
-
-const testWS = runTestWebServer();
+import { testWS } from '../../page/webserver';
 
 describe('Test window-events', () => {
     it('test on off', async () => {

@@ -6,6 +6,7 @@ const Reporter = require('jasmine-terminal-reporter');
 const logging = require('../../src/logging');
 
 const PAGE_SPEC_FILES = 'page/test*.js';
+const SLIMER_SPEC_FILES = 'backend/slimerjs/*.js'
 const defaultSpecFiles = [
     'test*.js',
     'mine-args/test*.js',
@@ -15,7 +16,7 @@ const defaultSpecFiles = [
 
 
 let stdout, stderr, exit,
-    isSlimer, args,
+    isSlimer, isChrome, args,
     specFiles;
 
 try {
@@ -30,6 +31,11 @@ try {
     exit = process.exit;
     args = process.argv.slice(2);
     isSlimer = false;
+    const idx = args.indexOf('--chrome');
+    if (idx !== -1) {
+        args.splice(idx, 1);
+        isChrome = true;
+    }
 }
 
 const jasmine = new Jasmine({
@@ -37,6 +43,10 @@ const jasmine = new Jasmine({
 });
 
 if (isSlimer) {
+    defaultSpecFiles.push(SLIMER_SPEC_FILES);
+}
+
+if (isSlimer || isChrome) {
     defaultSpecFiles.push(PAGE_SPEC_FILES);
 }
 
