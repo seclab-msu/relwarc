@@ -1,5 +1,7 @@
 import { DynamicPageAnalyzer } from '../../../src/dynamic-page-analyzer';
 
+import { BackendKind, currentBackend } from '../../../src/backend';
+
 import { testWS } from './webserver'
 
 function JSONObjectFromHAR(har: object): object {
@@ -26,30 +28,27 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
             "initiator": {
                 "type": "fetch",
                 "stack": [
-                    {
+                    jasmine.objectContaining({
                         "name": "f",
                         "lineNumber": 7,
                         "columnNumber": 12,
-                        "sourceLine": "",
                         "pretty": `f@${url}:8:13`,
                         "fileURI": url
-                    },
-                    {
+                    }),
+                    jasmine.objectContaining({
                         "name": "g",
                         "lineNumber": 10,
                         "columnNumber": 12,
-                        "sourceLine": "",
                         "pretty": `g@${url}:11:13`,
                         "fileURI": url
-                    },
-                    {
+                    }),
+                    jasmine.objectContaining({
                         "name": null,
                         "lineNumber": 12,
                         "columnNumber": 8,
-                        "sourceLine": "",
                         "pretty": `@${url}:13:9`,
                         "fileURI": url
-                    }
+                    })
                 ]
             }
         }));
@@ -71,22 +70,20 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
             "initiator": {
                 "type": "xhr",
                 "stack": [
-                    {
+                    jasmine.objectContaining({
                         "name": "f",
                         "lineNumber": 9,
-                        "columnNumber": 12,
-                        "sourceLine": "",
-                        "pretty": `f@${url}:10:13`,
+                        "columnNumber": jasmine.stringMatching('1[2-8]'),
+                        "pretty": jasmine.stringMatching(`f@${url}:10:1[3-9]`),
                         "fileURI": url
-                    },
-                    {
+                    }),
+                    jasmine.objectContaining({
                         "name": null,
                         "lineNumber": 11,
                         "columnNumber": 8,
-                        "sourceLine": "",
                         "pretty": `@${url}:12:9`,
                         "fileURI": url
-                    }
+                    })
                 ]
             }
         }));
@@ -104,31 +101,40 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
 
         const hars = deps.map(JSONObjectFromHAR);
 
+        let lineNumber = 17;
+        let columnNumber = 20;
+
+        if (currentBackend === BackendKind.SlimerJS) { // because slimer gives position in the handler
+            lineNumber = 0;
+            columnNumber = 0;
+        }
+
         expect(hars).toContain(jasmine.objectContaining({
             "initiator": {
                 "type": "fetch",
-                "stack": [{
-                    "name": "f",
-                    "lineNumber": 7,
-                    "columnNumber": 12,
-                    "sourceLine": "",
-                    "pretty": `f@${url}:8:13`,
-                    "fileURI": url
-                }, {
-                    "name": "g",
-                    "lineNumber": 10,
-                    "columnNumber": 12,
-                    "sourceLine": "",
-                    "pretty": `g@${url}:11:13`,
-                    "fileURI": url
-                }, {
-                    "name": "onload",
-                    "lineNumber": 0,
-                    "columnNumber": 0,
-                    "sourceLine": "",
-                    "pretty": `onload@${url}:1:1`,
-                    "fileURI": url
-                }]
+                "stack": [
+                    jasmine.objectContaining({
+                        "name": "f",
+                        "lineNumber": 7,
+                        "columnNumber": 12,
+                        "pretty": `f@${url}:8:13`,
+                        "fileURI": url
+                    }),
+                    jasmine.objectContaining({
+                        "name": "g",
+                        "lineNumber": 10,
+                        "columnNumber": 12,
+                        "pretty": `g@${url}:11:13`,
+                        "fileURI": url
+                    }),
+                    jasmine.objectContaining({
+                        "name": "onload",
+                        "lineNumber": lineNumber,
+                        "columnNumber": columnNumber,
+                        "pretty": `onload@${url}:${lineNumber+1}:${columnNumber+1}`,
+                        "fileURI": url
+                    })
+                ]
             }
         }));
         dpa.close();
@@ -150,35 +156,36 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
         expect(hars).toContain(jasmine.objectContaining({
             "initiator": {
                 "type": "fetch",
-                "stack": [{
-                    "name": "abcd",
-                    "lineNumber": 1,
-                    "columnNumber": 4,
-                    "sourceLine": "",
-                    "pretty": `abcd@${scriptURL}:2:5`,
-                    "fileURI": scriptURL
-                }, {
-                    "name": "efgh",
-                    "lineNumber": 5,
-                    "columnNumber": 4,
-                    "sourceLine": "",
-                    "pretty": `efgh@${scriptURL}:6:5`,
-                    "fileURI": scriptURL
-                }, {
-                    "name": "f",
-                    "lineNumber": 9,
-                    "columnNumber": 4,
-                    "sourceLine": "",
-                    "pretty": `f@${scriptURL}:10:5`,
-                    "fileURI": scriptURL
-                }, {
-                    "name": null,
-                    "lineNumber": 7,
-                    "columnNumber": 8,
-                    "sourceLine": "",
-                    "pretty": `@${url}:8:9`,
-                    "fileURI": url
-                }]
+                "stack": [
+                    jasmine.objectContaining({
+                        "name": "abcd",
+                        "lineNumber": 1,
+                        "columnNumber": 4,
+                        "pretty": `abcd@${scriptURL}:2:5`,
+                        "fileURI": scriptURL
+                    }),
+                    jasmine.objectContaining({
+                        "name": "efgh",
+                        "lineNumber": 5,
+                        "columnNumber": 4,
+                        "pretty": `efgh@${scriptURL}:6:5`,
+                        "fileURI": scriptURL
+                    }),
+                    jasmine.objectContaining({
+                        "name": "f",
+                        "lineNumber": 9,
+                        "columnNumber": 4,
+                        "pretty": `f@${scriptURL}:10:5`,
+                        "fileURI": scriptURL
+                    }),
+                    jasmine.objectContaining({
+                        "name": null,
+                        "lineNumber": 7,
+                        "columnNumber": 8,
+                        "pretty": `@${url}:8:9`,
+                        "fileURI": url
+                    })
+                ]
             }
         }));
         dpa.close();
@@ -195,24 +202,33 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
 
         const hars = deps.map(JSONObjectFromHAR);
 
+        let columnNumber1 = 15;
+        let columnNumber2 = 44;
+
+        if (currentBackend === BackendKind.Chrome) { // because chrome gives column number for html page
+            columnNumber1 = 73;
+            columnNumber2 = 93;
+        }
+
         expect(hars).toContain(jasmine.objectContaining({
             "initiator": {
                 "type": "fetch",
-                "stack": [{
-                    "name": "f",
-                    "lineNumber": 0,
-                    "columnNumber": 15,
-                    "sourceLine": "",
-                    "pretty": `f@${url}:1:16`,
-                    "fileURI": url
-                }, {
-                    "name": null,
-                    "lineNumber": 0,
-                    "columnNumber": 44,
-                    "sourceLine": "",
-                    "pretty": `@${url}:1:45`,
-                    "fileURI": url
-                }]
+                "stack": [
+                    jasmine.objectContaining({
+                        "name": "f",
+                        "lineNumber": 0,
+                        "columnNumber": columnNumber1,
+                        "pretty": `f@${url}:1:${columnNumber1+1}`,
+                        "fileURI": url
+                    }),
+                    jasmine.objectContaining({
+                        "name": null,
+                        "lineNumber": 0,
+                        "columnNumber": columnNumber2,
+                        "pretty": `@${url}:1:${columnNumber2+1}`,
+                        "fileURI": url
+                    })
+                ]
             }
         }));
         dpa.close();

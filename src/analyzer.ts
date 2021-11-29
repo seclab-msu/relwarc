@@ -206,7 +206,7 @@ export class Analyzer {
 
     addScript(
         sourceText: string,
-        startLine?: number,
+        startLine = 0,
         url?: string,
         sourceType?: string
     ): void {
@@ -1265,9 +1265,6 @@ export class Analyzer {
 
             if (location) {
                 resultVariant.location = { ...location, 'start': { ...location.start } };
-
-                // for 0-based lineNumber
-                resultVariant.location.start.line--;
             }
             this.results.push(resultVariant);
         }
