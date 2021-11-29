@@ -110,6 +110,23 @@ export class DynamicPageAnalyzer {
 
         await this.bot.triggerParsingOfEventHandlerAttributes();
 
+        this.analyzer.adjustScripts(scr => {
+            if (scr.sourceType === 'script-or-event-handler') {
+                const ehAttrs = this.bot.getEventHandlerAttrs();
+
+                if (ehAttrs.includes(scr.sourceText)) {
+                    const t = 'eventHandler';
+                    scr.sourceType = t;
+                    scr.url = DynamicAnalyzer.adjustURL(
+                        scr.url || 'unknown',
+                        t,
+                        'unknown'
+                    );
+                }
+            }
+            return scr;
+        });
+
         // this.bot.webpage.render("/tmp/page.png");
 
         const status = this.bot.getPageLoadHTTPStatus();

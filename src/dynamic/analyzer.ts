@@ -21,16 +21,36 @@ export interface DynamicAnalyzerBackend {
     close(): PromiseLike<void>;
 }
 
+type NewScriptCallback = (
+    source: string,
+    startLine: number,
+    url: string,
+    type: string
+) => void;
+
 export class DynamicAnalyzer {
-    newScriptCallback:
-        | ((source: string, startLine: number, url: string) => void)
-        | null;
+    newScriptCallback: NewScriptCallback | null;
 
     private backend: DynamicAnalyzerBackend;
 
     constructor() {
         this.backend = new DynamicAnalyzerBackend();
         this.newScriptCallback = null;
+    }
+
+    static adjustURL(
+        url: string,
+        introductionType: string,
+        introductionScriptURL: string
+    ) {
+        if (introductionType === 'eval') {
+            url = dynamicEvaled + introductionScriptURL;
+        } else if (introductionType === 'Function') {
+            url = fromNewFunction + introductionScriptURL;
+        } else if (introductionType === 'eventHandler') {
+            url = fromInlineHandler + url;
+        }
+        return url;
     }
 
     handleNewScript({
@@ -41,15 +61,12 @@ export class DynamicAnalyzer {
         introductionScriptURL
     }: BackendNewScriptData): void {
         if (this.newScriptCallback) {
-            if (introductionType === 'eval') {
-                url = dynamicEvaled + introductionScriptURL;
-            } else if (introductionType === 'Function') {
-                url = fromNewFunction + introductionScriptURL;
-            } else if (introductionType === 'eventHandler') {
-                url = fromInlineHandler + url;
-            }
-
-            this.newScriptCallback(source, startLine, url);
+            url = DynamicAnalyzer.adjustURL(
+                url,
+                introductionType,
+                introductionScriptURL
+            );
+            this.newScriptCallback(source, startLine, url, introductionType);
         }
     }
 
