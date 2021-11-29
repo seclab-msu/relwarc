@@ -10,7 +10,7 @@ export interface HeadlessBot {
     getPageLoadHTTPStatus(): number | null;
     triggerParsingOfEventHandlerAttributes(): Promise<void>;
     extractBaseURI(): Promise<string>;
-    addHTMLDynamicDEPLocation(har: HAR): HAR;
+    addHTMLDynamicDEPLocation(har: HAR): Promise<HAR>;
     addWindowCreatedListener(cb: WindowCreatedListener): void;
     resetWindowCreatedListeners(): void;
     getEventHandlerAttrs(): string[];

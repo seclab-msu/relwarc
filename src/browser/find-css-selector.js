@@ -41,7 +41,8 @@ function findCssSelector(ele) {
         // findCssSelector received element not inside container.
         return '';
     }
-    const cssEscape = ele.ownerGlobal.CSS.escape;
+    // const cssEscape = ele.ownerGlobal.CSS.escape;
+    const cssEscape = CSS.escape;
     // document.querySelectorAll("#id") returns multiple if elements share an ID
     if (
         ele.id &&
@@ -90,4 +91,6 @@ function findCssSelector(ele) {
     return selector;
 }
 
+exports.positionInNodeList = positionInNodeList;
+exports.findNodeAndContainer = findNodeAndContainer;
 exports.findCssSelector = findCssSelector;

@@ -420,7 +420,7 @@ export class HeadlessBot implements GenericHeadlessBot {
         return document.baseURI;
     }
 
-    addHTMLDynamicDEPLocation(har: HAR): HAR {
+    async addHTMLDynamicDEPLocation(har: HAR): Promise<HAR> {
         return addHTMLDynamicDEPLocation(
             har,
             this.webpage,
