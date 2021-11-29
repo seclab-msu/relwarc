@@ -91,7 +91,7 @@ function autodetectBackend(): BackendKind {
     }
 }
 
-const currentBackend: BackendKind = autodetectBackend();
+export const currentBackend: BackendKind = autodetectBackend();
 
 function importChosenBackend() {
     switch (currentBackend) {
