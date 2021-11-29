@@ -115,6 +115,7 @@ interface Script {
     sourceText: string;
     startLine?: number;
     url?: string;
+    sourceType?: string;
 }
 
 export class Analyzer {
@@ -152,7 +153,7 @@ export class Analyzer {
 
     private readonly ifStack: number[];
 
-    harFilter: null | ((had: HAR) => boolean);
+    harFilter: null | ((har: HAR) => boolean);
 
     suppressedError: boolean;
 
@@ -203,26 +204,56 @@ export class Analyzer {
         this.ifStack = [0];
     }
 
-    addScript(sourceText: string, startLine?: number, url?: string): void {
+    addScript(
+        sourceText: string,
+        startLine?: number,
+        url?: string,
+        sourceType?: string
+    ): void {
         if (this.scripts.find(scr => scr.sourceText === sourceText)) {
             return;
         }
 
         if (url !== undefined) {
-            if (url.startsWith('dynamically evaled code')) {
-                sourceText = '{' + sourceText + '}';
-            } else if (url.startsWith('code from new Function constructor')) {
-                sourceText = '(function () {' + sourceText + '})';
-            } else if (url.startsWith('code from inline event handler')) {
-                sourceText = '(function () {' + sourceText + '})';
-            }
+            sourceText = this.adjustSource(sourceText, url);
         }
 
         this.scripts.push({
             sourceText,
             startLine,
-            url
+            url,
+            sourceType
         } as Script);
+    }
+
+    private adjustSource(sourceText: string, url: string): string {
+        if (url.startsWith('dynamically evaled code')) {
+            sourceText = '{' + sourceText + '}';
+        } else if (url.startsWith('code from new Function constructor')) {
+            sourceText = '(function () {' + sourceText + '})';
+        } else if (url.startsWith('code from inline event handler')) {
+            sourceText = '(function () {' + sourceText + '})';
+        }
+        return sourceText;
+    }
+
+    adjustScripts(adjustCb: (scr: Script) => Script): void {
+        for (let i = 0; i < this.scripts.length; i++) {
+            const s = this.scripts[i];
+
+            const oldURL = s.url;
+
+            this.scripts[i] = adjustCb(s);
+
+            const newURL = this.scripts[i].url;
+
+            if (newURL && newURL !== oldURL) {
+                this.scripts[i].sourceText = this.adjustSource(
+                    this.scripts[i].sourceText,
+                    newURL
+                );
+            }
+        }
     }
 
     private addFunctionBinding(

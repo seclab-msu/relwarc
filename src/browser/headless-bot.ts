@@ -13,6 +13,7 @@ export interface HeadlessBot {
     addHTMLDynamicDEPLocation(har: HAR): HAR;
     addWindowCreatedListener(cb: WindowCreatedListener): void;
     resetWindowCreatedListeners(): void;
+    getEventHandlerAttrs(): string[];
     close(): Promise<void>;
 }
 

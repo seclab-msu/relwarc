@@ -345,6 +345,11 @@ export class HeadlessBot implements GenericHeadlessBot {
         }
     }
 
+    getEventHandlerAttrs(): string[] {
+        // this should not be needed under SlimerJS
+        throw new Error('Not implemented under SlimerJS');
+    }
+
     async navigate(url: string): Promise<void> {
         if (this.closed) {
             throw new Error('can\'t navigate: headless bot is already closed');
