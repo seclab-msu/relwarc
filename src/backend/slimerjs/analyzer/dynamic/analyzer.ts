@@ -52,7 +52,7 @@ export class DynamicAnalyzerBackend implements GenericDynamicAnalyzerBackend {
             if (this.newScriptCallback) {
                 this.newScriptCallback({
                     source: script.source.text,
-                    startLine: script.startLine,
+                    startLine: script.startLine - 1, // for 0-based lineNumber
                     url: script.url,
                     introductionType: script.source.introductionType,
                     introductionScriptURL: script.source.introductionScript?.url
