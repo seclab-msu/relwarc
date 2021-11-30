@@ -149,9 +149,9 @@ export class DynamicPageAnalyzer {
 
         if (addHtmlDynamicDEPsLocation) {
             log('HTML DEPs mining done, now build CSS Selectors for html dynamic DEPs');
-            this.dynamicDEPs = this.dynamicDEPs.filter(har => {
-                return this.bot.addHTMLDynamicDEPLocation(har);
-            });
+            this.dynamicDEPs = await Promise.all(this.dynamicDEPs.map(
+                har => this.bot.addHTMLDynamicDEPLocation(har)
+            ));
         }
     }
 

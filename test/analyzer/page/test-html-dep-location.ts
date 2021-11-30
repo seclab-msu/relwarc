@@ -2,6 +2,8 @@ import { DynamicPageAnalyzer } from '../../../src/dynamic-page-analyzer';
 
 import { testWS } from './webserver'
 
+import { currentBackend, BackendKind } from '../../../src/backend/index';
+
 function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
 }
@@ -50,17 +52,31 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'subdocument',
-                'htmlInfo': {
-                    'outerHTML': '<iframe src="/subdoc.html" width="300" height="200"></iframe>',
-                    'selector': 'body > div:nth-child(3) > iframe:nth-child(1)'
-                },
-                'lineNumber': 28,
-                'columnNumber': 12
-            }
-        }));
+        if (currentBackend == BackendKind.SlimerJS) {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'subdocument',
+                    'htmlInfo': {
+                        'outerHTML': '<iframe src="/subdoc.html" width="300" height="200"></iframe>',
+                        'selector': 'body > div:nth-child(3) > iframe:nth-child(1)'
+                    },
+                    'lineNumber': 28,
+                    'columnNumber': 12
+                }
+            }));
+        } else {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'document',
+                    'htmlInfo': {
+                        'outerHTML': '<iframe width="300" height="200" src="/subdoc.html"></iframe>',
+                        'selector': 'body > div:nth-child(3) > iframe:nth-child(1)'
+                    },
+                    'lineNumber': 28,
+                    'columnNumber': 12
+                }
+            }));
+        }
         dpa.close();
     });
 
@@ -107,17 +123,31 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'imageset',
-                'htmlInfo': {
-                    'outerHTML': '<img src="/img5.png" srcset="/img5.png 480w, /img5.png 800w">',
-                    'selector': 'body > div:nth-child(5) > div:nth-child(1) > img:nth-child(2)'
-                },
-                'lineNumber': 39,
-                'columnNumber': 16
-            }
-        }));
+        if (currentBackend == BackendKind.SlimerJS) {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'imageset',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="/img5.png" srcset="/img5.png 480w, /img5.png 800w">',
+                        'selector': 'body > div:nth-child(5) > div:nth-child(1) > img:nth-child(2)'
+                    },
+                    'lineNumber': 39,
+                    'columnNumber': 16
+                }
+            }));
+        } else {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'img',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="/img5.png" srcset="/img5.png 480w, /img5.png 800w">',
+                        'selector': 'body > div:nth-child(5) > div:nth-child(1) > img:nth-child(2)'
+                    },
+                    'lineNumber': 39,
+                    'columnNumber': 16
+                }
+            }));
+        }
         dpa.close();
     });
 
@@ -126,17 +156,31 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'imageset',
-                'htmlInfo': {
-                    'outerHTML': '<img src="/img.jpg" alt="Image">',
-                    'selector': 'body > picture:nth-child(6) > img:nth-child(2)'
-                },
-                'lineNumber': 45,
-                'columnNumber': 12
-            }
-        }));
+        if (currentBackend == BackendKind.SlimerJS) {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'imageset',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="/img.jpg" alt="Image">',
+                        'selector': 'body > picture:nth-child(6) > img:nth-child(2)'
+                    },
+                    'lineNumber': 45,
+                    'columnNumber': 12
+                }
+            }));
+        } else {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'img',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="/img.jpg" alt="Image">',
+                        'selector': 'body > picture:nth-child(6) > img:nth-child(2)'
+                    },
+                    'lineNumber': 45,
+                    'columnNumber': 12
+                }
+            }));
+        }
         dpa.close();
     });
 
@@ -183,17 +227,31 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
         const url = testWS.getFullURL('/css-selectors.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'imageset',
-                'htmlInfo': {
-                    'outerHTML': '<img src="/img7.png" srcset="/img5x.png 480w, /img5x.png 800w">',
-                    'selector': 'body > img:nth-child(9)'
-                },
-                'lineNumber': 54,
-                'columnNumber': 8
-            }
-        }));
+        if (currentBackend == BackendKind.SlimerJS) {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'imageset',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="/img7.png" srcset="/img5x.png 480w, /img5x.png 800w">',
+                        'selector': 'body > img:nth-child(9)'
+                    },
+                    'lineNumber': 54,
+                    'columnNumber': 8
+                }
+            }));
+        } else {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'img',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="/img7.png" srcset="/img5x.png 480w, /img5x.png 800w">',
+                        'selector': 'body > img:nth-child(9)'
+                    },
+                    'lineNumber': 54,
+                    'columnNumber': 8
+                }
+            }));
+        }
         dpa.close();
     });
 
@@ -235,22 +293,36 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
         dpa.close();
     });
 
-    it('URL from imgsrc with relative path', async () => {
+    it('URL from img src with relative path', async () => {
         const dpa = new DynamicPageAnalyzer({ filterStatic: false });
         const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
         await dpa.run(url, false, true, true);
         const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'imageset',
-                'htmlInfo': {
-                    'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
-                    'selector': 'body > img:nth-child(1)'
-                },
-                'lineNumber': 2,
-                'columnNumber': 8
-            }
-        }));
+        if (currentBackend == BackendKind.SlimerJS) {
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'imageset',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
+                        'selector': 'body > img:nth-child(1)'
+                    },
+                    'lineNumber': 2,
+                    'columnNumber': 8
+                }
+            }));
+        } else{
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'img',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
+                        'selector': 'body > img:nth-child(1)'
+                    },
+                    'lineNumber': 2,
+                    'columnNumber': 8
+                }
+            }));
+        }
         dpa.close();
     });
 
