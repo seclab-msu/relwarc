@@ -800,6 +800,43 @@ export class Analyzer {
                 }
                 return {};
             }
+        } else if (callee.name === 'HttpRequest') {
+            if (node.arguments.length < 2) {
+                log(
+                    `Warning: expected new HttpRequest args length ` +
+                    `to be at least 2, but got ${node.arguments.length}`
+                );
+                return {};
+            }
+
+            let method = this.valueFromASTNode(node.arguments[0]) || 'GET';
+            method = method.toString();
+
+            let body,
+                settings = {};
+
+            if (
+                ['DELETE', 'GET', 'HEAD', 'JSONP', 'OPTIONS'].includes(method.toUpperCase()) &&
+                node.arguments.length <= 3
+            ) {
+                if (node.arguments.length === 3) {
+                    settings = this.valueFromASTNode(node.arguments[2]) || {};
+                }
+            } else {
+                if (node.arguments.length === 4) {
+                    settings = this.valueFromASTNode(node.arguments[3]) || {};
+                }
+
+                body = this.valueFromASTNode(node.arguments[2]);
+            }
+
+            return {
+                method: method,
+                url: this.valueFromASTNode(node.arguments[1]),
+                body: body,
+                headers: settings['headers'] || {},
+                params: settings['params'] || {}
+            };
         } else if (callee.name === 'Object') {
             return {};
         } else if (callee.name === 'FormData') {
