@@ -10,3 +10,4 @@ node_modules
 tsconfig.tsbuildinfo
 tarserver/tarserver
 tarserver/tarserver.test
+/build
