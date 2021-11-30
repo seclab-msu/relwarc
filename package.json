@@ -1,5 +1,10 @@
 {
   "name": "js-analyzer",
+  "bin": {
+    "js-analyzer": "./run",
+    "js-analyzer-chrome": "./crun",
+    "js-analyzer-file": "./nrun"
+  },
   "dependencies": {
     "@babel/parser": "7.20.7",
     "@babel/traverse": "7.20.12",
