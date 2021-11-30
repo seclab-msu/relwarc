@@ -1,5 +1,6 @@
 {
   "name": "js-analyzer",
+  "version": "1.0.0",
   "bin": {
     "js-analyzer": "./run",
     "js-analyzer-chrome": "./crun",
