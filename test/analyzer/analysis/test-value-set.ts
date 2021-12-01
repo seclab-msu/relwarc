@@ -1,4 +1,5 @@
 import { makeAndRunSimple } from '../utils/utils';
+import { hasattr } from '../../../src/utils/common';
 
 describe('Test ValueSet', () => {
     it('basic - if', () => {
@@ -483,6 +484,329 @@ describe('Test ValueSet', () => {
                 funcName: 'fetch',
                 args: ['/test?x=desd']
             });
+        });
+    });
+    describe('nested ValueSet', () => {
+        it('ternary and "+"', () => {
+            const src = `
+            let path = is_admin === true ? '/admin': '/user';
+            let hostname = local === true ? 'dev.server': 'prod.server';
+            let finalUrl = hostname + path;
+            fetch(finalUrl);
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(4);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['dev.server/admin']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['dev.server/user']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['prod.server/admin']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['prod.server/user']
+            });
+        });
+        it('if statement with ternary and plus', () => {
+            const src = `
+            let url;
+            if (isBranch) {
+                url = 'test.host';
+            } else if (isSecondBranch) {
+                url = 'test2.host';
+            } else {
+                url = 'prod.host';
+            }
+            let path = needPath ? '/kek': '/';
+            let finalUrl = url + path;
+            fetch(finalUrl);
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(6);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test.host/kek']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test.host/']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test2.host/kek']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test2.host/']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['prod.host/kek']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['prod.host/']
+            });
+        });
+        xit('some operation applied to ValueSet (delayed till #6869 will be complete)', () => {
+            const src = `
+            let url;
+            if (someFunc()) {
+                url = 'test.com';
+            } else {
+                url = 'test2.com';
+            }
+            url += '/api/';
+            path = isProd()? 'prod': 'stand';
+            const finalURL = url + path;
+            fetch(finalUrl);
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(6);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test.com/api/prod']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test2.com/api/prod']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test.com/api/stand']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test2.com/api/stand']
+            });
+        });
+        xit('if statement with ternary + concat (delayed till #6862 will be complete)', () => {
+            const src = `
+            let url;
+            if (isBranch) {
+                url = 'test.host';
+            } else if (isSecondBranch) {
+                url = 'test2.host';
+            } else {
+                url = 'prod.host';
+            }
+            let path = needPath ? '/kek': '/';
+            let finalUrl = url.concat(path);
+            fetch(finalUrl);
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(6);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test.host/kek']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test.host/']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test2.host/kek']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['test2.host/']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['prod.host/kek']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['prod.host/']
+            });
+        });
+        xit('nested ternary', () => {
+            const src = `
+            let data = {};
+            isAdmin ? (
+                isSuperAdmin? data.role = 'SuperAdmin': data.role = 'Admin'
+            ) : data.role = 'User';
+            data.twoAuth = need2Auth ? true: false;
+            $.ajax('/test', { data: data });
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(6);
+
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', { 'data': { 'role': 'User', 'twoAuth': true } }]
+            });
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', { 'data': { 'role': 'User', 'twoAuth': true } }]
+            });
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', { 'data': { 'role': 'SuperAdmin', 'twoAuth': true } }]
+            });
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', { 'data': { 'role': 'SuperAdmin', 'twoAuth': true } }]
+            });
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', { 'data': { 'role': 'Admin', 'twoAuth': true } }]
+            });
+            expect(res as object[]).toContain({
+                funcName: '$.ajax',
+                args: ['/test', { 'data': { 'role': 'Admin', 'twoAuth': true } }]
+            });
+        });
+    });
+    describe('ValueSet in propName', () => {
+        it('basic ternary', () => {
+            const src = `
+            const prop = someBranch ? 'kek': 'lol';
+            let data = {};
+            data[prop] = 'test';
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const data = analyzer.getVariable('data');
+            const expectedKeys = [
+                'kek', 'lol',
+            ];
+            for (const key in data as object) {
+                if (hasattr(data as object, key)) {
+                    expect(expectedKeys).toContain(key);
+                }
+            }
+        });
+        it('basic if statement', () => {
+            const src = `
+            let prop;
+            if (someFunc()) {
+                prop = 'kek';
+            } else {
+                prop = 'lol';
+            }
+            let data = {};
+            data[prop] = 'test';
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const data = analyzer.getVariable('data');
+            const expectedKeys = [
+                'kek', 'lol',
+            ];
+            for (const key in data as object) {
+                if (hasattr(data as object, key)) {
+                    expect(expectedKeys).toContain(key);
+                }
+            }
+        });
+        it('assignment ValueSet to obj with existed props', () => {
+            const src = `
+            let data = {
+                url: 'http://www.test.com'
+            };
+            let prop = someFunc() ? 'kek': 'lol';
+            data[prop] = 'something...';
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const data = analyzer.getVariable('data');
+            const expectedKeys = [
+                'kek', 'lol', 'url',
+            ];
+            for (const key in data as object) {
+                if (hasattr(data as object, key)) {
+                    expect(expectedKeys).toContain(key);
+                }
+            }
+        });
+        it('ternary op inside property', () => {
+            const src = `
+            let data = {
+                url: 'http://www.test.com'
+            };
+            data[someFunc() ? 'kek': 'lol'] = 'something...';
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const data = analyzer.getVariable('data');
+            const expectedKeys = [
+                'kek', 'lol', 'url',
+            ];
+            for (const key in data as object) {
+                if (hasattr(data as object, key)) {
+                    expect(expectedKeys).toContain(key);
+                }
+            }
+        });
+        it('assigment to prop checked by equality', () => {
+            const src = `
+            let data = {
+                url: 'http://www.test.com',
+                someProp: 'test'
+            };
+            const p = someFunc() ? 'someProp': 'prop2';
+            for (const key in data) {
+                if (key === p) {
+                    data[key] = 'kek';
+                }
+            }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const data = analyzer.getVariable('data');
+            const expectedKeys = [
+                'url', 'someProp', 'prop2',
+            ];
+            for (const key in data as object) {
+                if (hasattr(data as object, key)) {
+                    expect(expectedKeys).toContain(key);
+                }
+            }
+        });
+        it('assigment ValueSet to existed viriable', () => {
+            const src = `
+            const prop = 'testProp';
+            prop = someFunc()? 'newProp': 'otherProp';
+            let data = {};
+            data[prop] = 'test';
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const data = analyzer.getVariable('data');
+            const expectedKeys = [
+                'testProp', 'newProp', 'otherProp',
+            ];
+            for (const key in data as object) {
+                if (hasattr(data as object, key)) {
+                    expect(expectedKeys).toContain(key);
+                }
+            }
         });
     });
 });
