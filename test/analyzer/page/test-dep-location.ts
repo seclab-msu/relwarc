@@ -2,6 +2,8 @@ import { DynamicPageAnalyzer } from '../../../src/dynamic-page-analyzer';
 import { readTar } from '../../../src/read-tar';
 import { testWS } from './webserver'
 
+import { currentBackend, BackendKind } from '../../../src/backend';
+
 function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
 }
@@ -61,18 +63,24 @@ describe('Tests for DEPs location on web page', () => {
 
         const hars = dpa.analyzerDEPs.map(JSONObjectFromHAR);
 
-        expect(hars).toContain(jasmine.objectContaining({
-            'method': 'GET',
-            'url': testWS.getFullURL('/test'),
-            'queryString': [],
-            'bodySize': 0,
-            'initiator': {
+        const wantTestData: Record<string, unknown> = {
+            method: 'GET',
+            url: testWS.getFullURL('/test'),
+            queryString: [],
+            bodySize: 0,
+            initiator: {
                 'type': 'analyzer',
                 'lineNumber': 3,
                 'columnNumber': 12,
                 'url': 'dynamically evaled code from script ' + testWS.getFullURL('/dynamic-evaled/jquery-2.2.3.js'),
             }
-        }));
+        }
+
+        if (currentBackend === BackendKind.Chrome) { // TODO (See #6826)
+            delete wantTestData.initiator;
+        }
+
+        expect(hars).toContain(jasmine.objectContaining(wantTestData));
         dpa.close();
     });
 
