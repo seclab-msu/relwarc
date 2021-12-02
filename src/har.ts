@@ -176,6 +176,10 @@ function getQueryNameValue(q: string): [string, string] {
 export function headersFromMap(headersMap: Record<string, string>): KeyValue[] {
     const result: KeyValue[] = [];
 
+    if (isUnknown(headersMap)) {
+        return result;
+    }
+
     for (const k in headersMap) {
         if (hasattr(headersMap, k)) {
             result.push({

@@ -358,4 +358,32 @@ describe('Tests for Axios library\'s DEPs hars', () => {
             },
         );
     });
+
+    it('axios request with unknown headers', function () {
+        const scripts = [
+            `const n = someUnknownFunc();
+            axios({
+                url: '/test',
+                method: 'GET',
+                headers: n
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url:
+                    'http://test.com/test',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'test.com'
+                    }
+                ],
+                queryString: [],
+                bodySize: 0,
+                method: 'GET'
+            },
+        );
+    });
 });

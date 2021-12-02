@@ -98,4 +98,30 @@ describe('Analyzer mining HARs from fetch() calls', () => {
         const analyzer = makeAndRunSimple(scripts, true);
         expect(analyzer.hars).toEqual([]);
     });
+
+    it('fetch request with unknown headers', function () {
+        const scripts = [
+            `const n = someUnknownFunc();
+            fetch('/test', {
+                headers: n
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url:
+                    'http://test.com/test',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'test.com'
+                    }
+                ],
+                queryString: [],
+                bodySize: 0,
+                method: 'GET'
+            },
+        );
+    });
 });
