@@ -21,6 +21,11 @@ import type { StackFrame } from '../../../../browser/stack-frame';
 
 import { log } from '../../../../logging';
 
+import {
+    DEFAULT_LOAD_TIMEOUT,
+    LOADED_COOLDOWN
+} from '../../../../browser/headless-bot';
+
 import type {
     HeadlessBot as GenericHeadlessBot,
     WindowCreatedListener
@@ -35,10 +40,6 @@ import { HeadlessBotOptions } from '../../../../browser/options';
 import { addHTMLDynamicDEPLocation } from './html-dep-location';
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0';
-
-const LOADED_COOLDOWN = 250;
-
-const DEFAULT_LOAD_TIMEOUT = 180; // 180 seconds = 3 min
 
 const LOADING_SCRIPT_MULTIPLIER = 0.6;
 
