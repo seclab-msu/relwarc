@@ -202,17 +202,12 @@ function makeHARJQuery(
         isMultipart = true;
     }
 
-    let qs = getQs(isMultipart, data);
+    const qs = getQs(isMultipart, data);
     if (qs === null) {
         return null;
     }
 
     const explicitCt = settings.contentType;
-    if (settings.dataType === 'jsonp') {
-        const callbackParamName = settings.jsonp || 'callback';
-        qs += (qs ? '&': '') + callbackParamName + '=jQuery111106567430573505544_1591529444128';
-    }
-
     if (method === 'GET') {
         har.url = replaceQuery(har.url, qs);
         har.reparseURL();
@@ -220,6 +215,19 @@ function makeHARJQuery(
         setCt(har, explicitCt, isMultipart, qs);
         setData(har, isMultipart, data, qs);
     }
+
+    if (settings.dataType === 'jsonp') {
+        let callbackParamName = settings.jsonp || 'callback';
+        for (const p of har.queryString) {
+            if (p.value === '?') {
+                callbackParamName = p.name;
+                har.url = har.url.replace(callbackParamName+'=?', '');
+            }
+        }
+        har.url = replaceQuery(har.url, callbackParamName + '=jQuery111106567430573505544_1591529444128');
+        har.reparseURL();
+    }
+
     return har;
 }
 

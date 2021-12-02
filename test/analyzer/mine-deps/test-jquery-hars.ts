@@ -473,4 +473,65 @@ describe('Tests for jQuery library hars', () => {
         const convertedHars = JSON.parse(JSON.stringify(analyzer.hars));
         expect(convertedHars.length).toEqual(2);
     });
+
+    it('jQuery jsonp post request with callback param in query string', () => {
+        const scripts = [
+            `$.ajax({
+                type: "POST",
+                url: "/ajax/checklogin.php?callbackparam=?",
+                dataType: "jsonp"
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/ajax/checklogin.php?callbackparam=jQuery111106567430573505544_1591529444128',
+                method: 'POST',
+                queryString: [{
+                    name: 'callbackparam',
+                    value: 'jQuery111106567430573505544_1591529444128'
+                }],
+                headers: [{
+                    name: 'Host',
+                    value: 'test.com'
+                }, {
+                    value: '0',
+                    name: 'Content-Length',
+                }],
+                postData: {
+                    text: '',
+                },
+                bodySize: 0
+            }
+        );
+    });
+
+    it('jQuery jsonp request with callback param in query string and settings', () => {
+        const scripts = [
+            `$.ajax({
+                type: "GET",
+                url: "/checklogin.php?qqq=?",
+                dataType: "jsonp",
+                jsonp: "callback"
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/checklogin.php?qqq=jQuery111106567430573505544_1591529444128',
+                method: 'GET',
+                queryString: [{
+                    name: 'qqq',
+                    value: 'jQuery111106567430573505544_1591529444128'
+                }],
+                headers: [{
+                    name: 'Host',
+                    value: 'test.com'
+                }],
+                bodySize: 0
+            }
+        );
+    });
 });
