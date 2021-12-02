@@ -4,22 +4,18 @@
 // synchronously inside 'document-element-inserted' callback, otherwise we will
 // have a race condition and will miss some events
 
+import { isPromise } from '../../../../utils/common';
+
 export function synchronousePromiseResolve<T>(
     val?: T | PromiseLike<T>
 ): PromiseLike<T> {
-    if (
-        val && typeof val === 'object' &&
-        'then' in val &&
-        typeof val.then === 'function'
-    ) {
-        throw new Error(
-            'synchronousePromiseResolve: sub-promise not supported'
-        );
+    if (isPromise(val)) {
+        return val;
     }
     return {
-        then<TR>(cb?: (val?: T) => TR | PromiseLike<TR>): PromiseLike<TR> {
+        then<TR>(cb?: (v?: T) => TR | PromiseLike<TR>): PromiseLike<TR> {
             if (cb) {
-                const res = cb();
+                const res = cb(val);
                 return synchronousePromiseResolve<TR>(res);
             } else {
                 return synchronousePromiseResolve<TR>();
