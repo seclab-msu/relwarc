@@ -56,9 +56,9 @@ export class DynamicPageAnalyzer {
         this.dynamicAnalyzer = dynamicAnalyzer;
 
         bot.addWindowCreatedListener((bot: HeadlessBot) => {
-            dynamicAnalyzer.close().then(() => {
+            return dynamicAnalyzer.close().then(() => {
                 analyzer.resetScripts();
-                dynamicAnalyzer.addWindow(bot);
+                return dynamicAnalyzer.addWindow(bot);
             });
         });
 
