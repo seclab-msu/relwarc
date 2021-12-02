@@ -55,3 +55,12 @@ export function isSuperset<T>(set: Set<T>, subset: Set<T>): boolean {
     }
     return true;
 }
+
+export function isPromise(ob: unknown): ob is PromiseLike<unknown> {
+    return (
+        ob !== null &&
+        typeof ob === 'object' &&
+        'then' in ob &&
+        typeof ob.then === 'function'
+    );
+}

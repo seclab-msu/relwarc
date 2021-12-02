@@ -21,4 +21,6 @@ export interface HeadlessBot {
     close(): Promise<void>;
 }
 
-export type WindowCreatedListener = (bot: HeadlessBot) => void;
+export type WindowCreatedListener = (
+    bot: HeadlessBot
+) => PromiseLike<void> | void;
