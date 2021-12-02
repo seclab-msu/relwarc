@@ -8,7 +8,8 @@ const signatures: SinkSignature[] = [
     {
         type: 'bound',
         signature: {
-            '$http': ['get', 'post', 'put', 'jsonp']
+            '$http': ['get', 'post', 'put', 'jsonp'],
+            'http': ['request', 'delete', 'get', 'head', 'jsonp', 'options', 'patch', 'post', 'put'],
         }
     }
 ];
