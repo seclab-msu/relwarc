@@ -534,4 +534,32 @@ describe('Tests for jQuery library hars', () => {
             }
         );
     });
+
+    it('jquery request with unknown headers', function () {
+        const scripts = [
+            `const n = someUnknownFunc();
+            $.ajax({
+                url: '/test',
+                method: 'GET',
+                headers: n
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url:
+                    'http://test.com/test',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'test.com'
+                    }
+                ],
+                queryString: [],
+                bodySize: 0,
+                method: 'GET'
+            },
+        );
+    });
 });

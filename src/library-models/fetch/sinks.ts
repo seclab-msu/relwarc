@@ -69,7 +69,7 @@ function processFetchSettings(opt: AcceptableOptionsObject): FetchSettings {
 
     settings.headers = {};
 
-    if ('headers' in opt && typeof opt.headers === 'object' && opt.headers !== null) {
+    if ('headers' in opt && typeof opt.headers === 'object' && opt.headers !== null && !isUnknown(opt.headers)) {
         for (const [n, v] of Object.entries(opt.headers)) {
             settings.headers[n] = String(v);
         }
