@@ -5,4 +5,5 @@ export interface HeadlessBotOptions {
     debugRequestLoading: boolean;
     recordRequestStackTraces?: boolean;
     loadTimeout?: number;
+    proxy?: string;
 }
