@@ -23,3 +23,22 @@ function makeStringMethodsSnapshot(): StringMethods {
 }
 
 export const STRING_METHODS: StringMethods = makeStringMethodsSnapshot();
+
+type RegExpPrototype = typeof RegExp.prototype;
+
+type RegExpPropNames = (keyof RegExpPrototype)[];
+
+function makeRegExpUnsettablePropNamesSnapshot(): RegExpPropNames {
+    const result: string[] = [];
+    const proto = RegExp.prototype;
+    for (const propName of Object.getOwnPropertyNames(proto)) {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, propName);
+        if (descriptor?.get !== undefined && descriptor.set === undefined) {
+            result.push(propName);
+        }
+    }
+    return result as RegExpPropNames;
+}
+
+export const REGEXP_UNSETTABLE_PROPS: RegExpPropNames =
+    makeRegExpUnsettablePropNamesSnapshot();

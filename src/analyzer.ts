@@ -37,7 +37,7 @@ import { ValueSet } from './types/value-set';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
-import { STRING_METHODS } from './utils/analyzer';
+import { STRING_METHODS, REGEXP_UNSETTABLE_PROPS } from './utils/analyzer';
 
 import { HAR, BadURLError } from './har';
 import { makeHAR } from './library-models/sinks';
@@ -483,6 +483,12 @@ export class Analyzer {
                             'are currently skipped'
                         );
                     }
+                    return;
+                }
+                if (
+                    ob instanceof RegExp &&
+                    REGEXP_UNSETTABLE_PROPS.includes(propName)
+                ) {
                     return;
                 }
                 ob[propName] = value;
