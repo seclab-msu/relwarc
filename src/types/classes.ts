@@ -1,8 +1,11 @@
 import {
-    ClassDeclaration, ClassExpression
+    ClassDeclaration, ClassExpression, ClassMethod, ClassPrivateMethod,
+    Function as FunctionASTNode,
+    isClassMethod, isClassPrivateMethod
 } from '@babel/types';
 
 type ClassNode = ClassDeclaration | ClassExpression;
+type Method = ClassMethod | ClassPrivateMethod;
 
 export class ClassObject {
     readonly name: string;
@@ -25,9 +28,11 @@ export class Class {
     readonly classObject: ClassObject;
     readonly name: string;
     readonly instance: Instance;
+    readonly methods: Method[];
 
-    constructor(name: string) {
+    constructor(name: string, methods: Method[]) {
         this.name = name;
+        this.methods = methods;
         this.classObject = new ClassObject(name);
         this.instance = new Instance(this);
     }
@@ -45,9 +50,21 @@ export class Instance {
 
 export class ClassManager {
     readonly classes: Class[];
+    private readonly method2Class: Map<FunctionASTNode, Class>;
 
     constructor() {
         this.classes = [];
+        this.method2Class = new Map();
+    }
+
+    private static getMethods(node: ClassNode): Method[] {
+        const result: Method[] = [];
+        for (const el of node.body.body) {
+            if (isClassMethod(el) || isClassPrivateMethod(el)) {
+                result.push(el);
+            }
+        }
+        return result;
     }
 
     create(node: ClassNode): ClassObject {
@@ -58,8 +75,17 @@ export class ClassManager {
             name = ident.name;
         }
 
-        const cls = new Class(name);
+        const methods = ClassManager.getMethods(node);
+
+        const cls = new Class(name, methods);
         this.classes.push(cls);
+        for (const m of methods) {
+            this.method2Class.set(m, cls);
+        }
         return cls.classObject;
+    }
+
+    getClassInstanceForMethod(m: FunctionASTNode): Instance | null {
+        return this.method2Class.get(m)?.instance || null;
     }
 }
