@@ -81,6 +81,12 @@ const SPECIAL_PROP_NAMES = [
     '__lookupSetter__'
 ];
 
+const PREDEFINED_CLASSES = [
+    'Headers',
+    'HttpRequest',
+    'Object',
+    'FormData'
+];
 
 type VarScope = { [varName: string]: Value };
 
@@ -847,14 +853,48 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    private processNewExpression(node: NewExpression): Value {
-        const callee = node.callee;
-
-        if (callee.type !== 'Identifier') {
-            return UNKNOWN_FROM_FUNCTION;
+    private constructAngularHttpRequest(node: NewExpression): Value {
+        if (node.arguments.length < 2) {
+            log(
+                `Warning: expected new HttpRequest args length ` +
+                `to be at least 2, but got ${node.arguments.length}`
+            );
+            return {};
         }
 
-        if (callee.name === 'Headers') {
+        let method = this.valueFromASTNode(node.arguments[0]) || 'GET';
+        method = method.toString();
+
+        let body,
+            settings = {};
+
+        if (
+            ['DELETE', 'GET', 'HEAD', 'JSONP', 'OPTIONS'].includes(method.toUpperCase()) &&
+            node.arguments.length <= 3
+        ) {
+            if (node.arguments.length === 3) {
+                settings = this.valueFromASTNode(node.arguments[2]) || {};
+            }
+        } else {
+            if (node.arguments.length === 4) {
+                settings = this.valueFromASTNode(node.arguments[3]) || {};
+            }
+
+            body = this.valueFromASTNode(node.arguments[2]);
+        }
+
+        return {
+            method: method,
+            url: this.valueFromASTNode(node.arguments[1]),
+            body: body,
+            headers: settings['headers'] || {},
+            params: settings['params'] || {}
+        };
+    }
+
+    private constructPredefinedClass(name: string, node: NewExpression): Value {
+        switch (name) {
+        case 'Headers':
             if (typeof node.arguments[0] === 'object') {
                 return this.valueFromASTNode(node.arguments[0]);
             } else { // TODO: add test for this case
@@ -866,48 +906,36 @@ export class Analyzer {
                 }
                 return {};
             }
-        } else if (callee.name === 'HttpRequest') {
-            if (node.arguments.length < 2) {
-                log(
-                    `Warning: expected new HttpRequest args length ` +
-                    `to be at least 2, but got ${node.arguments.length}`
-                );
-                return {};
-            }
-
-            let method = this.valueFromASTNode(node.arguments[0]) || 'GET';
-            method = method.toString();
-
-            let body,
-                settings = {};
-
-            if (
-                ['DELETE', 'GET', 'HEAD', 'JSONP', 'OPTIONS'].includes(method.toUpperCase()) &&
-                node.arguments.length <= 3
-            ) {
-                if (node.arguments.length === 3) {
-                    settings = this.valueFromASTNode(node.arguments[2]) || {};
-                }
-            } else {
-                if (node.arguments.length === 4) {
-                    settings = this.valueFromASTNode(node.arguments[3]) || {};
-                }
-
-                body = this.valueFromASTNode(node.arguments[2]);
-            }
-
-            return {
-                method: method,
-                url: this.valueFromASTNode(node.arguments[1]),
-                body: body,
-                headers: settings['headers'] || {},
-                params: settings['params'] || {}
-            };
-        } else if (callee.name === 'Object') {
+            break;
+        case 'HttpRequest':
+            return this.constructAngularHttpRequest(node);
+            break;
+        case 'Object':
             return {};
-        } else if (callee.name === 'FormData') {
+            break;
+        case 'FormData':
             return new FormDataModel();
+            break;
+        default:
+            throw new Error('Unexpected predefined class: ' + name);
         }
+    }
+
+    private processNewExpression(node: NewExpression): Value {
+        const callee = node.callee;
+
+        if (isIdentifier(callee) && PREDEFINED_CLASSES.includes(callee.name)) {
+            return this.constructPredefinedClass(callee.name, node);
+        }
+
+        const cls = this.valueFromASTNode(callee);
+
+        if (cls instanceof ClassObject) {
+            // NB(asterite): ctor arguments are currently ignored
+            const inst = this.classManager.getClassInstanceForClassObject(cls);
+            return inst || UNKNOWN_FROM_FUNCTION;
+        }
+
         return UNKNOWN_FROM_FUNCTION;
     }
 

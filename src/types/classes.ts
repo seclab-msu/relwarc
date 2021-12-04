@@ -51,10 +51,12 @@ export class Instance {
 export class ClassManager {
     readonly classes: Class[];
     private readonly method2Class: Map<FunctionASTNode, Class>;
+    private readonly classObject2Class: Map<ClassObject, Class>;
 
     constructor() {
         this.classes = [];
         this.method2Class = new Map();
+        this.classObject2Class = new Map();
     }
 
     private static getMethods(node: ClassNode): Method[] {
@@ -82,10 +84,15 @@ export class ClassManager {
         for (const m of methods) {
             this.method2Class.set(m, cls);
         }
+        this.classObject2Class.set(cls.classObject, cls);
         return cls.classObject;
     }
 
     getClassInstanceForMethod(m: FunctionASTNode): Instance | null {
         return this.method2Class.get(m)?.instance || null;
+    }
+
+    getClassInstanceForClassObject(co: ClassObject): Instance | null {
+        return this.classObject2Class.get(co)?.instance || null;
     }
 }
