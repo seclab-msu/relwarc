@@ -657,6 +657,7 @@ export class Analyzer {
         traverse(this.mergedProgram, {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
+                this.currentPath = path;
                 if (isFunction(node)) {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.ifStack.unshift(0);
@@ -664,12 +665,7 @@ export class Analyzer {
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]++;
-                }
-            },
-            exit: (path: NodePath) => {
-                this.currentPath = path;
-                const node: ASTNode = path.node;
-                if (
+                } else if (
                     node.type === 'VariableDeclarator' ||
                     node.type === 'AssignmentExpression'
                 ) {
@@ -679,6 +675,10 @@ export class Analyzer {
                 ) {
                     this.declare(node);
                 }
+            },
+            exit: (path: NodePath) => {
+                this.currentPath = path;
+                const node: ASTNode = path.node;
                 if (isFunction(node)) {
                     this.argsStack.pop();
                     this.ifStack.shift();
@@ -1148,7 +1148,7 @@ export class Analyzer {
         }
     }
 
-    private processClassExpression(node: ClassExpression) {
+    private processClassExpression(node: ClassExpression): Value {
         return this.classManager.create(node);
     }
 
