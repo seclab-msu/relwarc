@@ -52,11 +52,13 @@ export class ClassManager {
     readonly classes: Class[];
     private readonly method2Class: Map<FunctionASTNode, Class>;
     private readonly classObject2Class: Map<ClassObject, Class>;
+    private readonly node2Class: Map<ClassNode, Class>;
 
     constructor() {
         this.classes = [];
         this.method2Class = new Map();
         this.classObject2Class = new Map();
+        this.node2Class = new Map();
     }
 
     private static getMethods(node: ClassNode): Method[] {
@@ -70,6 +72,9 @@ export class ClassManager {
     }
 
     create(node: ClassNode): ClassObject {
+        if (this.node2Class.has(node)) {
+            return (this.node2Class.get(node) as Class).classObject;
+        }
         const ident = node.id;
         let name = 'anonymous';
 
@@ -85,6 +90,7 @@ export class ClassManager {
             this.method2Class.set(m, cls);
         }
         this.classObject2Class.set(cls.classObject, cls);
+        this.node2Class.set(node, cls);
         return cls.classObject;
     }
 
