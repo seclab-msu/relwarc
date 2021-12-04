@@ -18,7 +18,7 @@ import {
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
     isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
-    isFunctionDeclaration, isClassDeclaration
+    isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression
 } from '@babel/types';
 
 import {
@@ -26,7 +26,8 @@ import {
     UNKNOWN_FUNCTION,
     UNKNOWN_FROM_FUNCTION,
     isUnknown,
-    isUnknownOrUnknownString
+    isUnknownOrUnknownString,
+    Unknown
 } from './types/unknown';
 
 import { DynamicAnalyzer } from './dynamic/analyzer';
@@ -36,7 +37,7 @@ import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
-import { ClassObject, ClassManager } from './types/classes';
+import { ClassObject, ClassManager, Instance } from './types/classes';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -139,6 +140,7 @@ export class Analyzer {
     private formalArgs: string[];
 
     readonly classManager: ClassManager;
+    private readonly thisStack: Array<Instance | Unknown>;
 
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
@@ -181,6 +183,7 @@ export class Analyzer {
         this.formalArgs = [];
 
         this.classManager = new ClassManager();
+        this.thisStack = [UNKNOWN];
 
         this.callQueue = [];
         this.callChain = [];
@@ -609,6 +612,29 @@ export class Analyzer {
         }
     }
 
+    private pushCurrentThis(t: Instance | Unknown): void {
+        this.thisStack.push(t);
+    }
+
+    private popCurrentThis() {
+        this.thisStack.pop();
+    }
+
+    private addCurrentThis(node: FunctionASTNode): void {
+        const inst = this.classManager.getClassInstanceForMethod(node);
+        if (inst !== null) {
+            this.pushCurrentThis(inst);
+        } else if (!isArrowFunctionExpression(node)) {
+            this.pushCurrentThis(UNKNOWN);
+        }
+    }
+
+    private restoreCurrentThis(node: FunctionASTNode): void {
+        if (!isArrowFunctionExpression(node)) {
+            this.popCurrentThis();
+        }
+    }
+
     private gatherVariableValues(): void {
         this.stage = AnalysisPhase.VarGathering;
         if (this.mergedProgram === null) {
@@ -620,6 +646,7 @@ export class Analyzer {
                 if (isFunction(node)) {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.ifStack.unshift(0);
+                    this.addCurrentThis(node);
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]++;
@@ -641,6 +668,7 @@ export class Analyzer {
                 if (isFunction(node)) {
                     this.argsStack.pop();
                     this.ifStack.shift();
+                    this.restoreCurrentThis(node);
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]--;
@@ -1079,6 +1107,10 @@ export class Analyzer {
         return this.classManager.create(node);
     }
 
+    private processThisExpression(): Instance | Unknown {
+        return this.thisStack[this.thisStack.length - 1];
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -1122,6 +1154,10 @@ export class Analyzer {
 
         if (node.type === 'ClassExpression') {
             return this.processClassExpression(node);
+        }
+
+        if (node.type === 'ThisExpression') {
+            return this.processThisExpression();
         }
 
         if (isFunction(node)) {
@@ -1657,6 +1693,7 @@ export class Analyzer {
                     this.functionsStack.push(path);
                     this.trackedCallSequencesStack.push(new Map());
                     this.ifStack.unshift(0);
+                    this.addCurrentThis(node);
                 }
 
                 if (isIfStatement(node) || isSwitchStatement(node)) {
@@ -1687,6 +1724,7 @@ export class Analyzer {
                         this.argsStack[this.argsStack.length - 1] || [];
                     this.functionsStack.pop();
                     this.trackedCallSequencesStack.pop();
+                    this.restoreCurrentThis(path.node);
                 }
 
                 if (isIfStatement(path.node) || isSwitchStatement(path.node)) {
