@@ -809,4 +809,28 @@ describe('Test ValueSet', () => {
             }
         });
     });
+    it('work with template strings', () => {
+        const scripts = [
+            'var x = someUnknownFunc() ? "foo" : "bar";',
+            'fetch(`/test/api/base/${x}`);'
+        ];
+
+        const analyzer = makeAndRunSimple(scripts, false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+
+        expect(res.length).toEqual(2);
+
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/test/api/base/foo']
+        });
+
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/test/api/base/bar']
+        });
+    });
 });

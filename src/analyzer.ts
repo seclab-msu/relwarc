@@ -911,17 +911,20 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
+    private addValues(left: Value, right: Value): Value {
+        if ((left instanceof ValueSet) || (right instanceof ValueSet)) {
+            return ValueSet.map2(left, right, (l, r) => {
+                return this.probeAddition(l, r);
+            });
+        }
+        return this.probeAddition(left, right);
+    }
+
     private processBinaryExpression(node: BinaryExpression): Value {
         if (node.operator === '+') {
             const left = this.valueFromASTNode(node.left);
             const right = this.valueFromASTNode(node.right);
-
-            if ((left instanceof ValueSet) || (right instanceof ValueSet)) {
-                return ValueSet.map2(left, right, (l, r) => {
-                    return this.probeAddition(l, r);
-                });
-            }
-            return this.probeAddition(left, right);
+            return this.addValues(left, right);
         }
         return UNKNOWN;
     }
@@ -1049,11 +1052,17 @@ export class Analyzer {
     }
 
     private processTemplateLiteral(node: TemplateLiteral): Value {
-        let templateString = '';
+        let templateString: Value = '';
         for (let i = 0; i < node.quasis.length; i++) {
-            templateString += node.quasis[i].value.cooked;
+            templateString = this.addValues(
+                templateString,
+                node.quasis[i].value.cooked
+            );
             if (typeof node.expressions[i] !== 'undefined') {
-                templateString += this.valueFromASTNode(node.expressions[i]);
+                templateString = this.addValues(
+                    templateString,
+                    this.valueFromASTNode(node.expressions[i])
+                );
             }
         }
         return templateString;
