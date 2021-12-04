@@ -420,14 +420,32 @@ export class Analyzer {
         this.globalDefinitions[name] = newValue;
     }
 
-    private shouldSetObjectProperty(name: string, value: Value): boolean {
+    private shouldSetObjectProperty(
+        ob: NontrivialValue,
+        name: string,
+        value: Value,
+    ): boolean {
         // try to avoid problems with some special properties
         // TODO: reconsider
         if (SPECIAL_PROP_NAMES.includes(name)) {
             return false;
         }
-        if (name === 'length' && typeof value !== 'number') {
+        if (
+            ob instanceof RegExp &&
+            REGEXP_UNSETTABLE_PROPS.includes(<keyof RegExp> name)
+        ) {
             return false;
+        }
+        if (Array.isArray(ob) && name === 'length') {
+            if (typeof value !== 'number') {
+                if (value instanceof ValueSet) {
+                    return true;
+                }
+                return false;
+            }
+            if (isNaN(value)) {
+                return false;
+            }
         }
         return true;
     }
@@ -440,10 +458,19 @@ export class Analyzer {
         return true;
     }
 
+    private setArrayLengthFromSet(arr: Array<Value>, length: ValueSet): void {
+        const numbers: number[] = [];
+        length.forEach(
+            v => typeof v === 'number' && numbers.push(v)
+        );
+        if (numbers.length > 0) {
+            arr.length = Math.max(...numbers);
+        }
+    }
+
     private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
         let propName;
-
         if (node.computed) {
             propName = this.valueFromASTNode(prop);
         } else {
@@ -459,10 +486,6 @@ export class Analyzer {
             propName === null ||
             isUnknown(propName)
         ) {
-            return;
-        }
-
-        if (!this.shouldSetObjectProperty(propName, value)) {
             return;
         }
 
@@ -485,10 +508,11 @@ export class Analyzer {
                     }
                     return;
                 }
-                if (
-                    ob instanceof RegExp &&
-                    REGEXP_UNSETTABLE_PROPS.includes(propName)
-                ) {
+                if (!this.shouldSetObjectProperty(ob, propName, value)) {
+                    return;
+                }
+                if (Array.isArray(ob) && propName === 'length' && value instanceof ValueSet) {
+                    this.setArrayLengthFromSet(ob, value);
                     return;
                 }
                 ob[propName] = value;
@@ -964,7 +988,6 @@ export class Analyzer {
 
     private processConditionalExpression(node: ConditionalExpression): Value {
         const test = this.valueFromASTNode(node.test);
-
         if (isUnknown(test)) {
             return ValueSet.join(
                 this.valueFromASTNode(node.consequent),
