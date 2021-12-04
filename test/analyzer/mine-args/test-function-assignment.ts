@@ -107,4 +107,25 @@ describe('Analyzer finding calls of assigned functions', () => {
             } as SinkCall,
         );
     });
+    it('global function declaration', function () {
+        const scripts = [
+            `
+            function g(endpoint) {
+                fetch('/api/base/' + endpoint);
+            }
+            var k = g;
+            function f() {
+                k('action.do');
+            }
+            `
+        ];
+
+        runSingleTestSinkCall(
+            scripts,
+            {
+                'funcName': 'fetch',
+                'args': ['/api/base/action.do']
+            } as SinkCall,
+        );
+    });
 });
