@@ -501,6 +501,14 @@ export class Analyzer {
                 ) {
                     return;
                 }
+                if (ob instanceof Instance) {
+                    if (!(value instanceof ValueSet)) {
+                        value = new ValueSet([value]);
+                    }
+                    if (hasattr(ob, propName)) {
+                        value = value.join(ob[propName]);
+                    }
+                }
                 ob[propName] = value;
             }
         };
