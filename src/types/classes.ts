@@ -24,10 +24,22 @@ export class ClassObject {
 export class Class {
     readonly classObject: ClassObject;
     readonly name: string;
+    readonly instance: Instance;
 
     constructor(name: string) {
         this.name = name;
         this.classObject = new ClassObject(name);
+        this.instance = new Instance(this);
+    }
+}
+
+export class Instance {
+    #class: Class;
+    #classObject: ClassObject;
+
+    constructor(cls: Class) {
+        this.#class = cls;
+        this.#classObject = cls.classObject;
     }
 }
 
