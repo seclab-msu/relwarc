@@ -135,7 +135,7 @@ export class ValueSet {
     }
 
     join(...sets: Value[]): ValueSet {
-        return ValueSet.join([this as Value].concat(sets));
+        return ValueSet.join(...[this as Value].concat(sets));
     }
 
     toString(tok?: symbol): string {

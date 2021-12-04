@@ -230,4 +230,32 @@ describe('Test ValueSet', () => {
             expect(combinations).toContain({ lol: { d: 8 } });
         });
     });
+    describe('join', () => {
+        it('static join', () => {
+            const x = new ValueSet(['a', 'b']);
+            const y = new ValueSet(['b', 'c', 'd', 'f']);
+            const z = new ValueSet('e');
+
+            const values = ValueSet.join(x, y, z).getValues();
+
+            expect(values.length).toEqual(6);
+            expect(setEqual(
+                values,
+                ['a', 'b', 'c', 'd', 'e', 'f']
+            )).toBe(true);
+        });
+        it('join method', () => {
+            const x = new ValueSet(['a', 'b']);
+            const y = new ValueSet(['b', 'c', 'd', 'f']);
+            const z = new ValueSet('e');
+
+            const values = x.join(y, z).getValues();
+
+            expect(values.length).toEqual(6);
+            expect(setEqual(
+                values,
+                ['a', 'b', 'c', 'd', 'e', 'f']
+            )).toBe(true);
+        });
+    });
 });
