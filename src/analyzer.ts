@@ -13,10 +13,12 @@ import {
     CallExpression, BinaryExpression, UnaryExpression, AssignmentExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
+    FunctionDeclaration, ClassDeclaration, ClassExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
-    isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement
+    isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
+    isFunctionDeclaration, isClassDeclaration
 } from '@babel/types';
 
 import {
@@ -34,6 +36,7 @@ import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
+import { ClassObject, ClassManager } from './types/classes';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -135,6 +138,8 @@ export class Analyzer {
     private selectedFunction: NodePath | null;
     private formalArgs: string[];
 
+    readonly classManager: ClassManager;
+
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
 
@@ -174,6 +179,8 @@ export class Analyzer {
         this.globalDefinitions = { undefined };
         this.argsStack = [];
         this.formalArgs = [];
+
+        this.classManager = new ClassManager();
 
         this.callQueue = [];
         this.callChain = [];
@@ -562,6 +569,46 @@ export class Analyzer {
         }
     }
 
+    private declare(node: FunctionDeclaration | ClassDeclaration): void {
+        const path = this.currentPath;
+
+        if (node.id === null || typeof node.id === 'undefined') {
+            log('Warning: id is null for declaration: ' + JSON.stringify(node));
+            return;
+        }
+
+        if (path === null || path.parentPath === null) {
+            return;
+        }
+
+        const name = node.id.name;
+
+        const binding = path.parentPath.scope.getBinding(name);
+
+        if (typeof binding === 'undefined') {
+            log('Warning: no binding for declaration: ' + JSON.stringify(node));
+            return;
+        }
+
+        let declaredValue: FunctionValue | ClassObject;
+
+        if (isFunctionDeclaration(node)) {
+            declaredValue = new FunctionValue(node);
+            this.addFunctionBinding(node, binding);
+        } else if (isClassDeclaration(node)) {
+            const cls = this.classManager.create(node);
+            declaredValue = cls;
+        } else {
+            throw new Error('Unexpected value');
+        }
+
+        this.memory.set(binding, declaredValue);
+
+        if (binding.scope.block.type === 'Program') {
+            this.globalDefinitions[name] = declaredValue;
+        }
+    }
+
     private gatherVariableValues(): void {
         this.stage = AnalysisPhase.VarGathering;
         if (this.mergedProgram === null) {
@@ -586,33 +633,10 @@ export class Analyzer {
                     node.type === 'AssignmentExpression'
                 ) {
                     this.setVariable(path);
-                } else if (node.type === 'FunctionDeclaration') {
-                    if (node.id === null || typeof node.id === 'undefined') {
-                        log(
-                            'Warning: id is null for function declaration: ' +
-                                JSON.stringify(node)
-                        );
-                        return;
-                    }
-
-                    if (path.parentPath === null) {
-                        return;
-                    }
-
-                    const binding = path.parentPath.scope.getBinding(
-                        node.id.name
-                    );
-
-                    if (typeof binding === 'undefined') {
-                        log(
-                            'Warning: no binding function declaration: ' +
-                                JSON.stringify(node)
-                        );
-                        return;
-                    }
-
-                    this.memory.set(binding, new FunctionValue(node));
-                    this.addFunctionBinding(node, binding);
+                } else if (
+                    isFunctionDeclaration(node) || isClassDeclaration(node)
+                ) {
+                    this.declare(node);
                 }
                 if (isFunction(node)) {
                     this.argsStack.pop();
@@ -1051,6 +1075,10 @@ export class Analyzer {
         }
     }
 
+    private processClassExpression(node: ClassExpression) {
+        return this.classManager.create(node);
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -1090,6 +1118,10 @@ export class Analyzer {
 
         if (node.type === 'ConditionalExpression') {
             return this.processConditionalExpression(node);
+        }
+
+        if (node.type === 'ClassExpression') {
+            return this.processClassExpression(node);
         }
 
         if (isFunction(node)) {
