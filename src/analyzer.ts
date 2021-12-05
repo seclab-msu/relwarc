@@ -13,10 +13,12 @@ import {
     CallExpression, BinaryExpression, UnaryExpression, AssignmentExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
+    FunctionDeclaration, ClassDeclaration, ClassExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
-    isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement
+    isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
+    isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression
 } from '@babel/types';
 
 import {
@@ -24,7 +26,8 @@ import {
     UNKNOWN_FUNCTION,
     UNKNOWN_FROM_FUNCTION,
     isUnknown,
-    isUnknownOrUnknownString
+    isUnknownOrUnknownString,
+    Unknown
 } from './types/unknown';
 
 import { DynamicAnalyzer } from './dynamic/analyzer';
@@ -34,6 +37,7 @@ import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
+import { ClassObject, ClassManager, Instance } from './types/classes';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -77,6 +81,12 @@ const SPECIAL_PROP_NAMES = [
     '__lookupSetter__'
 ];
 
+const PREDEFINED_CLASSES = [
+    'Headers',
+    'HttpRequest',
+    'Object',
+    'FormData'
+];
 
 type VarScope = { [varName: string]: Value };
 
@@ -135,6 +145,9 @@ export class Analyzer {
     private selectedFunction: NodePath | null;
     private formalArgs: string[];
 
+    readonly classManager: ClassManager;
+    private readonly thisStack: Array<Instance | Unknown>;
+
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
 
@@ -174,6 +187,9 @@ export class Analyzer {
         this.globalDefinitions = { undefined };
         this.argsStack = [];
         this.formalArgs = [];
+
+        this.classManager = new ClassManager();
+        this.thisStack = [UNKNOWN];
 
         this.callQueue = [];
         this.callChain = [];
@@ -515,6 +531,14 @@ export class Analyzer {
                     this.setArrayLengthFromSet(ob, value);
                     return;
                 }
+                if (ob instanceof Instance) {
+                    if (!(value instanceof ValueSet)) {
+                        value = new ValueSet([value]);
+                    }
+                    if (hasattr(ob, propName)) {
+                        value = value.join(ob[propName]);
+                    }
+                }
                 ob[propName] = value;
             }
         };
@@ -586,6 +610,69 @@ export class Analyzer {
         }
     }
 
+    private declare(node: FunctionDeclaration | ClassDeclaration): void {
+        const path = this.currentPath;
+
+        if (node.id === null || typeof node.id === 'undefined') {
+            log('Warning: id is null for declaration: ' + JSON.stringify(node));
+            return;
+        }
+
+        if (path === null || path.parentPath === null) {
+            return;
+        }
+
+        const name = node.id.name;
+
+        const binding = path.parentPath.scope.getBinding(name);
+
+        if (typeof binding === 'undefined') {
+            log('Warning: no binding for declaration: ' + JSON.stringify(node));
+            return;
+        }
+
+        let declaredValue: FunctionValue | ClassObject;
+
+        if (isFunctionDeclaration(node)) {
+            declaredValue = new FunctionValue(node);
+            this.addFunctionBinding(node, binding);
+        } else if (isClassDeclaration(node)) {
+            const cls = this.classManager.create(node);
+            declaredValue = cls;
+        } else {
+            throw new Error('Unexpected value');
+        }
+
+        this.memory.set(binding, declaredValue);
+
+        if (binding.scope.block.type === 'Program') {
+            this.globalDefinitions[name] = declaredValue;
+        }
+    }
+
+    private pushCurrentThis(t: Instance | Unknown): void {
+        this.thisStack.push(t);
+    }
+
+    private popCurrentThis() {
+        this.thisStack.pop();
+    }
+
+    private addCurrentThis(node: FunctionASTNode): void {
+        const inst = this.classManager.getClassInstanceForMethod(node);
+        if (inst !== null) {
+            this.pushCurrentThis(inst);
+        } else if (!isArrowFunctionExpression(node)) {
+            this.pushCurrentThis(UNKNOWN);
+        }
+    }
+
+    private restoreCurrentThis(node: FunctionASTNode): void {
+        if (!isArrowFunctionExpression(node)) {
+            this.popCurrentThis();
+        }
+    }
+
     private gatherVariableValues(): void {
         this.stage = AnalysisPhase.VarGathering;
         if (this.mergedProgram === null) {
@@ -594,53 +681,32 @@ export class Analyzer {
         traverse(this.mergedProgram, {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
+                this.currentPath = path;
                 if (isFunction(node)) {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.ifStack.unshift(0);
+                    this.addCurrentThis(node);
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]++;
+                } else if (
+                    node.type === 'VariableDeclarator' ||
+                    node.type === 'AssignmentExpression'
+                ) {
+                    this.setVariable(path);
+                } else if (
+                    isFunctionDeclaration(node) || isClassDeclaration(node)
+                ) {
+                    this.declare(node);
                 }
             },
             exit: (path: NodePath) => {
                 this.currentPath = path;
                 const node: ASTNode = path.node;
-                if (
-                    node.type === 'VariableDeclarator' ||
-                    node.type === 'AssignmentExpression'
-                ) {
-                    this.setVariable(path);
-                } else if (node.type === 'FunctionDeclaration') {
-                    if (node.id === null || typeof node.id === 'undefined') {
-                        log(
-                            'Warning: id is null for function declaration: ' +
-                                JSON.stringify(node)
-                        );
-                        return;
-                    }
-
-                    if (path.parentPath === null) {
-                        return;
-                    }
-
-                    const binding = path.parentPath.scope.getBinding(
-                        node.id.name
-                    );
-
-                    if (typeof binding === 'undefined') {
-                        log(
-                            'Warning: no binding function declaration: ' +
-                                JSON.stringify(node)
-                        );
-                        return;
-                    }
-
-                    this.memory.set(binding, new FunctionValue(node));
-                    this.addFunctionBinding(node, binding);
-                }
                 if (isFunction(node)) {
                     this.argsStack.pop();
                     this.ifStack.shift();
+                    this.restoreCurrentThis(node);
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]--;
@@ -811,14 +877,48 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
-    private processNewExpression(node: NewExpression): Value {
-        const callee = node.callee;
-
-        if (callee.type !== 'Identifier') {
-            return UNKNOWN_FROM_FUNCTION;
+    private constructAngularHttpRequest(node: NewExpression): Value {
+        if (node.arguments.length < 2) {
+            log(
+                `Warning: expected new HttpRequest args length ` +
+                `to be at least 2, but got ${node.arguments.length}`
+            );
+            return {};
         }
 
-        if (callee.name === 'Headers') {
+        let method = this.valueFromASTNode(node.arguments[0]) || 'GET';
+        method = method.toString();
+
+        let body,
+            settings = {};
+
+        if (
+            ['DELETE', 'GET', 'HEAD', 'JSONP', 'OPTIONS'].includes(method.toUpperCase()) &&
+            node.arguments.length <= 3
+        ) {
+            if (node.arguments.length === 3) {
+                settings = this.valueFromASTNode(node.arguments[2]) || {};
+            }
+        } else {
+            if (node.arguments.length === 4) {
+                settings = this.valueFromASTNode(node.arguments[3]) || {};
+            }
+
+            body = this.valueFromASTNode(node.arguments[2]);
+        }
+
+        return {
+            method: method,
+            url: this.valueFromASTNode(node.arguments[1]),
+            body: body,
+            headers: settings['headers'] || {},
+            params: settings['params'] || {}
+        };
+    }
+
+    private constructPredefinedClass(name: string, node: NewExpression): Value {
+        switch (name) {
+        case 'Headers':
             if (typeof node.arguments[0] === 'object') {
                 return this.valueFromASTNode(node.arguments[0]);
             } else { // TODO: add test for this case
@@ -830,62 +930,53 @@ export class Analyzer {
                 }
                 return {};
             }
-        } else if (callee.name === 'HttpRequest') {
-            if (node.arguments.length < 2) {
-                log(
-                    `Warning: expected new HttpRequest args length ` +
-                    `to be at least 2, but got ${node.arguments.length}`
-                );
-                return {};
-            }
-
-            let method = this.valueFromASTNode(node.arguments[0]) || 'GET';
-            method = method.toString();
-
-            let body,
-                settings = {};
-
-            if (
-                ['DELETE', 'GET', 'HEAD', 'JSONP', 'OPTIONS'].includes(method.toUpperCase()) &&
-                node.arguments.length <= 3
-            ) {
-                if (node.arguments.length === 3) {
-                    settings = this.valueFromASTNode(node.arguments[2]) || {};
-                }
-            } else {
-                if (node.arguments.length === 4) {
-                    settings = this.valueFromASTNode(node.arguments[3]) || {};
-                }
-
-                body = this.valueFromASTNode(node.arguments[2]);
-            }
-
-            return {
-                method: method,
-                url: this.valueFromASTNode(node.arguments[1]),
-                body: body,
-                headers: settings['headers'] || {},
-                params: settings['params'] || {}
-            };
-        } else if (callee.name === 'Object') {
+            break;
+        case 'HttpRequest':
+            return this.constructAngularHttpRequest(node);
+            break;
+        case 'Object':
             return {};
-        } else if (callee.name === 'FormData') {
+            break;
+        case 'FormData':
             return new FormDataModel();
+            break;
+        default:
+            throw new Error('Unexpected predefined class: ' + name);
         }
+    }
+
+    private processNewExpression(node: NewExpression): Value {
+        const callee = node.callee;
+
+        if (isIdentifier(callee) && PREDEFINED_CLASSES.includes(callee.name)) {
+            return this.constructPredefinedClass(callee.name, node);
+        }
+
+        const cls = this.valueFromASTNode(callee);
+
+        if (cls instanceof ClassObject) {
+            // NB(asterite): ctor arguments are currently ignored
+            const inst = this.classManager.getClassInstanceForClassObject(cls);
+            return inst || UNKNOWN_FROM_FUNCTION;
+        }
+
         return UNKNOWN_FROM_FUNCTION;
+    }
+
+    private addValues(left: Value, right: Value): Value {
+        if ((left instanceof ValueSet) || (right instanceof ValueSet)) {
+            return ValueSet.map2(left, right, (l, r) => {
+                return this.probeAddition(l, r);
+            });
+        }
+        return this.probeAddition(left, right);
     }
 
     private processBinaryExpression(node: BinaryExpression): Value {
         if (node.operator === '+') {
             const left = this.valueFromASTNode(node.left);
             const right = this.valueFromASTNode(node.right);
-
-            if ((left instanceof ValueSet) || (right instanceof ValueSet)) {
-                return ValueSet.map2(left, right, (l, r) => {
-                    return this.probeAddition(l, r);
-                });
-            }
-            return this.probeAddition(left, right);
+            return this.addValues(left, right);
         }
         return UNKNOWN;
     }
@@ -1012,11 +1103,17 @@ export class Analyzer {
     }
 
     private processTemplateLiteral(node: TemplateLiteral): Value {
-        let templateString = '';
+        let templateString: Value = '';
         for (let i = 0; i < node.quasis.length; i++) {
-            templateString += node.quasis[i].value.cooked;
+            templateString = this.addValues(
+                templateString,
+                node.quasis[i].value.cooked
+            );
             if (typeof node.expressions[i] !== 'undefined') {
-                templateString += this.valueFromASTNode(node.expressions[i]);
+                templateString = this.addValues(
+                    templateString,
+                    this.valueFromASTNode(node.expressions[i])
+                );
             }
         }
         return templateString;
@@ -1074,6 +1171,14 @@ export class Analyzer {
         }
     }
 
+    private processClassExpression(node: ClassExpression): Value {
+        return this.classManager.create(node);
+    }
+
+    private processThisExpression(): Instance | Unknown {
+        return this.thisStack[this.thisStack.length - 1];
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -1113,6 +1218,14 @@ export class Analyzer {
 
         if (node.type === 'ConditionalExpression') {
             return this.processConditionalExpression(node);
+        }
+
+        if (node.type === 'ClassExpression') {
+            return this.processClassExpression(node);
+        }
+
+        if (node.type === 'ThisExpression') {
+            return this.processThisExpression();
         }
 
         if (isFunction(node)) {
@@ -1648,6 +1761,7 @@ export class Analyzer {
                     this.functionsStack.push(path);
                     this.trackedCallSequencesStack.push(new Map());
                     this.ifStack.unshift(0);
+                    this.addCurrentThis(node);
                 }
 
                 if (isIfStatement(node) || isSwitchStatement(node)) {
@@ -1678,6 +1792,7 @@ export class Analyzer {
                         this.argsStack[this.argsStack.length - 1] || [];
                     this.functionsStack.pop();
                     this.trackedCallSequencesStack.pop();
+                    this.restoreCurrentThis(path.node);
                 }
 
                 if (isIfStatement(path.node) || isSwitchStatement(path.node)) {
