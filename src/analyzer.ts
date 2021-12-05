@@ -68,6 +68,7 @@ import {
 } from './call-sequence';
 
 import { log } from './logging';
+import { setDebug } from './debug';
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
@@ -240,6 +241,7 @@ export class Analyzer {
         this.ifStack = [0];
 
         this.debug = this.options.debug;
+        setDebug(this.debug);
     }
 
     addScript(
