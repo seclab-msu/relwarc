@@ -1093,17 +1093,21 @@ export class Analyzer {
             }
             return this.getObjectProperty(ob, node.property.name);
         }
-        const propName = this.valueFromASTNode(node.property);
-        if (!propName || isUnknown(propName)) {
+        const prop = this.valueFromASTNode(node.property);
+        if (
+            typeof prop === 'undefined' ||
+            prop === null ||
+            isUnknown(prop)
+        ) {
             return UNKNOWN;
         }
         const getProp = n => {
             return this.getObjectProperty(ob, String(n));
         };
-        if (propName instanceof ValueSet) {
-            return ValueSet.join(...propName.getValues().map(getProp));
+        if (prop instanceof ValueSet) {
+            return ValueSet.join(...prop.getValues().map(getProp));
         } else {
-            return getProp(propName);
+            return getProp(prop);
         }
     }
 
