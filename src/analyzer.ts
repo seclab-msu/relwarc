@@ -130,6 +130,12 @@ interface Script {
     sourceType?: string;
 }
 
+export interface AnalyzerOptions {
+    debug: boolean;
+    debugCallChains: boolean;
+    debugValueSets: boolean;
+}
+
 export class Analyzer {
     readonly parsedScripts: AST[];
     readonly results: SinkCall[];
@@ -174,10 +180,21 @@ export class Analyzer {
 
     suppressedError: boolean;
 
-    private readonly debugCallChains: boolean;
-    private readonly debugValueSets: boolean;
+    private readonly debug: boolean;
 
-    constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
+    private readonly options: AnalyzerOptions;
+
+    constructor(
+        dynamicAnalyzer: DynamicAnalyzer | null = null,
+        options?: Partial<AnalyzerOptions>
+    ) {
+        this.options = {
+            debug: false,
+            debugCallChains: false,
+            debugValueSets: false,
+            ...options
+        };
+
         this.parsedScripts = [];
         this.results = [];
         this.scripts = [];
@@ -220,10 +237,9 @@ export class Analyzer {
         this.trackedCallSequencesStack = [new Map()];
         this.suppressedError = false;
 
-        this.debugCallChains = false;
-        this.debugValueSets = false;
-
         this.ifStack = [0];
+
+        this.debug = this.options.debug;
     }
 
     addScript(
@@ -522,7 +538,7 @@ export class Analyzer {
             ) {
                 if (propName instanceof ValueSet) {
                     // TODO(asterite): maybe implement this somehow
-                    if (this.debugValueSets) {
+                    if (this.options.debugValueSets) {
                         log(
                             'Warning: assigning props with ValueSet names ' +
                             'are currently skipped'
@@ -737,7 +753,11 @@ export class Analyzer {
                 if (!isIdentifier(ob) || !isIdentifier(prop)) {
                     return;
                 }
-                if (ob.name === '$analyzer' && prop.name === 'log') {
+                if (
+                    this.debug &&
+                    ob.name === '$analyzer' &&
+                    prop.name === 'log'
+                ) {
                     this.debugLogValues(node.arguments);
                 }
             }
@@ -1366,7 +1386,7 @@ export class Analyzer {
             func = this.functionsStack[this.functionsStack.length - 1 - offset];
         }
         const bindings = this.functionToBinding.get(func.node);
-        if (this.debugCallChains) {
+        if (this.options.debugCallChains) {
             log(
                 `args of function  ${String(func).substring(0, 75)} are` +
                 `unknown, search for bindings. ` +
@@ -1387,7 +1407,7 @@ export class Analyzer {
             this.buildCallChain(func, callSites);
         } else {
             for (const binding of bindings) {
-                if (this.debugCallChains) {
+                if (this.options.debugCallChains) {
                     log('found binding ' + binding.identifier.name);
                 }
                 const callSites = this.findCallSitesForBinding(binding);
@@ -1420,7 +1440,7 @@ export class Analyzer {
                 continue;
             }
 
-            if (this.debugCallChains) {
+            if (this.options.debugCallChains) {
                 const description = String(caller).substring(0, 75);
                 log(`for it, found call site ${description}`);
             }
@@ -1824,7 +1844,11 @@ export class Analyzer {
                 if (!isIdentifier(ob) || !isIdentifier(prop)) {
                     return;
                 }
-                if (ob.name === '$analyzer' && prop.name === 'log') {
+                if (
+                    this.debug &&
+                    ob.name === '$analyzer' &&
+                    prop.name === 'log'
+                ) {
                     this.debugLogValues(node.arguments);
                 }
             }
