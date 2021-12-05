@@ -1831,6 +1831,10 @@ export class Analyzer {
 
                 const callee = node.callee;
 
+                const calleeValue = this.valueFromASTNode(callee);
+
+                this.callManager.saveCallees(node, calleeValue);
+
                 if (!isMemberExpression(callee)) {
                     return;
                 }
