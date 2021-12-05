@@ -5,6 +5,10 @@ import { debugEnabled } from '../debug';
 export class FunctionValue {
     ast: FunctionASTNode;
 
+    constructor(ast: FunctionASTNode) {
+        this.ast = ast;
+    }
+
     toString(): string {
         if (debugEnabled()) {
             let label = '<function';
@@ -23,9 +27,5 @@ export class FunctionValue {
             return this.toString();
         }
         return 'UNKNOWN';
-    }
-
-    constructor(ast: FunctionASTNode) {
-        this.ast = ast;
     }
 }
