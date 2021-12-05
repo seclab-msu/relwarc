@@ -1,12 +1,12 @@
 import {
-    ClassDeclaration, ClassExpression, ClassMethod, ClassPrivateMethod,
+    ClassMethod, ClassPrivateMethod,
     Function as FunctionASTNode,
+    Class as ClassNode,
     isClassMethod, isClassPrivateMethod
 } from '@babel/types';
 
 import { debugEnabled } from '../debug';
 
-type ClassNode = ClassDeclaration | ClassExpression;
 type Method = ClassMethod | ClassPrivateMethod;
 
 export class ClassObject {
