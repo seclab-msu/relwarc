@@ -1,31 +1,37 @@
-import { CallExpression } from '@babel/types';
+import { CallExpression, Function as FunctionASTNode } from '@babel/types';
+import { NodePath } from '@babel/traverse';
 
 import { Value } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { FunctionValue } from './types/function';
 import { isUnknown } from './types/unknown';
 
+import { FunctionManager } from './function-manager';
+
 export class CallManager {
     readonly siteTable: Map<CallExpression, Set<FunctionValue>>;
-    readonly rsiteTable: Map<FunctionValue, Set<CallExpression>>;
+    readonly rsiteTable: Map<FunctionValue, Set<NodePath>>;
     // readonly returnValueTable: Map<FunctionValue, ValueSet>;
     // readonly argTable: Map<FunctionValue, Array<ValueSet>>;
+    private readonly functionManager: FunctionManager;
 
-    constructor() {
+    constructor(functionManager: FunctionManager) {
         this.siteTable = new Map();
         this.rsiteTable = new Map();
         // this.returnValueTable = new Map();
         // this.argTable = new Map();
+
+        this.functionManager = functionManager;
     }
 
-    private saveCallee(node: CallExpression, c: Value): void {
+    private saveCallee(path: NodePath, c: Value): void {
         if (!(c instanceof FunctionValue)) {
             return;
         }
-        let set = this.siteTable.get(node);
+        let set = this.siteTable.get(path.node as CallExpression);
         if (!set) {
             set = new Set();
-            this.siteTable.set(node, set);
+            this.siteTable.set(path.node as CallExpression, set);
         }
         set.add(c);
         let rset = this.rsiteTable.get(c);
@@ -33,18 +39,29 @@ export class CallManager {
             rset = new Set();
             this.rsiteTable.set(c, rset);
         }
-        rset.add(node);
+        rset.add(path);
     }
 
-    saveCallees(node: CallExpression, callees: Value): void {
+    saveCallees(path: NodePath, callees: Value): void {
         if (isUnknown(callees)) {
             return;
         }
         if (callees instanceof ValueSet) {
             // recurse to handle nested value sets
-            callees.forEach(v => this.saveCallees(node, v));
+            callees.forEach(v => this.saveCallees(path, v));
         } else {
-            this.saveCallee(node, callees);
+            this.saveCallee(path, callees);
+        }
+    }
+
+    getCallSites(node: FunctionASTNode): NodePath[] {
+        const func = this.functionManager.getOrCreate(node);
+        const sites = this.rsiteTable.get(func);
+
+        if (typeof sites === 'undefined') {
+            return [];
+        } else {
+            return [...sites];
         }
     }
 }

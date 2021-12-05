@@ -1,5 +1,5 @@
 import * as parser from '@babel/parser';
-import traverse, { NodePath, Scope } from '@babel/traverse';
+import traverse, { NodePath } from '@babel/traverse';
 import type { Binding } from '@babel/traverse';
 
 import * as stableStringify from 'json-stable-stringify';
@@ -40,6 +40,7 @@ import { ValueSet } from './types/value-set';
 import { ClassObject, ClassManager, Instance } from './types/classes';
 
 import { CallManager } from './call-manager';
+import { FunctionManager } from './function-manager';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -105,7 +106,7 @@ interface FunctionDescription {
 }
 
 interface FunctionCallDescription extends FunctionDescription {
-    binding: Binding | undefined;
+    callSite: CallExpression
 }
 
 interface CallConfig {
@@ -158,6 +159,7 @@ export class Analyzer {
     private readonly thisStack: Array<Instance | Unknown>;
 
     private readonly callManager: CallManager;
+    private readonly functionManager: FunctionManager;
 
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
@@ -213,7 +215,8 @@ export class Analyzer {
         this.classManager = new ClassManager();
         this.thisStack = [UNKNOWN];
 
-        this.callManager = new CallManager();
+        this.functionManager = new FunctionManager();
+        this.callManager = new CallManager(this.functionManager);
 
         this.callQueue = [];
         this.callChain = [];
@@ -658,7 +661,7 @@ export class Analyzer {
         let declaredValue: FunctionValue | ClassObject;
 
         if (isFunctionDeclaration(node)) {
-            declaredValue = new FunctionValue(node);
+            declaredValue = this.functionManager.getOrCreate(node);
             this.addFunctionBinding(node, binding);
         } else if (isClassDeclaration(node)) {
             const cls = this.classManager.create(node);
@@ -743,7 +746,7 @@ export class Analyzer {
 
                 const calleeValue = this.valueFromASTNode(callee);
 
-                this.callManager.saveCallees(node, calleeValue);
+                this.callManager.saveCallees(path, calleeValue);
 
                 if (!isMemberExpression(callee)) {
                     return;
@@ -1192,7 +1195,7 @@ export class Analyzer {
         if (this.stage === AnalysisPhase.DEPExtracting) {
             return UNKNOWN_FUNCTION;
         } else if (this.stage === AnalysisPhase.VarGathering) {
-            return new FunctionValue(node);
+            return this.functionManager.getOrCreate(node);
         } else {
             throw new Error('Unexpected stage: ' + this.stage);
         }
@@ -1382,7 +1385,7 @@ export class Analyzer {
             const offset = this.argsStackOffset || 0;
             func = this.functionsStack[this.functionsStack.length - 1 - offset];
         }
-        const bindings = this.functionToBinding.get(func.node);
+
         if (this.options.debugCallChains) {
             log(
                 `args of function  ${String(func).substring(0, 75)} are` +
@@ -1390,44 +1393,18 @@ export class Analyzer {
                 `Chain len: ${this.callChain.length}`
             );
         }
-        if (typeof bindings === 'undefined') {
-            if (
-                func.parent.type !== 'AssignmentExpression' ||
-                func.parent.left.type !== 'Identifier'
-            ) {
-                return;
-            }
-
-            const identifier = func.parent.left;
-            const callSites = this.findCallSitesForGlobalVariables(identifier);
-
-            this.buildCallChain(func, callSites);
-        } else {
-            for (const binding of bindings) {
-                if (this.options.debugCallChains) {
-                    log('found binding ' + binding.identifier.name);
-                }
-                const callSites = this.findCallSitesForBinding(binding);
-
-                this.buildCallChain(func, callSites, binding);
-            }
+        if (func.node.type === 'Program') {
+            return;
         }
+
+        const callSites = this.callManager.getCallSites(func.node);
+
+        this.buildCallChain(func, callSites);
     }
 
-    private buildCallChain(
-        func: NodePath,
-        callSites: NodePath[],
-        binding: Binding | undefined = undefined
-    ) {
-        const uniqueCallers = new Set();
-
+    private buildCallChain(func: NodePath, callSites: NodePath[]) {
         for (const callSite of callSites) {
             const caller = this.getFunctionForCallSite(callSite);
-
-            if (uniqueCallers.has(caller)) {
-                continue;
-            }
-            uniqueCallers.add(caller);
 
             if (
                 this.callChain.length > 0 &&
@@ -1443,7 +1420,7 @@ export class Analyzer {
             }
             const funcDescr = this.makeFunctionDescription(func);
             const callDescr: FunctionCallDescription = {
-                binding,
+                callSite: callSite.node as CallExpression,
                 ...funcDescr
             };
             const chain = [callDescr].concat(this.callChain);
@@ -1608,19 +1585,8 @@ export class Analyzer {
 
     private extractDEPsFreeStandingCall(
         calleeName: string,
-        node: CallExpression,
-        scope: Scope
+        node: CallExpression
     ): void {
-        if (
-            this.callChain.length > 0 &&
-            this.callChainPosition < this.callChain.length
-        ) {
-            const binding = scope.getBinding(calleeName);
-            if (this.callChain[this.callChainPosition].binding === binding) {
-                this.proceedAlongCallChain(node);
-            }
-        }
-
         if (matchFreeStandingCallSignature(calleeName)) {
             this.extractDEPFromArgs(
                 calleeName,
@@ -1734,11 +1700,20 @@ export class Analyzer {
         this.extractDEPFromArgs(obName + '.' + prop.name, args, callee.loc);
     }
 
-    private extractDEPsFromCall(node: CallExpression, scope: Scope): void {
+    private extractDEPsFromCall(node: CallExpression): void {
+        if (
+            this.callChain.length > 0 &&
+            this.callChainPosition < this.callChain.length
+        ) {
+            if (this.callChain[this.callChainPosition].callSite === node) {
+                this.proceedAlongCallChain(node);
+                return;
+            }
+        }
         const callee = node.callee;
 
         if (callee.type === 'Identifier') {
-            this.extractDEPsFreeStandingCall(callee.name, node, scope);
+            this.extractDEPsFreeStandingCall(callee.name, node);
         } else if (callee.type === 'MemberExpression') {
             this.extractDEPsMethodCall(callee, node.arguments);
         }
@@ -1808,7 +1783,7 @@ export class Analyzer {
                 }
 
                 if (node.type === 'CallExpression') {
-                    this.extractDEPsFromCall(node, path.scope);
+                    this.extractDEPsFromCall(node);
                 }
             },
             exit: (path: NodePath): void => {
@@ -1833,7 +1808,7 @@ export class Analyzer {
 
                 const calleeValue = this.valueFromASTNode(callee);
 
-                this.callManager.saveCallees(node, calleeValue);
+                this.callManager.saveCallees(path, calleeValue);
 
                 if (!isMemberExpression(callee)) {
                     return;
