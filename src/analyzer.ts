@@ -813,18 +813,13 @@ export class Analyzer {
     }
 
     private debugLogValues(args: ASTNode[]): void {
+        const output: string[] = [];
         for (const a of args) {
             const v = this.valueFromASTNode(a);
-            console.log(JSON.stringify(v, (key, value) => {
-                if (value instanceof ValueSet) {
-                    return {
-                        'type': 'ValueSet',
-                        'values': value.getValues()
-                    };
-                }
-                return value;
-            }, 4));
+
+            output.push(JSON.stringify(v, null, 4));
         }
+        console.log(output.join(' '));
     }
 
     private processFreeStandingFunctionCall(
