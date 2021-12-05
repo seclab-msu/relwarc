@@ -4,21 +4,28 @@ import {
     isClassMethod, isClassPrivateMethod
 } from '@babel/types';
 
+import { debugEnabled } from '../debug';
+
 type ClassNode = ClassDeclaration | ClassExpression;
 type Method = ClassMethod | ClassPrivateMethod;
 
 export class ClassObject {
     readonly name: string;
 
-    static toStringToken = Symbol();
-
     constructor(name: string) {
         this.name = name;
     }
 
-    toString(tok?: symbol): string {
-        if (tok === ClassObject.toStringToken) {
+    toString(): string {
+        if (debugEnabled()) {
             return `[ClassObject ${this.name}]`;
+        }
+        return 'UNKNOWN';
+    }
+
+    toJSON(): string {
+        if (debugEnabled()) {
+            return this.toString();
         }
         return 'UNKNOWN';
     }
@@ -45,6 +52,19 @@ export class Instance {
     constructor(cls: Class) {
         this.#class = cls;
         this.#classObject = cls.classObject;
+    }
+
+    toString(): string {
+        if (debugEnabled()) {
+            return `<instance of ${this.#classObject.toString()}>`;
+        }
+        return 'UNKNOWN';
+    }
+    toJSON(): string {
+        if (debugEnabled()) {
+            return this.toString();
+        }
+        return 'UNKNOWN';
     }
 }
 

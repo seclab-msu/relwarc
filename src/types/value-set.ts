@@ -5,6 +5,7 @@ import { FormDataModel } from './form-data';
 import { FunctionValue } from './function';
 
 // import { log } from '../logging';
+import { debugEnabled } from '../debug';
 
 import { deepCopyObject } from './deep-copy';
 
@@ -94,8 +95,6 @@ function traverseKVObject(
 export class ValueSet {
     private readonly values: Set<Value>;
 
-    static toStringToken = Symbol();
-
     constructor(values?: Iterable<Value>) {
         this.values = new Set(values);
     }
@@ -138,8 +137,8 @@ export class ValueSet {
         return ValueSet.join(...[this as Value].concat(sets));
     }
 
-    toString(tok?: symbol): string {
-        if (tok === ValueSet.toStringToken) {
+    toString(): string {
+        if (debugEnabled()) {
             return 'ValueSet {' + Array.from(this.values).map(
                 v => JSON.stringify(v)
             ).join(', ') + '}';
@@ -150,7 +149,16 @@ export class ValueSet {
             'converted to string'
         );*/
         return 'UNKNOWN';
-        // throw new Error('ValueSet converted to string');
+    }
+
+    toJSON(): object | string {
+        if (debugEnabled()) {
+            return {
+                type: 'ValueSet',
+                values: this.getValues()
+            };
+        }
+        return 'UNKNOWN';
     }
 
     static map(v: Value, f: (Value) => Value): Value {
