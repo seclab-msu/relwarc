@@ -41,6 +41,7 @@ export class DynamicPageAnalyzer {
         loadTimeout=(undefined as number | undefined),
         filterStatic=true,
         proxy=undefined,
+        debug=false
     }={}) {
         const bot = new HeadlessBot({
             printPageErrors: false,
@@ -53,7 +54,7 @@ export class DynamicPageAnalyzer {
         });
 
         const dynamicAnalyzer = new DynamicAnalyzer();
-        const analyzer = new Analyzer(dynamicAnalyzer);
+        const analyzer = new Analyzer(dynamicAnalyzer, { debug });
 
         this.dynamicAnalyzer = dynamicAnalyzer;
 
