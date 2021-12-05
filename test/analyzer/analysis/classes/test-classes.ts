@@ -1,4 +1,4 @@
-import { makeAndRunSimple } from '../utils/utils';
+import { makeAndRunSimple } from '../../utils/utils';
 
 describe('Test support for OOP (Classes):', () => {
     it('value assigned in ctor and used in method', () => {
