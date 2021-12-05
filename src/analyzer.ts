@@ -16,7 +16,7 @@ import {
     FunctionDeclaration, ClassDeclaration, ClassExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
-    isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
+    isTemplateLiteral, isSpreadElement, isFunction,
     isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
     isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression
 } from '@babel/types';
@@ -1274,71 +1274,6 @@ export class Analyzer {
             path = path.scope.parent.path;
         }
         return path;
-    }
-
-    private findCallSitesForBinding(binding: Binding): NodePath[] {
-        // based on https://github.com/babel/babel/blob/429840d/packages/babel-traverse/src/scope/lib/renamer.js#L5
-        const scope = binding.scope;
-        const identifier = binding.identifier;
-        const name = identifier.name;
-        const result: NodePath[] = [];
-
-        scope.traverse(binding.scope.block, {
-            // XXX: ReferencedIdentifier is not defined in Babel's TypeScript
-            // type definitions, but it is used in Babel's own code
-            // @ts-ignore
-            ReferencedIdentifier(path) {
-                if (
-                    path.node.name === name &&
-                    path.scope.getBinding(path.node.name) === binding &&
-                    isCallExpression(path.parentPath.node) &&
-                    path.parentPath.node.callee === path.node
-                ) {
-                    result.push(path);
-                }
-            },
-            Scope(path) {
-                // TODO: this should skip traversal if name is shadowed, test it
-                if (!path.scope.bindingIdentifierEquals(name, identifier)) {
-                    path.skip();
-                }
-            }
-        });
-        return result;
-    }
-
-    private findCallSitesForGlobalVariables(
-        identifier: Identifier
-    ): NodePath[] {
-        const name = identifier.name;
-
-        const result: NodePath[] = [];
-
-        if (this.mergedProgram === null) {
-            throw new Error('findCallSitesForGlobalVariables was called before mergeASTs');
-        }
-
-        traverse(this.mergedProgram, {
-            // XXX: ReferencedIdentifier is not defined in Babel's TypeScript
-            // type definitions, but it is used in Babel's own code
-            // @ts-ignore
-            ReferencedIdentifier(path) {
-                if (
-                    path.node.name === name &&
-                    isCallExpression(path.parentPath.node) &&
-                    path.parentPath.node.callee === path.node
-                ) {
-                    result.push(path);
-                }
-            },
-            Scope(path) {
-                if (path.scope.getBindingIdentifier(name)) {
-                    path.skip();
-                }
-            }
-        });
-
-        return result;
     }
 
     private makeFunctionDescription(path: NodePath): FunctionDescription {
