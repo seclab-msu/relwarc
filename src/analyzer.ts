@@ -39,6 +39,8 @@ import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { ClassObject, ClassManager, Instance } from './types/classes';
 
+import { CallManager } from './call-manager';
+
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
 import { STRING_METHODS, REGEXP_UNSETTABLE_PROPS } from './utils/analyzer';
@@ -148,6 +150,8 @@ export class Analyzer {
     readonly classManager: ClassManager;
     private readonly thisStack: Array<Instance | Unknown>;
 
+    private readonly callManager: CallManager;
+
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
 
@@ -190,6 +194,8 @@ export class Analyzer {
 
         this.classManager = new ClassManager();
         this.thisStack = [UNKNOWN];
+
+        this.callManager = new CallManager();
 
         this.callQueue = [];
         this.callChain = [];
@@ -716,6 +722,10 @@ export class Analyzer {
                 const node = path.node;
 
                 const callee = node.callee;
+
+                const calleeValue = this.valueFromASTNode(callee);
+
+                this.callManager.saveCallees(node, calleeValue);
 
                 if (!isMemberExpression(callee)) {
                     return;
