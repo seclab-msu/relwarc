@@ -96,4 +96,71 @@ describe('Test ability to find functions to build call chains', () => {
             args: ['/tst/abc/def/123/456']
         });
     });
+    describe('array members', () => {
+        it('literal', () => {
+            const src = `
+                var a = [
+                    function(x) {
+                        fetch('/tst/' + x);
+                    }
+                ];
+                function f() {
+                    a[0]('abcd123');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/tst/abcd123']
+            });
+        });
+        it('literal - several', () => {
+            const src = `
+                var a = [
+                    function(x) {
+                        fetch('/tst/' + x);
+                    },
+                    function(y) {
+                        a[0]('abc' + y);
+                    }
+                ];
+                function f() {
+                    a[1]('d123');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/tst/abcd123']
+            });
+        });
+        it('assigned', () => {
+            const src = `
+                var a = [null];
+                a[0] = function(x) {
+                    fetch('/tst/' + x);
+                }
+                function f() {
+                    a[0]('abcd123');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/tst/abcd123']
+            });
+        });
+    });
 });
