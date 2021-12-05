@@ -49,7 +49,7 @@ describe('Tests for correct analysis of call chains', () => {
 
         expect(wasCalled).toBeFalse();
     });
-    it('test that several call sites in one function don\'t trigger multiple calls', () => {
+    it('test with several call sites in one function', () => {
         const script = `
             function f(x) {
                 fetch('/api/endpoint?arg=' + x);
@@ -61,21 +61,8 @@ describe('Tests for correct analysis of call chains', () => {
         `;
         const analyzer = new Analyzer();
 
-        // @ts-ignore
-        const origExtractDEPsWithCallChain = analyzer.extractDEPsWithCallChain;
-
-        let callCount = 0;
-
-        // @ts-ignore
-        analyzer.extractDEPsWithCallChain = function (...args) {
-            callCount++;
-            origExtractDEPsWithCallChain.call(analyzer, ...args);
-        };
-
         analyzer.addScript(script);
         analyzer.mineArgsForDEPCalls('http://example.com', false);
-
-        expect(callCount).toBe(1);
 
         const results = analyzer.results;
         results.forEach(res => {

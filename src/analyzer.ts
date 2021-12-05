@@ -1,5 +1,5 @@
 import * as parser from '@babel/parser';
-import traverse, { NodePath, Scope } from '@babel/traverse';
+import traverse, { NodePath } from '@babel/traverse';
 import type { Binding } from '@babel/traverse';
 
 import * as stableStringify from 'json-stable-stringify';
@@ -16,7 +16,7 @@ import {
     FunctionDeclaration, ClassDeclaration, ClassExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
-    isTemplateLiteral, isSpreadElement, isFunction, isCallExpression,
+    isTemplateLiteral, isSpreadElement, isFunction,
     isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
     isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression
 } from '@babel/types';
@@ -38,6 +38,9 @@ import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { ClassObject, ClassManager, Instance } from './types/classes';
+
+import { CallManager } from './call-manager';
+import { FunctionManager } from './function-manager';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
@@ -66,6 +69,7 @@ import {
 } from './call-sequence';
 
 import { log } from './logging';
+import { setDebug } from './debug';
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
@@ -102,7 +106,7 @@ interface FunctionDescription {
 }
 
 interface FunctionCallDescription extends FunctionDescription {
-    binding: Binding | undefined;
+    callSite: CallExpression
 }
 
 interface CallConfig {
@@ -128,6 +132,12 @@ interface Script {
     sourceType?: string;
 }
 
+export interface AnalyzerOptions {
+    debug: boolean;
+    debugCallChains: boolean;
+    debugValueSets: boolean;
+}
+
 export class Analyzer {
     readonly parsedScripts: AST[];
     readonly results: SinkCall[];
@@ -147,6 +157,9 @@ export class Analyzer {
 
     readonly classManager: ClassManager;
     private readonly thisStack: Array<Instance | Unknown>;
+
+    private readonly callManager: CallManager;
+    private readonly functionManager: FunctionManager;
 
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
@@ -170,10 +183,21 @@ export class Analyzer {
 
     suppressedError: boolean;
 
-    private readonly debugCallChains: boolean;
-    private readonly debugValueSets: boolean;
+    private readonly debug: boolean;
 
-    constructor(dynamicAnalyzer: DynamicAnalyzer | null = null) {
+    private readonly options: AnalyzerOptions;
+
+    constructor(
+        dynamicAnalyzer: DynamicAnalyzer | null = null,
+        options?: Partial<AnalyzerOptions>
+    ) {
+        this.options = {
+            debug: false,
+            debugCallChains: false,
+            debugValueSets: false,
+            ...options
+        };
+
         this.parsedScripts = [];
         this.results = [];
         this.scripts = [];
@@ -190,6 +214,9 @@ export class Analyzer {
 
         this.classManager = new ClassManager();
         this.thisStack = [UNKNOWN];
+
+        this.functionManager = new FunctionManager();
+        this.callManager = new CallManager(this.functionManager);
 
         this.callQueue = [];
         this.callChain = [];
@@ -214,10 +241,10 @@ export class Analyzer {
         this.trackedCallSequencesStack = [new Map()];
         this.suppressedError = false;
 
-        this.debugCallChains = false;
-        this.debugValueSets = false;
-
         this.ifStack = [0];
+
+        this.debug = this.options.debug;
+        setDebug(this.debug);
     }
 
     addScript(
@@ -516,7 +543,7 @@ export class Analyzer {
             ) {
                 if (propName instanceof ValueSet) {
                     // TODO(asterite): maybe implement this somehow
-                    if (this.debugValueSets) {
+                    if (this.options.debugValueSets) {
                         log(
                             'Warning: assigning props with ValueSet names ' +
                             'are currently skipped'
@@ -634,7 +661,7 @@ export class Analyzer {
         let declaredValue: FunctionValue | ClassObject;
 
         if (isFunctionDeclaration(node)) {
-            declaredValue = new FunctionValue(node);
+            declaredValue = this.functionManager.getOrCreate(node);
             this.addFunctionBinding(node, binding);
         } else if (isClassDeclaration(node)) {
             const cls = this.classManager.create(node);
@@ -717,6 +744,10 @@ export class Analyzer {
 
                 const callee = node.callee;
 
+                const calleeValue = this.valueFromASTNode(callee);
+
+                this.callManager.saveCallees(path, calleeValue);
+
                 if (!isMemberExpression(callee)) {
                     return;
                 }
@@ -727,7 +758,11 @@ export class Analyzer {
                 if (!isIdentifier(ob) || !isIdentifier(prop)) {
                     return;
                 }
-                if (ob.name === '$analyzer' && prop.name === 'log') {
+                if (
+                    this.debug &&
+                    ob.name === '$analyzer' &&
+                    prop.name === 'log'
+                ) {
                     this.debugLogValues(node.arguments);
                 }
             }
@@ -781,18 +816,13 @@ export class Analyzer {
     }
 
     private debugLogValues(args: ASTNode[]): void {
+        const output: string[] = [];
         for (const a of args) {
             const v = this.valueFromASTNode(a);
-            console.log(JSON.stringify(v, (key, value) => {
-                if (value instanceof ValueSet) {
-                    return {
-                        'type': 'ValueSet',
-                        'values': value.getValues()
-                    };
-                }
-                return value;
-            }, 4));
+
+            output.push(JSON.stringify(v, null, 4));
         }
+        console.log(output.join(' '));
     }
 
     private processFreeStandingFunctionCall(
@@ -1063,17 +1093,21 @@ export class Analyzer {
             }
             return this.getObjectProperty(ob, node.property.name);
         }
-        const propName = this.valueFromASTNode(node.property);
-        if (!propName || isUnknown(propName)) {
+        const prop = this.valueFromASTNode(node.property);
+        if (
+            typeof prop === 'undefined' ||
+            prop === null ||
+            isUnknown(prop)
+        ) {
             return UNKNOWN;
         }
         const getProp = n => {
             return this.getObjectProperty(ob, String(n));
         };
-        if (propName instanceof ValueSet) {
-            return ValueSet.join(...propName.getValues().map(getProp));
+        if (prop instanceof ValueSet) {
+            return ValueSet.join(...prop.getValues().map(getProp));
         } else {
-            return getProp(propName);
+            return getProp(prop);
         }
     }
 
@@ -1165,7 +1199,7 @@ export class Analyzer {
         if (this.stage === AnalysisPhase.DEPExtracting) {
             return UNKNOWN_FUNCTION;
         } else if (this.stage === AnalysisPhase.VarGathering) {
-            return new FunctionValue(node);
+            return this.functionManager.getOrCreate(node);
         } else {
             throw new Error('Unexpected stage: ' + this.stage);
         }
@@ -1246,71 +1280,6 @@ export class Analyzer {
         return path;
     }
 
-    private findCallSitesForBinding(binding: Binding): NodePath[] {
-        // based on https://github.com/babel/babel/blob/429840d/packages/babel-traverse/src/scope/lib/renamer.js#L5
-        const scope = binding.scope;
-        const identifier = binding.identifier;
-        const name = identifier.name;
-        const result: NodePath[] = [];
-
-        scope.traverse(binding.scope.block, {
-            // XXX: ReferencedIdentifier is not defined in Babel's TypeScript
-            // type definitions, but it is used in Babel's own code
-            // @ts-ignore
-            ReferencedIdentifier(path) {
-                if (
-                    path.node.name === name &&
-                    path.scope.getBinding(path.node.name) === binding &&
-                    isCallExpression(path.parentPath.node) &&
-                    path.parentPath.node.callee === path.node
-                ) {
-                    result.push(path);
-                }
-            },
-            Scope(path) {
-                // TODO: this should skip traversal if name is shadowed, test it
-                if (!path.scope.bindingIdentifierEquals(name, identifier)) {
-                    path.skip();
-                }
-            }
-        });
-        return result;
-    }
-
-    private findCallSitesForGlobalVariables(
-        identifier: Identifier
-    ): NodePath[] {
-        const name = identifier.name;
-
-        const result: NodePath[] = [];
-
-        if (this.mergedProgram === null) {
-            throw new Error('findCallSitesForGlobalVariables was called before mergeASTs');
-        }
-
-        traverse(this.mergedProgram, {
-            // XXX: ReferencedIdentifier is not defined in Babel's TypeScript
-            // type definitions, but it is used in Babel's own code
-            // @ts-ignore
-            ReferencedIdentifier(path) {
-                if (
-                    path.node.name === name &&
-                    isCallExpression(path.parentPath.node) &&
-                    path.parentPath.node.callee === path.node
-                ) {
-                    result.push(path);
-                }
-            },
-            Scope(path) {
-                if (path.scope.getBindingIdentifier(name)) {
-                    path.skip();
-                }
-            }
-        });
-
-        return result;
-    }
-
     private makeFunctionDescription(path: NodePath): FunctionDescription {
         const node = path.node;
         if (isFunction(node)) {
@@ -1355,52 +1324,37 @@ export class Analyzer {
             const offset = this.argsStackOffset || 0;
             func = this.functionsStack[this.functionsStack.length - 1 - offset];
         }
-        const bindings = this.functionToBinding.get(func.node);
-        if (this.debugCallChains) {
+
+        if (this.options.debugCallChains) {
             log(
-                `args of function  ${String(func).substring(0, 75)} are` +
+                `args of function  ${String(func).substring(0, 75)} are ` +
                 `unknown, search for bindings. ` +
                 `Chain len: ${this.callChain.length}`
             );
         }
-        if (typeof bindings === 'undefined') {
-            if (
-                func.parent.type !== 'AssignmentExpression' ||
-                func.parent.left.type !== 'Identifier'
-            ) {
-                return;
-            }
+        if (func.node.type === 'Program') {
+            return;
+        }
 
-            const identifier = func.parent.left;
-            const callSites = this.findCallSitesForGlobalVariables(identifier);
+        const callSites = this.callManager.getCallSites(func.node);
 
-            this.buildCallChain(func, callSites);
-        } else {
-            for (const binding of bindings) {
-                if (this.debugCallChains) {
-                    log('found binding ' + binding.identifier.name);
-                }
-                const callSites = this.findCallSitesForBinding(binding);
-
-                this.buildCallChain(func, callSites, binding);
+        if (this.options.debugCallChains) {
+            log(`found ${callSites.length} call sites`);
+            for (const cs of callSites) {
+                log(`* cs: ` + cs);
             }
         }
+
+        this.buildCallChain(func, callSites);
     }
 
-    private buildCallChain(
-        func: NodePath,
-        callSites: NodePath[],
-        binding: Binding | undefined = undefined
-    ) {
-        const uniqueCallers = new Set();
-
+    private buildCallChain(func: NodePath, callSites: NodePath[]) {
         for (const callSite of callSites) {
-            const caller = this.getFunctionForCallSite(callSite);
-
-            if (uniqueCallers.has(caller)) {
-                continue;
+            if (this.options.debugCallChains) {
+                log(`process call site ` + callSite);
             }
-            uniqueCallers.add(caller);
+
+            const caller = this.getFunctionForCallSite(callSite);
 
             if (
                 this.callChain.length > 0 &&
@@ -1410,13 +1364,13 @@ export class Analyzer {
                 continue;
             }
 
-            if (this.debugCallChains) {
+            if (this.options.debugCallChains) {
                 const description = String(caller).substring(0, 75);
-                log(`for it, found call site ${description}`);
+                log(`found calling function ${description}`);
             }
             const funcDescr = this.makeFunctionDescription(func);
             const callDescr: FunctionCallDescription = {
-                binding,
+                callSite: callSite.node as CallExpression,
                 ...funcDescr
             };
             const chain = [callDescr].concat(this.callChain);
@@ -1581,19 +1535,8 @@ export class Analyzer {
 
     private extractDEPsFreeStandingCall(
         calleeName: string,
-        node: CallExpression,
-        scope: Scope
+        node: CallExpression
     ): void {
-        if (
-            this.callChain.length > 0 &&
-            this.callChainPosition < this.callChain.length
-        ) {
-            const binding = scope.getBinding(calleeName);
-            if (this.callChain[this.callChainPosition].binding === binding) {
-                this.proceedAlongCallChain(node);
-            }
-        }
-
         if (matchFreeStandingCallSignature(calleeName)) {
             this.extractDEPFromArgs(
                 calleeName,
@@ -1707,11 +1650,20 @@ export class Analyzer {
         this.extractDEPFromArgs(obName + '.' + prop.name, args, callee.loc);
     }
 
-    private extractDEPsFromCall(node: CallExpression, scope: Scope): void {
+    private extractDEPsFromCall(node: CallExpression): void {
+        if (
+            this.callChain.length > 0 &&
+            this.callChainPosition < this.callChain.length
+        ) {
+            if (this.callChain[this.callChainPosition].callSite === node) {
+                this.proceedAlongCallChain(node);
+                return;
+            }
+        }
         const callee = node.callee;
 
         if (callee.type === 'Identifier') {
-            this.extractDEPsFreeStandingCall(callee.name, node, scope);
+            this.extractDEPsFreeStandingCall(callee.name, node);
         } else if (callee.type === 'MemberExpression') {
             this.extractDEPsMethodCall(callee, node.arguments);
         }
@@ -1781,7 +1733,7 @@ export class Analyzer {
                 }
 
                 if (node.type === 'CallExpression') {
-                    this.extractDEPsFromCall(node, path.scope);
+                    this.extractDEPsFromCall(node);
                 }
             },
             exit: (path: NodePath): void => {
@@ -1804,6 +1756,10 @@ export class Analyzer {
 
                 const callee = node.callee;
 
+                const calleeValue = this.valueFromASTNode(callee);
+
+                this.callManager.saveCallees(path, calleeValue);
+
                 if (!isMemberExpression(callee)) {
                     return;
                 }
@@ -1814,7 +1770,11 @@ export class Analyzer {
                 if (!isIdentifier(ob) || !isIdentifier(prop)) {
                     return;
                 }
-                if (ob.name === '$analyzer' && prop.name === 'log') {
+                if (
+                    this.debug &&
+                    ob.name === '$analyzer' &&
+                    prop.name === 'log'
+                ) {
                     this.debugLogValues(node.arguments);
                 }
             }

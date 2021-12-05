@@ -27,6 +27,7 @@ async function main(): Promise<number> {
         default: 'none'
     });
     parser.add_argument('--output', { type: String, default: null });
+    parser.add_argument('--debug', { action: 'store_true' });
 
     const args = parser.parse_args();
 
@@ -35,7 +36,7 @@ async function main(): Promise<number> {
     const source = await fs.readFile(args.script_path, { encoding: 'utf8' });
 
     await uncommenterRetry(uncomment => {
-        const analyzer = new Analyzer();
+        const analyzer = new Analyzer(null, { debug: args.debug });
 
         analyzer.addScript(source);
 
