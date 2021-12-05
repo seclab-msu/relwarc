@@ -1323,7 +1323,7 @@ export class Analyzer {
 
         if (this.options.debugCallChains) {
             log(
-                `args of function  ${String(func).substring(0, 75)} are` +
+                `args of function  ${String(func).substring(0, 75)} are ` +
                 `unknown, search for bindings. ` +
                 `Chain len: ${this.callChain.length}`
             );
@@ -1334,11 +1334,22 @@ export class Analyzer {
 
         const callSites = this.callManager.getCallSites(func.node);
 
+        if (this.options.debugCallChains) {
+            log(`found ${callSites.length} call sites`);
+            for (const cs of callSites) {
+                log(`* cs: ` + cs);
+            }
+        }
+
         this.buildCallChain(func, callSites);
     }
 
     private buildCallChain(func: NodePath, callSites: NodePath[]) {
         for (const callSite of callSites) {
+            if (this.options.debugCallChains) {
+                log(`process call site ` + callSite);
+            }
+
             const caller = this.getFunctionForCallSite(callSite);
 
             if (
@@ -1351,7 +1362,7 @@ export class Analyzer {
 
             if (this.options.debugCallChains) {
                 const description = String(caller).substring(0, 75);
-                log(`for it, found call site ${description}`);
+                log(`found calling function ${description}`);
             }
             const funcDescr = this.makeFunctionDescription(func);
             const callDescr: FunctionCallDescription = {
