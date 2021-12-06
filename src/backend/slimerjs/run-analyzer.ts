@@ -52,7 +52,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--record-request-stacks', { action: 'store_true' });
     parser.add_argument('--output', { type: String, default: null });
     parser.add_argument('--no-reload-page', { action: 'store_true' });
-    parser.add_argument('--debug', { action: 'store_true' });
+    parser.add_argument('--analyzer-debug', { action: 'store_true' });
 
     const args = parser.parse_args(argv.slice(1));
 
@@ -72,7 +72,7 @@ async function main(argc: number, argv: string[]): Promise<number> {
         loadTimeout: args.load_timeout || undefined,
         recordRequestStackTraces: args.record_request_stacks,
         filterStatic: !args.no_static_filter,
-        debug: args.debug
+        debug: args.analyzer_debug
     };
 
     if (args.tar_page) {
