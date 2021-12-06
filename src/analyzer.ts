@@ -895,6 +895,9 @@ export class Analyzer {
                 if (!isUnknown(val) && typeof val === 'string') {
                     return encoders[name](val);
                 }
+                if (isUnknown(val)) {
+                    return val;
+                }
                 return UNKNOWN_FROM_FUNCTION;
             }
 
@@ -998,18 +1001,24 @@ export class Analyzer {
             result = this.processMethodCall(callee, node.arguments);
         }
 
-        if (!isUnknown(result) || result === 'UNKNOWN') {
+        if (!isUnknown(result) && result !== 'UNKNOWN') {
             return result;
         }
 
         const returnValues = this.callManager.getReturnValuesForCallSite(node);
 
         if (returnValues === null) {
-            return UNKNOWN_FROM_FUNCTION;
+            return result;
         }
 
-        if (returnValues.size === 1) {
+        const resultIsFromArg = result === FROM_ARG;
+
+        if (!resultIsFromArg && returnValues.size === 1) {
             return returnValues.getValues()[0]; // sugar
+        }
+
+        if (resultIsFromArg) {
+            return returnValues.join([FROM_ARG]);
         }
 
         return returnValues;
