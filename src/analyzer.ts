@@ -721,9 +721,18 @@ export class Analyzer {
         }
     }
 
+    private currentFunction(applyOffset=false): NodePath {
+        let index = this.functionsStack.length - 1;
+
+        if (applyOffset) {
+            index -= this.argsStackOffset || 0;
+        }
+
+        return this.functionsStack[index];
+    }
+
     private saveReturnValue(path: NodePath<ReturnStatement>): void {
-        const fstack = this.functionsStack;
-        const currentFunction = fstack[fstack.length - 1];
+        const currentFunction = this.currentFunction();
         if (!currentFunction) {
             log('warning: return statement without current function');
             return;
@@ -740,6 +749,17 @@ export class Analyzer {
         const v = this.valueFromASTNode(path.node.argument);
         const f = this.functionManager.getOrCreate(functionNode);
         this.callManager.saveReturnValue(f, v);
+    }
+
+    private saveCallInfo(path: NodePath<CallExpression>): void {
+        const calleeValue = this.valueFromASTNode(path.node.callee);
+
+        if (CallManager.hasFunctions(calleeValue)) {
+            const args = path.node.arguments.map(
+                a => this.valueFromASTNode(a)
+            );
+            this.callManager.saveCallInfo(path, calleeValue, args);
+        }
     }
 
     private gatherVariableValues(): void {
@@ -789,9 +809,7 @@ export class Analyzer {
 
                 const callee = node.callee;
 
-                const calleeValue = this.valueFromASTNode(callee);
-
-                this.callManager.saveCallees(path, calleeValue);
+                this.saveCallInfo(path);
 
                 if (!isMemberExpression(callee)) {
                     return;
@@ -1169,6 +1187,19 @@ export class Analyzer {
         return false;
     }
 
+    private getArgumentValue(index: number): Value {
+        const cf = this.currentFunction();
+        if (!cf) {
+            return FROM_ARG;
+        }
+        const possibleArgs = this.callManager.getArgument(cf.node, index);
+        if (possibleArgs) {
+            return possibleArgs.join(FROM_ARG);
+        }
+        return FROM_ARG;
+
+    }
+
     getVariable(name: string): Value {
         if (this.currentPath === null) {
             throw new Error('getVariable called without currentPath set');
@@ -1189,11 +1220,8 @@ export class Analyzer {
                 this.argsStack.length - this.argsStackOffset - 1
             ];
         }
-
-        if (~formalArgs.indexOf(name) || this.selectedFunction) {
-            if (formalArgs.includes(name)) {
-                return FROM_ARG;
-            }
+        if (formalArgs.includes(name)) {
+            return this.getArgumentValue(formalArgs.indexOf(name));
         }
         if (this.upperArgumentExists(name)) {
             return UNKNOWN;
@@ -1450,8 +1478,7 @@ export class Analyzer {
         if (this.selectedFunction) {
             func = this.selectedFunction;
         } else {
-            const offset = this.argsStackOffset || 0;
-            func = this.functionsStack[this.functionsStack.length - 1 - offset];
+            func = this.currentFunction(true);
         }
 
         if (this.options.debugCallChains) {
@@ -1885,11 +1912,7 @@ export class Analyzer {
 
                 const callee = node.callee;
 
-                const calleeValue = this.valueFromASTNode(callee);
-
-                if (!isUnknown(callee)) {
-                    this.callManager.saveCallees(path, calleeValue);
-                }
+                this.saveCallInfo(path);
 
                 if (!isMemberExpression(callee)) {
                     return;
