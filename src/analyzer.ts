@@ -961,13 +961,22 @@ export class Analyzer {
         }
         const obValue = this.valueFromASTNode(ob);
 
-        if (typeof obValue === 'string') {
-            let propStr: string;
-            if (propIsIdentifier) {
-                propStr = propName;
-            } else {
-                propStr = String(this.valueFromASTNode(prop));
+        let propStr: string;
+
+        if (propIsIdentifier) {
+            propStr = propName;
+        } else {
+            propStr = String(this.valueFromASTNode(prop));
+        }
+
+        if (propStr === 'toString') {
+            if (isUnknown(obValue)) {
+                return obValue;
             }
+            return String(obValue);
+        }
+
+        if (typeof obValue === 'string') {
             return this.processStringMethod(obValue, propStr, args);
         }
 
