@@ -232,5 +232,82 @@ describe('Test handling of JS builtins', () => {
                 args: ['/api/data?p=5']
             });
         });
+        it('works with value sets', () => {
+            const src = `
+                function f(flg) {
+                    var x = flg ? 10 : 20;
+                    fetch('/api/data?p=' + x.toString());
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(2);
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=10']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=20']
+            });
+        });
+        it('works with value sets and args', () => {
+            const src = `
+                function f(x) {
+                    var y = unknownFn() ? '10' : x;
+                    fetch('/api/data?p=' + y.toString());
+                }
+                function g() {
+                    f('20');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(2);
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=10']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=20']
+            });
+        });
+        it('works with value sets and args - larger set', () => {
+            const src = `
+                function f(x) {
+                    var y = unknownFn() ? '10': '50';
+                    var z = unknownFn2() ? y : x;
+                    fetch('/api/data?p=' + z.toString());
+                }
+                function g() {
+                    f('20');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res.length).toBeGreaterThanOrEqual(2);
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=10']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=20']
+            });
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/data?p=50']
+            });
+        });
     });
 });

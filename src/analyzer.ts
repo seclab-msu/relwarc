@@ -973,10 +973,13 @@ export class Analyzer {
         }
 
         if (propStr === 'toString') {
-            if (isUnknown(obValue)) {
-                return obValue;
-            }
-            return String(obValue);
+            const f = v => {
+                if (isUnknown(v)) {
+                    return v;
+                }
+                return String(v);
+            };
+            return obValue instanceof ValueSet ? obValue.map(f) : f(obValue);
         }
 
         if (typeof obValue === 'string') {
