@@ -871,23 +871,64 @@ export class Analyzer {
         console.log(output.join(' '));
     }
 
+    private maybeCallBuiltinFreeStanding(
+        name: string,
+        args: ASTNode[]
+    ): [boolean, Value] {
+        const encoders = { escape, encodeURIComponent, encodeURI };
+        const decoders = { parseInt, parseFloat };
+
+        if (!hasattr(encoders, name) && !hasattr(decoders, name)) {
+            return [false, undefined];
+        }
+
+        const argValue = this.valueFromASTNode(args[0]);
+
+        const f = val => {
+            if (hasattr(encoders, name)) {
+                if (
+                    ['number', 'boolean', 'undefined'].includes(typeof val) ||
+                    val === null
+                ) {
+                    val = String(val);
+                }
+                if (!isUnknown(val) && typeof val === 'string') {
+                    return encoders[name](val);
+                }
+                if (isUnknown(val)) {
+                    return val;
+                }
+                return UNKNOWN_FROM_FUNCTION;
+            }
+
+            if (hasattr(decoders, name)) {
+                if (isUnknown(val)) {
+                    return val;
+                }
+                const radix = args.length > 1 ?
+                    this.valueFromASTNode(args[1]) : undefined;
+                return decoders[name](val, radix);
+            }
+        };
+
+        let result: Value;
+
+        if (argValue instanceof ValueSet) {
+            result = argValue.map(f);
+        } else {
+            result = f(argValue);
+        }
+
+        return [true, result];
+    }
+
     private processFreeStandingFunctionCall(
         name: string,
         args: ASTNode[]
     ): Value {
-        const encoders = { escape, encodeURIComponent, encodeURI };
-
-        if (hasattr(encoders, name)) {
-            const argValue = this.valueFromASTNode(args[0]);
-
-            if (isUnknown(argValue)) {
-                return argValue;
-            }
-
-            if (typeof argValue === 'string') {
-                return encoders[name](argValue);
-            }
-            return argValue;
+        const [wasCalled, res] = this.maybeCallBuiltinFreeStanding(name, args);
+        if (wasCalled) {
+            return res;
         }
         return UNKNOWN_FROM_FUNCTION;
     }
@@ -923,13 +964,25 @@ export class Analyzer {
         }
         const obValue = this.valueFromASTNode(ob);
 
+        let propStr: string;
+
+        if (propIsIdentifier) {
+            propStr = propName;
+        } else {
+            propStr = String(this.valueFromASTNode(prop));
+        }
+
+        if (propStr === 'toString') {
+            const f = v => {
+                if (isUnknown(v)) {
+                    return v;
+                }
+                return String(v);
+            };
+            return obValue instanceof ValueSet ? obValue.map(f) : f(obValue);
+        }
+
         if (typeof obValue === 'string') {
-            let propStr: string;
-            if (propIsIdentifier) {
-                propStr = propName;
-            } else {
-                propStr = String(this.valueFromASTNode(prop));
-            }
             return this.processStringMethod(obValue, propStr, args);
         }
 
@@ -951,18 +1004,24 @@ export class Analyzer {
             result = this.processMethodCall(callee, node.arguments);
         }
 
-        if (!isUnknown(result) || result === 'UNKNOWN') {
+        if (!isUnknown(result) && result !== 'UNKNOWN') {
             return result;
         }
 
         const returnValues = this.callManager.getReturnValuesForCallSite(node);
 
         if (returnValues === null) {
-            return UNKNOWN_FROM_FUNCTION;
+            return result;
         }
 
-        if (returnValues.size === 1) {
+        const resultIsFromArg = result === FROM_ARG;
+
+        if (!resultIsFromArg && returnValues.size === 1) {
             return returnValues.getValues()[0]; // sugar
+        }
+
+        if (resultIsFromArg) {
+            return returnValues.join([FROM_ARG]);
         }
 
         return returnValues;
