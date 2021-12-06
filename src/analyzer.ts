@@ -871,23 +871,61 @@ export class Analyzer {
         console.log(output.join(' '));
     }
 
+    private maybeCallBuiltinFreeStanding(
+        name: string,
+        args: ASTNode[]
+    ): [boolean, Value] {
+        const encoders = { escape, encodeURIComponent, encodeURI };
+        const decoders = { parseInt, parseFloat };
+
+        if (!hasattr(encoders, name) && !hasattr(decoders, name)) {
+            return [false, undefined];
+        }
+
+        const argValue = this.valueFromASTNode(args[0]);
+
+        const f = val => {
+            if (hasattr(encoders, name)) {
+                if (
+                    ['number', 'boolean', 'undefined'].includes(typeof val) ||
+                    val === null
+                ) {
+                    val = String(val);
+                }
+                if (!isUnknown(val) && typeof val === 'string') {
+                    return encoders[name](val);
+                }
+                return UNKNOWN_FROM_FUNCTION;
+            }
+
+            if (hasattr(decoders, name)) {
+                if (isUnknown(val)) {
+                    return val;
+                }
+                const radix = args.length > 1 ?
+                    this.valueFromASTNode(args[1]) : undefined;
+                return decoders[name](val, radix);
+            }
+        };
+
+        let result: Value;
+
+        if (argValue instanceof ValueSet) {
+            result = argValue.map(f);
+        } else {
+            result = f(argValue);
+        }
+
+        return [true, result];
+    }
+
     private processFreeStandingFunctionCall(
         name: string,
         args: ASTNode[]
     ): Value {
-        const encoders = { escape, encodeURIComponent, encodeURI };
-
-        if (hasattr(encoders, name)) {
-            const argValue = this.valueFromASTNode(args[0]);
-
-            if (isUnknown(argValue)) {
-                return argValue;
-            }
-
-            if (typeof argValue === 'string') {
-                return encoders[name](argValue);
-            }
-            return argValue;
+        const [wasCalled, res] = this.maybeCallBuiltinFreeStanding(name, args);
+        if (wasCalled) {
+            return res;
         }
         return UNKNOWN_FROM_FUNCTION;
     }
