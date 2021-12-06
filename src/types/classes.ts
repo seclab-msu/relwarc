@@ -1,13 +1,32 @@
 import {
-    ClassDeclaration, ClassExpression, ClassMethod, ClassPrivateMethod,
+    FunctionDeclaration, FunctionExpression,
+    ClassMethod, ClassPrivateMethod,
+    MemberExpression,
     Function as FunctionASTNode,
-    isClassMethod, isClassPrivateMethod
+    Class as ClassNode,
+    isClassMethod, isClassPrivateMethod,
+    isFunctionDeclaration, isFunctionExpression,
+    isMemberExpression, isIdentifier
 } from '@babel/types';
 
 import { debugEnabled } from '../debug';
 
-type ClassNode = ClassDeclaration | ClassExpression;
-type Method = ClassMethod | ClassPrivateMethod;
+import { Value } from './generic';
+import { FunctionValue } from './function';
+
+type VanillaMethod = FunctionExpression | FunctionDeclaration;
+type Method = ClassMethod | ClassPrivateMethod | VanillaMethod;
+type VanillaClassNode = VanillaMethod; // same for vanilla
+
+function isVanillaClassNode(
+    node: FunctionASTNode | ClassNode
+): node is VanillaClassNode {
+    return isFunctionDeclaration(node) || isFunctionExpression(node);
+}
+
+export function isVanillaMethod(node: FunctionASTNode): node is VanillaMethod {
+    return isFunctionDeclaration(node) || isFunctionExpression(node);
+}
 
 export class ClassObject {
     readonly name: string;
@@ -72,26 +91,34 @@ export class ClassManager {
     readonly classes: Class[];
     private readonly method2Class: Map<FunctionASTNode, Class>;
     private readonly classObject2Class: Map<ClassObject, Class>;
-    private readonly node2Class: Map<ClassNode, Class>;
+    private readonly node2Class: Map<ClassNode | VanillaClassNode, Class>;
+    private readonly instance2Class: Map<Instance, Class>;
 
     constructor() {
         this.classes = [];
         this.method2Class = new Map();
         this.classObject2Class = new Map();
         this.node2Class = new Map();
+        this.instance2Class = new Map();
     }
 
-    private static getMethods(node: ClassNode): Method[] {
+    private static getMethods(node: ClassNode | VanillaClassNode): Method[] {
         const result: Method[] = [];
-        for (const el of node.body.body) {
-            if (isClassMethod(el) || isClassPrivateMethod(el)) {
-                result.push(el);
+        if (isVanillaClassNode(node)) {
+            // XXX(mirond): here we have access only to ctor of vanilla
+            // classes. Other methods we will find at analyzer side.
+            result.push(node);
+        } else {
+            for (const el of node.body.body) {
+                if (isClassMethod(el) || isClassPrivateMethod(el)) {
+                    result.push(el);
+                }
             }
         }
         return result;
     }
 
-    create(node: ClassNode): ClassObject {
+    create(node: ClassNode | VanillaClassNode): ClassObject {
         if (this.node2Class.has(node)) {
             return (this.node2Class.get(node) as Class).classObject;
         }
@@ -111,7 +138,31 @@ export class ClassManager {
         }
         this.classObject2Class.set(cls.classObject, cls);
         this.node2Class.set(node, cls);
+        this.instance2Class.set(cls.instance, cls);
         return cls.classObject;
+    }
+
+    static nodeIsProbablyVanillaPrototypeMethod(
+        node: MemberExpression
+    ): boolean {
+        return isMemberExpression(node.object) &&
+            node.object.property &&
+            isIdentifier(node.object.property) &&
+            node.object.property.name === 'prototype';
+    }
+
+    tryToAddVanillaPrototypeMethod(
+        clsValue: Value,
+        methodValue: Value
+    ): void {
+        if (
+            methodValue instanceof FunctionValue &&
+            isVanillaMethod(methodValue.ast) &&
+            clsValue instanceof FunctionValue &&
+            isVanillaClassNode(clsValue.ast)
+        ) {
+            this.addMethodForClassNode(clsValue.ast, methodValue.ast);
+        }
     }
 
     getClassInstanceForMethod(m: FunctionASTNode): Instance | null {
@@ -120,5 +171,29 @@ export class ClassManager {
 
     getClassInstanceForClassObject(co: ClassObject): Instance | null {
         return this.classObject2Class.get(co)?.instance || null;
+    }
+
+    addMethodForInstance(inst: Instance, m: Method): void {
+        const cls = this.instance2Class.get(inst);
+        if (typeof cls !== 'undefined') {
+            this.method2Class.set(m, cls);
+        }
+        this.instance2Class.get(inst)?.methods.push(m);
+    }
+
+    addMethodForClassNode(
+        clsNode: ClassNode | VanillaClassNode,
+        method: Method
+    ): void {
+        const cls = this.node2Class.get(clsNode);
+        if (typeof cls === 'undefined') {
+            return;
+        }
+        this.method2Class.set(method, cls);
+        cls.methods.push(method);
+    }
+
+    containsClass(node: FunctionASTNode): boolean {
+        return this.method2Class.has(node);
     }
 }

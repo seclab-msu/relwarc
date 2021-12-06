@@ -18,7 +18,8 @@ import {
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
     isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
-    isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression
+    isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression,
+    isFunctionExpression
 } from '@babel/types';
 
 import {
@@ -37,7 +38,7 @@ import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
-import { ClassObject, ClassManager, Instance } from './types/classes';
+import { ClassObject, ClassManager, Instance, isVanillaMethod } from './types/classes';
 
 import { CallManager } from './call-manager';
 import { FunctionManager } from './function-manager';
@@ -534,6 +535,17 @@ export class Analyzer {
 
         const updatedObject = this.valueFromASTNode(node.object);
 
+        if (ClassManager.nodeIsProbablyVanillaPrototypeMethod(node)) {
+            if (node.object.type !== 'MemberExpression') {
+                throw new Error('Expected node.object to be MemberExpression');
+            }
+            const clsValue = this.valueFromASTNode(node.object.object);
+            this.classManager.tryToAddVanillaPrototypeMethod(
+                clsValue,
+                value
+            );
+        }
+
         const update = ob => {
             if (
                 ob &&
@@ -559,6 +571,15 @@ export class Analyzer {
                     return;
                 }
                 if (ob instanceof Instance) {
+                    if (
+                        value instanceof FunctionValue &&
+                        isVanillaMethod(value.ast)
+                    ) {
+                        this.classManager.addMethodForInstance(
+                            ob,
+                            value.ast
+                        );
+                    }
                     if (!(value instanceof ValueSet)) {
                         value = new ValueSet([value]);
                     }
@@ -659,13 +680,13 @@ export class Analyzer {
         }
 
         let declaredValue: FunctionValue | ClassObject;
-
-        if (isFunctionDeclaration(node)) {
-            declaredValue = this.functionManager.getOrCreate(node);
-            this.addFunctionBinding(node, binding);
-        } else if (isClassDeclaration(node)) {
+        if (isFunctionDeclaration(node) || isClassDeclaration(node)) {
             const cls = this.classManager.create(node);
             declaredValue = cls;
+            if (isFunctionDeclaration(node)) {
+                declaredValue = this.functionManager.getOrCreate(node);
+                this.addFunctionBinding(node, binding);
+            }
         } else {
             throw new Error('Unexpected value');
         }
@@ -709,6 +730,11 @@ export class Analyzer {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
                 this.currentPath = path;
+                if (
+                    isFunctionDeclaration(node) || isClassDeclaration(node)
+                ) {
+                    this.declare(node);
+                }
                 if (isFunction(node)) {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.ifStack.unshift(0);
@@ -721,10 +747,6 @@ export class Analyzer {
                     node.type === 'AssignmentExpression'
                 ) {
                     this.setVariable(path);
-                } else if (
-                    isFunctionDeclaration(node) || isClassDeclaration(node)
-                ) {
-                    this.declare(node);
                 }
             },
             exit: (path: NodePath) => {
@@ -988,6 +1010,9 @@ export class Analyzer {
             // NB(asterite): ctor arguments are currently ignored
             const inst = this.classManager.getClassInstanceForClassObject(cls);
             return inst || UNKNOWN_FROM_FUNCTION;
+        } else if (cls instanceof FunctionValue) {
+            const inst = this.classManager.getClassInstanceForMethod(cls.ast);
+            return inst || UNKNOWN_FROM_FUNCTION;
         }
 
         return UNKNOWN_FROM_FUNCTION;
@@ -1197,8 +1222,14 @@ export class Analyzer {
 
     private processFunction(node: FunctionASTNode): Value {
         if (this.stage === AnalysisPhase.DEPExtracting) {
+            if (this.classManager.containsClass(node)) {
+                return this.functionManager.getOrCreate(node);
+            }
             return UNKNOWN_FUNCTION;
         } else if (this.stage === AnalysisPhase.VarGathering) {
+            if (isFunctionExpression(node)) {
+                this.classManager.create(node);
+            }
             return this.functionManager.getOrCreate(node);
         } else {
             throw new Error('Unexpected stage: ' + this.stage);

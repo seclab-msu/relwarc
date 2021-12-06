@@ -11,7 +11,8 @@ const defaultSpecFiles = [
     'test*.js',
     'mine-args/test*.js',
     'mine-deps/test*.js',
-    'analysis/test*.js'
+    'analysis/test*.js',
+    'analysis/classes/test*.js'
 ];
 
 

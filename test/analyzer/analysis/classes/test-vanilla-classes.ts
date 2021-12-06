@@ -1,15 +1,14 @@
-import { makeAndRunSimple } from '../utils/utils';
+import { makeAndRunSimple } from '../../utils/utils';
 
-describe('Test support for OOP (Classes):', () => {
-    it('value assigned in ctor and used in method', () => {
+describe('Test support for OOP (Vanilla Classes):', () => {
+    it('value assigned in ctor and used in prototype method', () => {
         const src = `
-            class T {
-                constructor() {
-                    this.field = 'abcd123';
-                }
-                method() {
-                    fetch('/tst/' + this.field);
-                }
+            function fetcher() {
+                this.path = '/path';
+            }
+
+            fetcher.prototype._fetch = function() {
+                fetch(this.path);
             }
         `;
         const analyzer = makeAndRunSimple([src], false);
@@ -19,18 +18,19 @@ describe('Test support for OOP (Classes):', () => {
         }));
         expect(res as object[]).toContain({
             funcName: 'fetch',
-            args: ['/tst/abcd123']
+            args: ['/path']
         });
     });
     it('value assigned in one method and used in another', () => {
         const src = `
-            class T {
-                method1() {
-                    this.field = 'abcd123';
-                }
-                method2() {
-                    fetch('/tst/' + this.field);
-                }
+            function fetcher() {}
+
+            fetcher.prototype.initPath = function() {
+                this.path = '/path';
+            }
+
+            fetcher.prototype._fetch = function() {
+                fetch(this.path);
             }
         `;
         const analyzer = makeAndRunSimple([src], false);
@@ -40,18 +40,19 @@ describe('Test support for OOP (Classes):', () => {
         }));
         expect(res as object[]).toContain({
             funcName: 'fetch',
-            args: ['/tst/abcd123']
+            args: ['/path']
         });
     });
     it('value used in method coming before one where it\'s assigned', () => {
         const src = `
-            class T {
-                method1() {
-                    fetch('/tst/' + this.field);
-                }
-                method2() {
-                    this.field = 'abcd123';
-                }
+            function fetcher() {}
+
+            fetcher.prototype.method1 = function() {
+                fetch('/tst/' + this.field);
+            }
+
+            fetcher.prototype.method2 = function() {
+                this.field = 'abcd123';
             }
         `;
         const analyzer = makeAndRunSimple([src], false);
@@ -66,13 +67,12 @@ describe('Test support for OOP (Classes):', () => {
     });
     it('value assigned in ctor and read from instance', () => {
         const src = `
-            class T {
-                constructor() {
-                    this.field = 'abcd123';
-                }
+            function store() {
+                this.field = 'abcd123';
             }
+
             function f() {
-                var v = new T();
+                var v = new store();
 
                 fetch('/tst/' + v.field);
             }
@@ -90,12 +90,11 @@ describe('Test support for OOP (Classes):', () => {
     it('value assigned in ctor and read from instance - local decl', () => {
         const src = `
             function f() {
-                class T {
-                    constructor() {
-                        this.field = 'abcd123';
-                    }
+                function store() {
+                    this.field = 'abcd123';
                 }
-                var v = new T();
+
+                var v = new store();
 
                 fetch('/tst/' + v.field);
             }
@@ -112,16 +111,16 @@ describe('Test support for OOP (Classes):', () => {
     });
     it('value assigned in ctor, modified in method, used from instance', () => {
         const src = `
-            class T {
-                constructor() {
-                    this.field = 'abcd123';
-                }
-                method1() {
-                    this.field = this.field + '56'
-                }
+            function store() {
+                this.field = 'abcd123';
             }
+
+            store.prototype.method1 = function() {
+                this.field = this.field + '56';
+            }
+
             function f() {
-                var v = new T();
+                var v = new store();
 
                 fetch('/tst/' + v.field);
             }
@@ -136,17 +135,92 @@ describe('Test support for OOP (Classes):', () => {
             args: ['/tst/abcd12356']
         });
     });
-    describe('class decl, and instance is reassigned', () => {
+    it('method assigned in ctor, modified value, used from instance', () => {
+        const src = `
+            function store() {
+                this.field = 'abcd123';
+                this.method = function() {
+                    this.field = this.field + '56';
+                }
+            }
+
+            function f() {
+                var v = new store();
+
+                fetch('/tst/' + v.field);
+            }
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/tst/abcd12356']
+        });
+    });
+    it('declared method assigned in ctor, modified value, used from instance', () => {
+        const src = `
+            function store() {
+                this.field = 'abcd123';
+                function a() {
+                    this.field = this.field + '56';
+                }
+                this.method = a;
+            }
+
+            function f() {
+                var v = new store();
+
+                fetch('/tst/' + v.field);
+            }
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/tst/abcd12356']
+        });
+    });
+    it('declared arrow method assigned in ctor, modified value, used from instance', () => {
+        const src = `
+            function store() {
+                this.field = 'qwe';
+                let b = () => {
+                    this.field = this.field + 'zxy';
+                }
+                this.method = b;
+            }
+
+            function f() {
+                var v = new store();
+
+                fetch('/tst/' + v.field);
+            }
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/tst/qwezxy']
+        });
+    });
+    describe('vanilla class decl, and instance is reassigned', () => {
         it('to global var', () => {
             const src = `
-                class T {
-                    constructor() {
-                        this.field = 'abcd123';
-                    }
+                function store() {
+                    this.field = 'abcd123';
                 }
-                var gT = T;
+                var reStore = store;
                 function f() {
-                    var v = new gT();
+                    var v = new reStore();
 
                     fetch('/tst/' + v.field);
                 }
@@ -163,14 +237,13 @@ describe('Test support for OOP (Classes):', () => {
         });
         it('to local var', () => {
             const src = `
-                class T {
-                    constructor() {
-                        this.field = 'abcd123';
-                    }
+                function store() {
+                    this.field = 'abcd123';
                 }
+
                 function f() {
-                    var lt = T;
-                    var v = new lt();
+                    var reStore = store;
+                    var v = new reStore();
 
                     fetch('/tst/' + v.field);
                 }
@@ -187,18 +260,17 @@ describe('Test support for OOP (Classes):', () => {
         });
         it('double reassignment', () => {
             const src = `
-                class T {
-                    constructor() {
-                        this.field = 'abcd123';
-                    }
+                function store() {
+                    this.field = 'abcd123';
                 }
+
                 function f() {
-                    var lt, lt2;
+                    var reStore, reStore2;
 
-                    lt = T;
-                    lt2 = lt;
+                    reStore = store;
+                    reStore2 = reStore;
 
-                    var v = new lt2();
+                    var v = new reStore2();
 
                     fetch('/tst/' + v.field);
                 }
@@ -214,17 +286,15 @@ describe('Test support for OOP (Classes):', () => {
             });
         });
     });
-    describe('class expression', () => {
+    describe('vanilla class expression', () => {
         it('value assigned in ctor and used in method', () => {
             const src = `
                 function f() {
-                    var Cls = class {
-                        constructor() {
-                            this.field = 'abcd123';
-                        }
-                        method() {
-                            fetch('/tst/' + this.field);
-                        }
+                    var store = function() {
+                        this.field = 'abcd123';
+                    }
+                    store.prototype.fetcher = function() {
+                        fetch('/tst/' + this.field);
                     }
                 }
             `;
@@ -241,13 +311,11 @@ describe('Test support for OOP (Classes):', () => {
         it('value assigned in ctor and used in instance', () => {
             const src = `
                 function f() {
-                    var Cls = class {
-                        constructor() {
-                            this.field = 'abcd123';
-                        }
+                    var store = function() {
+                        this.field = 'abcd123';
                     }
 
-                    var inst = new Cls();
+                    var inst = new store();
                     fetch('/tst/' + inst.field);
                 }
             `;
@@ -264,17 +332,17 @@ describe('Test support for OOP (Classes):', () => {
         it('value used in method coming before one where assigned', () => {
             const src = `
                 function f() {
-                    var Cls = class {
-                        method1() {
-                            this.field2 = 'kek/' + this.field;
-                        }
+                    var store = function() {}
 
-                        method2() {
-                            this.field = 'abcd123';
-                        }
+                    store.prototype.method1 = function() {
+                        this.field2 = 'kek/' + this.field;
                     }
 
-                    var inst = new Cls();
+                    store.prototype.method2 = function() {
+                        this.field = 'abcd123';
+                    }
+
+                    var inst = new store();
                     fetch('/tst/' + inst.field2);
                 }
             `;
