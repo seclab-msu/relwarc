@@ -555,13 +555,17 @@ export class Analyzer {
             ) {
                 if (propName instanceof ValueSet) {
                     // TODO(asterite): maybe implement this somehow
-                    if (this.options.debugValueSets) {
-                        log(
-                            'Warning: assigning props with ValueSet names ' +
-                            'are currently skipped'
-                        );
+                    if (propName.size === 1) {
+                        propName = propName.getValues()[0];
+                    } else {
+                        if (this.options.debugValueSets) {
+                            log(
+                                'Warning: assigning a prop with ValueSet ' +
+                                'name: trying to pick some value'
+                            );
+                        }
+                        propName = propName.tryToPeekConcrete();
                     }
-                    return;
                 }
                 if (!this.shouldSetObjectProperty(ob, propName, value)) {
                     return;
@@ -1197,7 +1201,6 @@ export class Analyzer {
             return possibleArgs.join(FROM_ARG);
         }
         return FROM_ARG;
-
     }
 
     getVariable(name: string): Value {

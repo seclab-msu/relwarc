@@ -269,4 +269,37 @@ export class ValueSet {
     empty(): boolean {
         return this.size === 0;
     }
+
+    peekBetter(score: (v: Value) => number): Value {
+        // this shit is needed because shitty JavaScript Array.prototype.sort
+        // does not work for undefined values (DAFUQ????)
+        const undefinedSym = undefinedSortSymbol;
+        const callScore = v => v !== undefinedSym ? score(v) : score(undefined);
+
+        const v = this.getValues()
+            .map(v => typeof v !== 'undefined' ? v : undefinedSym)
+            .sort((a, b) => callScore(b) - callScore(a))[0];
+
+        return v !== undefinedSym ? v as Value : undefined;
+    }
+    tryToPeekConcrete(): Value {
+        const concretenessScore = v => {
+            if (isUnknown(v)) {
+                return 0;
+            }
+            if (typeof v === 'undefined' || v === null) {
+                return 1;
+            }
+            if (typeof v !== 'string') {
+                return 2;
+            }
+            if (v.includes('UNKNOWN') || v.includes('FROM_ARG')) {
+                return 0;
+            }
+            return 2;
+        };
+        return this.peekBetter(concretenessScore);
+    }
 }
+
+const undefinedSortSymbol = Symbol('undefined symbol');
