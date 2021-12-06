@@ -13,7 +13,7 @@ import {
     CallExpression, BinaryExpression, UnaryExpression, AssignmentExpression,
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
-    FunctionDeclaration, ClassDeclaration, ClassExpression,
+    FunctionDeclaration, ClassDeclaration, ClassExpression, ReturnStatement,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
@@ -721,6 +721,27 @@ export class Analyzer {
         }
     }
 
+    private saveReturnValue(path: NodePath<ReturnStatement>): void {
+        const fstack = this.functionsStack;
+        const currentFunction = fstack[fstack.length - 1];
+        if (!currentFunction) {
+            log('warning: return statement without current function');
+            return;
+        }
+        const functionNode = currentFunction.node;
+        if (!isFunction(functionNode)) {
+            log('warning: node of current function is not a function node');
+            return;
+        }
+        this.currentPath = path;
+        if (!path.node.argument) {
+            return;
+        }
+        const v = this.valueFromASTNode(path.node.argument);
+        const f = this.functionManager.getOrCreate(functionNode);
+        this.callManager.saveReturnValue(f, v);
+    }
+
     private gatherVariableValues(): void {
         this.stage = AnalysisPhase.VarGathering;
         if (this.mergedProgram === null) {
@@ -739,6 +760,7 @@ export class Analyzer {
                     this.argsStack.push(this.argNamesForFunctionNode(node));
                     this.ifStack.unshift(0);
                     this.addCurrentThis(node);
+                    this.functionsStack.push(path);
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]++;
@@ -756,6 +778,7 @@ export class Analyzer {
                     this.argsStack.pop();
                     this.ifStack.shift();
                     this.restoreCurrentThis(node);
+                    this.functionsStack.pop();
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]--;
@@ -787,7 +810,8 @@ export class Analyzer {
                 ) {
                     this.debugLogValues(node.arguments);
                 }
-            }
+            },
+            ReturnStatement: path => this.saveReturnValue(path)
         });
         this.argsStack.length = 0; // clear args stack just in case
     }
@@ -914,19 +938,34 @@ export class Analyzer {
 
     private processFunctionCall(node: CallExpression): Value {
         const callee = node.callee;
+        let result: Value = UNKNOWN_FROM_FUNCTION;
 
         if (callee.type === 'Identifier') {
-            return this.processFreeStandingFunctionCall(
+            result = this.processFreeStandingFunctionCall(
                 callee.name,
                 node.arguments
             );
         }
 
         if (callee.type === 'MemberExpression') {
-            return this.processMethodCall(callee, node.arguments);
+            result = this.processMethodCall(callee, node.arguments);
         }
 
-        return UNKNOWN_FROM_FUNCTION;
+        if (!isUnknown(result) || result === 'UNKNOWN') {
+            return result;
+        }
+
+        const returnValues = this.callManager.getReturnValuesForCallSite(node);
+
+        if (returnValues === null) {
+            return UNKNOWN_FROM_FUNCTION;
+        }
+
+        if (returnValues.size === 1) {
+            return returnValues.getValues()[0]; // sugar
+        }
+
+        return returnValues;
     }
 
     private constructAngularHttpRequest(node: NewExpression): Value {
@@ -1789,7 +1828,9 @@ export class Analyzer {
 
                 const calleeValue = this.valueFromASTNode(callee);
 
-                this.callManager.saveCallees(path, calleeValue);
+                if (!isUnknown(callee)) {
+                    this.callManager.saveCallees(path, calleeValue);
+                }
 
                 if (!isMemberExpression(callee)) {
                     return;
