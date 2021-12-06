@@ -11,14 +11,14 @@ import { FunctionManager } from './function-manager';
 export class CallManager {
     readonly siteTable: Map<CallExpression, Set<FunctionValue>>;
     readonly rsiteTable: Map<FunctionValue, Set<NodePath>>;
-    // readonly returnValueTable: Map<FunctionValue, ValueSet>;
+    readonly returnValueTable: Map<FunctionValue, ValueSet>;
     // readonly argTable: Map<FunctionValue, Array<ValueSet>>;
     private readonly functionManager: FunctionManager;
 
     constructor(functionManager: FunctionManager) {
         this.siteTable = new Map();
         this.rsiteTable = new Map();
-        // this.returnValueTable = new Map();
+        this.returnValueTable = new Map();
         // this.argTable = new Map();
 
         this.functionManager = functionManager;
@@ -63,5 +63,37 @@ export class CallManager {
         } else {
             return [...sites];
         }
+    }
+    saveReturnValue(f: FunctionValue, v: Value): void {
+        let set = this.returnValueTable.get(f);
+
+        if (!set) {
+            if (v instanceof ValueSet) {
+                set = v;
+            } else {
+                set = new ValueSet([v]);
+            }
+        } else {
+            set = set.join(v);
+        }
+        this.returnValueTable.set(f, set);
+    }
+    getReturnValuesForCallSite(c: CallExpression): ValueSet | null {
+        const callees = this.siteTable.get(c);
+
+        if (!callees || callees.size === 0) {
+            return null;
+        }
+
+        const result = ValueSet.join(
+            ...([...callees]
+                .map(f => this.returnValueTable.get(f))
+                .filter(x => x)
+            )
+        );
+        if (result.empty()) {
+            return null;
+        }
+        return result;
     }
 }

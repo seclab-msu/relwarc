@@ -263,4 +263,10 @@ export class ValueSet {
         }
         return result;
     }
+    get size() {
+        return this.values.size;
+    }
+    empty(): boolean {
+        return this.size === 0;
+    }
 }
