@@ -97,7 +97,9 @@ const PREDEFINED_CLASSES = [
     'Headers',
     'HttpRequest',
     'Object',
-    'FormData'
+    'FormData',
+    'URL',
+    'URLSearchParams'
 ];
 
 type VarScope = { [varName: string]: Value };
@@ -1105,6 +1107,69 @@ export class Analyzer {
         };
     }
 
+    private tryCreatingURLClass(node: NewExpression): Value {
+        let base: Value;
+        if (node.arguments.length === 2) {
+            base = this.valueFromASTNode(node.arguments[1]);
+            if (base instanceof ValueSet) {
+                base = base.tryToPeekConcrete();
+            }
+        }
+
+        const createURLClass = (url: Value): Value => {
+            if (base !== undefined && typeof base !== 'string') {
+                base = undefined;
+            }
+            try {
+                return new URL(String(url), base);
+            } catch {
+                return UNKNOWN;
+            }
+        };
+
+        const url = this.valueFromASTNode(node.arguments[0]);
+        if (url instanceof ValueSet) {
+            return url.map(createURLClass);
+        } else {
+            return createURLClass(url);
+        }
+    }
+
+    private tryCreatingURLSearchParamsClass(node: NewExpression): Value {
+        if (node.arguments.length === 0) {
+            return new URLSearchParams();
+        }
+
+        const createURLSearchParams = (arg: Value): Value => {
+            if (typeof arg === 'object') {
+                for (const key in arg) {
+                    if (arg[key] instanceof ValueSet) {
+                        arg[key] = arg[key].tryToPeekConcrete();
+                    }
+                }
+            }
+            if (typeof arg === 'string' || typeof arg === 'object') {
+                try {
+                    // @ts-ignore
+                    return new URLSearchParams(arg);
+                } catch {
+                    log(
+                        `Warning: failed to create URLSearchParams with ${arg}`
+                    );
+                }
+            }
+            return new URLSearchParams();
+        };
+
+        const arg = this.valueFromASTNode(node.arguments[0]);
+
+        if (arg instanceof ValueSet) {
+            return arg.map(createURLSearchParams);
+        } else {
+            return createURLSearchParams(arg);
+        }
+    }
+
     private constructPredefinedClass(name: string, node: NewExpression): Value {
         switch (name) {
         case 'Headers':
@@ -1128,6 +1193,12 @@ export class Analyzer {
             break;
         case 'FormData':
             return new FormDataModel();
+            break;
+        case 'URL':
+            return this.tryCreatingURLClass(node);
+            break;
+        case 'URLSearchParams':
+            return this.tryCreatingURLSearchParamsClass(node);
             break;
         default:
             throw new Error('Unexpected predefined class: ' + name);
@@ -1714,29 +1785,54 @@ export class Analyzer {
         });
     }
 
-    private processFormDataAppend(
+    private processFormDataMethods(
         fd: FormDataModel,
-        methNode: ASTNode,
+        methNode: Identifier,
         argNodes: ASTNode[]
     ): void {
         const args = this.valuesForArgs(argNodes);
 
-        if (!isUnknown(args[0])) {
-            fd.append(args[0], args[1]);
+        if (methNode.name === 'append') {
+            if (!isUnknown(args[0])) {
+                fd.append(args[0], args[1]);
+            }
         }
     }
 
-    private tryFormDataOp(
-        ob: Identifier,
+    private processURLSearchParamsMethods(
+        usp: URLSearchParams,
+        methNode: Identifier,
+        argNodes: ASTNode[]
+    ) {
+        const args = this.valuesForArgs(argNodes);
+
+        if (methNode.name === 'set' || methNode.name === 'append') {
+            let name = args[0];
+            if (name instanceof ValueSet) {
+                name = name.tryToPeekConcrete();
+            }
+            let value = args[1];
+            if (value instanceof ValueSet) {
+                value = value.tryToPeekConcrete();
+            }
+            if (typeof name === 'string') {
+                usp[methNode.name](name, String(value));
+            }
+        }
+    }
+
+    private tryBuiltInClassesOp(
+        ob: Identifier|MemberExpression,
         prop: Identifier,
         args: ASTNode[]
     ): boolean {
-        if (prop.name === 'append') {
-            const obValue = this.valueFromASTNode(ob);
-            if (obValue instanceof FormDataModel) {
-                this.processFormDataAppend(obValue, prop, args);
-                return true;
-            }
+        const obValue = this.valueFromASTNode(ob);
+        if (obValue instanceof URLSearchParams) {
+            this.processURLSearchParamsMethods(obValue, prop, args);
+            return true;
+        } else if (obValue instanceof FormDataModel) {
+            this.processFormDataMethods(obValue, prop, args);
+            return true;
         }
         return false;
     }
@@ -1835,9 +1931,9 @@ export class Analyzer {
             return;
         }
 
-        if (ob.type === 'Identifier') {
-            const isFormDataOp = this.tryFormDataOp(ob, prop, args);
-            if (isFormDataOp) {
+        if (ob.type === 'Identifier' || ob.type === 'MemberExpression') {
+            const isBuiltInClassesOp = this.tryBuiltInClassesOp(ob, prop, args);
+            if (isBuiltInClassesOp) {
                 return;
             }
         }
