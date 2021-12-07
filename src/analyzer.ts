@@ -499,6 +499,20 @@ export class Analyzer {
         }
     }
 
+    private stringFromPrimitive(v: Value): string | null {
+        switch (typeof v) {
+        case 'string':
+            return v;
+        case 'number':
+        case 'boolean':
+        case 'undefined':
+            return String(v);
+        case 'object':
+            return v === null ? String(v) : null;
+        }
+        return null;
+    }
+
     private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
         let propName;
@@ -522,6 +536,8 @@ export class Analyzer {
 
         const updatedObject = this.valueFromASTNode(node.object);
 
+        const safeName = this.stringFromPrimitive(propName);
+
         if (ClassManager.nodeIsProbablyVanillaPrototypeMethod(node)) {
             if (node.object.type !== 'MemberExpression') {
                 throw new Error('Expected node.object to be MemberExpression');
@@ -529,7 +545,8 @@ export class Analyzer {
             const clsValue = this.valueFromASTNode(node.object.object);
             this.classManager.tryToAddVanillaPrototypeMethod(
                 clsValue,
-                value
+                value,
+                safeName
             );
         }
 
@@ -568,7 +585,8 @@ export class Analyzer {
                     ) {
                         this.classManager.addMethodForInstance(
                             ob,
-                            value.ast
+                            value.ast,
+                            safeName
                         );
                     }
                     if (!(value instanceof ValueSet)) {
@@ -594,6 +612,17 @@ export class Analyzer {
             if (!ob || !this.shouldGetObjectProperty(propName)) {
                 return undefined;
             }
+            if (typeof ob !== 'object') {
+                return undefined; // NOTE: maybe UNKNOWN is better here?
+            }
+
+            if (ob instanceof Instance) {
+                const m = this.classManager.getMethodForInstance(ob, propName);
+                if (m !== null) {
+                    return this.functionManager.getOrCreate(m);
+                }
+            }
+
             return ob[propName];
         };
         if (ob instanceof ValueSet) {
@@ -699,6 +728,7 @@ export class Analyzer {
 
     private addCurrentThis(node: FunctionASTNode): void {
         const inst = this.classManager.getClassInstanceForMethod(node);
+
         if (inst !== null) {
             this.pushCurrentThis(inst);
         } else if (!isArrowFunctionExpression(node)) {
@@ -1115,9 +1145,22 @@ export class Analyzer {
 
         if (cls instanceof ClassObject) {
             // NB(asterite): ctor arguments are currently ignored
+            const ctorNode = this.classManager.getMethodForClassObject(
+                cls,
+                'constructor'
+            );
+            if (ctorNode) {
+                const ctorFunc = this.functionManager.getOrCreate(ctorNode);
+                this.callManager.saveCallArgs(ctorFunc, node.arguments.map(
+                    v => this.valueFromASTNode(v)
+                ));
+            }
             const inst = this.classManager.getClassInstanceForClassObject(cls);
             return inst || UNKNOWN_FROM_FUNCTION;
         } else if (cls instanceof FunctionValue) {
+            this.callManager.saveCallArgs(cls, node.arguments.map(
+                v => this.valueFromASTNode(v)
+            ));
             const inst = this.classManager.getClassInstanceForMethod(cls.ast);
             return inst || UNKNOWN_FROM_FUNCTION;
         }
@@ -1971,6 +2014,7 @@ export class Analyzer {
                 this.argsStack.push(
                     this.argNamesForFunctionNode(funcInfo.code.node)
                 );
+                this.addCurrentThis(funcInfo.code.node);
             }
         } else {
             this.formalArgs = [];
@@ -1978,6 +2022,7 @@ export class Analyzer {
         this.traverseASTForDEPExtraction(code);
         if (funcInfo !== null) {
             this.functionsStack.pop();
+            this.popCurrentThis();
         }
         if (isFunction(funcInfo?.code.node)) {
             this.argsStack.pop();

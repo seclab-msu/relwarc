@@ -108,15 +108,11 @@ export class CallManager {
         }
         return result;
     }
-    private saveFnCallInfo(path: NodePath, c: Value, args: Value[]): void {
-        if (!(c instanceof FunctionValue)) {
-            return;
-        }
-        this.saveCallee(path, c);
-        let argInfo = this.argTable.get(c);
+    saveCallArgs(callee: FunctionValue, args: Value[]): void {
+        let argInfo = this.argTable.get(callee);
         if (typeof argInfo === 'undefined') {
             argInfo = new Array(args.length);
-            this.argTable.set(c, argInfo);
+            this.argTable.set(callee, argInfo);
         }
         argInfo.length = Math.max(argInfo.length, args.length);
         for (let i = 0; i < args.length; i++) {
@@ -129,6 +125,13 @@ export class CallManager {
                 argInfo[i] = ValueSet.join(args[i]);
             }
         }
+    }
+    private saveFnCallInfo(path: NodePath, c: Value, args: Value[]): void {
+        if (!(c instanceof FunctionValue)) {
+            return;
+        }
+        this.saveCallee(path, c);
+        this.saveCallArgs(c, args);
     }
     saveCallInfo(path: NodePath, callees: Value, args: Value[]): void {
         if (isUnknown(callees)) {
