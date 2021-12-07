@@ -1,4 +1,9 @@
-import { CallExpression, Function as FunctionASTNode } from '@babel/types';
+import {
+    CallExpression,
+    Node as ASTNode,
+    Function as FunctionASTNode,
+    isFunction
+} from '@babel/types';
 import { NodePath } from '@babel/traverse';
 
 import { Value } from './types/generic';
@@ -12,16 +17,23 @@ export class CallManager {
     readonly siteTable: Map<CallExpression, Set<FunctionValue>>;
     readonly rsiteTable: Map<FunctionValue, Set<NodePath>>;
     readonly returnValueTable: Map<FunctionValue, ValueSet>;
-    // readonly argTable: Map<FunctionValue, Array<ValueSet>>;
+    readonly argTable: Map<FunctionValue, Array<ValueSet>>;
     private readonly functionManager: FunctionManager;
 
     constructor(functionManager: FunctionManager) {
         this.siteTable = new Map();
         this.rsiteTable = new Map();
         this.returnValueTable = new Map();
-        // this.argTable = new Map();
+        this.argTable = new Map();
 
         this.functionManager = functionManager;
+    }
+
+    static hasFunctions(v: Value): boolean {
+        if (v instanceof ValueSet) {
+            return v.getValues().some(el => el instanceof FunctionValue);
+        }
+        return v instanceof FunctionValue;
     }
 
     private saveCallee(path: NodePath, c: Value): void {
@@ -95,5 +107,50 @@ export class CallManager {
             return null;
         }
         return result;
+    }
+    private saveFnCallInfo(path: NodePath, c: Value, args: Value[]): void {
+        if (!(c instanceof FunctionValue)) {
+            return;
+        }
+        this.saveCallee(path, c);
+        let argInfo = this.argTable.get(c);
+        if (typeof argInfo === 'undefined') {
+            argInfo = new Array(args.length);
+            this.argTable.set(c, argInfo);
+        }
+        argInfo.length = Math.max(argInfo.length, args.length);
+        for (let i = 0; i < args.length; i++) {
+            if (isUnknown(args[i])) {
+                continue;
+            }
+            if (argInfo[i]) {
+                argInfo[i] = argInfo[i].join(args[i]);
+            } else {
+                argInfo[i] = ValueSet.join(args[i]);
+            }
+        }
+    }
+    saveCallInfo(path: NodePath, callees: Value, args: Value[]): void {
+        if (isUnknown(callees)) {
+            return;
+        }
+        if (callees instanceof ValueSet) {
+            // recurse to handle nested value sets
+            callees.forEach(v => this.saveCallInfo(path, v, args));
+        } else {
+            this.saveFnCallInfo(path, callees, args);
+        }
+    }
+    getArgument(f: ASTNode, idx: number): ValueSet | null {
+        if (!isFunction(f)) {
+            throw new Error('getArgument: function AST node is expected');
+        }
+        const args = this.argTable.get(this.functionManager.getOrCreate(f));
+
+        if (typeof args === 'undefined') {
+            return null;
+        }
+
+        return args[idx] || null;
     }
 }

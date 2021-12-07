@@ -40,6 +40,13 @@ import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { ClassObject, ClassManager, Instance, isVanillaMethod } from './types/classes';
 
+import {
+    CallConfigType,
+    FunctionDescription,
+    FunctionCallDescription,
+    CallConfig
+} from './call-chains';
+
 import { CallManager } from './call-manager';
 import { FunctionManager } from './function-manager';
 
@@ -70,7 +77,7 @@ import {
 } from './call-sequence';
 
 import { log } from './logging';
-import { setDebug } from './debug';
+import { setDebug, logCallChains, logCallStep, debugFuncLabel } from './debug';
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
@@ -94,26 +101,6 @@ const PREDEFINED_CLASSES = [
 ];
 
 type VarScope = { [varName: string]: Value };
-
-enum CallConfigType {
-    Function,
-    Global
-}
-
-interface FunctionDescription {
-    type: CallConfigType;
-    args: string[];
-    code: NodePath;
-}
-
-interface FunctionCallDescription extends FunctionDescription {
-    callSite: CallExpression
-}
-
-interface CallConfig {
-    func: NodePath;
-    chain: FunctionCallDescription[];
-}
 
 export interface SinkCall {
     funcName: string;
@@ -555,13 +542,17 @@ export class Analyzer {
             ) {
                 if (propName instanceof ValueSet) {
                     // TODO(asterite): maybe implement this somehow
-                    if (this.options.debugValueSets) {
-                        log(
-                            'Warning: assigning props with ValueSet names ' +
-                            'are currently skipped'
-                        );
+                    if (propName.size === 1) {
+                        propName = propName.getValues()[0];
+                    } else {
+                        if (this.options.debugValueSets) {
+                            log(
+                                'Warning: assigning a prop with ValueSet ' +
+                                'name: trying to pick some value'
+                            );
+                        }
+                        propName = propName.tryToPeekConcrete();
                     }
-                    return;
                 }
                 if (!this.shouldSetObjectProperty(ob, propName, value)) {
                     return;
@@ -721,9 +712,18 @@ export class Analyzer {
         }
     }
 
+    private currentFunction(applyOffset=false): NodePath {
+        let index = this.functionsStack.length - 1;
+
+        if (applyOffset) {
+            index -= this.argsStackOffset || 0;
+        }
+
+        return this.functionsStack[index];
+    }
+
     private saveReturnValue(path: NodePath<ReturnStatement>): void {
-        const fstack = this.functionsStack;
-        const currentFunction = fstack[fstack.length - 1];
+        const currentFunction = this.currentFunction();
         if (!currentFunction) {
             log('warning: return statement without current function');
             return;
@@ -740,6 +740,17 @@ export class Analyzer {
         const v = this.valueFromASTNode(path.node.argument);
         const f = this.functionManager.getOrCreate(functionNode);
         this.callManager.saveReturnValue(f, v);
+    }
+
+    private saveCallInfo(path: NodePath<CallExpression>): void {
+        const calleeValue = this.valueFromASTNode(path.node.callee);
+
+        if (CallManager.hasFunctions(calleeValue)) {
+            const args = path.node.arguments.map(
+                a => this.valueFromASTNode(a)
+            );
+            this.callManager.saveCallInfo(path, calleeValue, args);
+        }
     }
 
     private gatherVariableValues(): void {
@@ -789,9 +800,7 @@ export class Analyzer {
 
                 const callee = node.callee;
 
-                const calleeValue = this.valueFromASTNode(callee);
-
-                this.callManager.saveCallees(path, calleeValue);
+                this.saveCallInfo(path);
 
                 if (!isMemberExpression(callee)) {
                     return;
@@ -1169,6 +1178,20 @@ export class Analyzer {
         return false;
     }
 
+    private getArgumentValue(index: number): Value {
+        const isDepExtraction = this.stage === AnalysisPhase.DEPExtracting;
+        const unknown = isDepExtraction ? FROM_ARG : UNKNOWN;
+        const cf = this.currentFunction();
+        if (!cf) {
+            return unknown;
+        }
+        const possibleArgs = this.callManager.getArgument(cf.node, index);
+        if (possibleArgs) {
+            return possibleArgs.join(FROM_ARG);
+        }
+        return unknown;
+    }
+
     getVariable(name: string): Value {
         if (this.currentPath === null) {
             throw new Error('getVariable called without currentPath set');
@@ -1188,12 +1211,15 @@ export class Analyzer {
             formalArgs = this.argsStack[
                 this.argsStack.length - this.argsStackOffset - 1
             ];
+        } else if (
+            this.stage === AnalysisPhase.VarGathering &&
+            this.argsStack.length > 0 &&
+            binding
+        ) {
+            formalArgs = this.argsStack[this.argsStack.length - 1];
         }
-
-        if (~formalArgs.indexOf(name) || this.selectedFunction) {
-            if (formalArgs.includes(name)) {
-                return FROM_ARG;
-            }
+        if (formalArgs.includes(name)) {
+            return this.getArgumentValue(formalArgs.indexOf(name));
         }
         if (this.upperArgumentExists(name)) {
             return UNKNOWN;
@@ -1225,7 +1251,13 @@ export class Analyzer {
             return UNKNOWN;
         }
         const getProp = n => {
-            return this.getObjectProperty(ob, String(n));
+            let propName;
+            try {
+                propName = String(n);
+            } catch {
+                return UNKNOWN;
+            }
+            return this.getObjectProperty(ob, propName);
         };
         if (prop instanceof ValueSet) {
             return ValueSet.join(...prop.getValues().map(getProp));
@@ -1450,13 +1482,12 @@ export class Analyzer {
         if (this.selectedFunction) {
             func = this.selectedFunction;
         } else {
-            const offset = this.argsStackOffset || 0;
-            func = this.functionsStack[this.functionsStack.length - 1 - offset];
+            func = this.currentFunction(true);
         }
 
         if (this.options.debugCallChains) {
             log(
-                `args of function  ${String(func).substring(0, 75)} are ` +
+                `args of function  ${debugFuncLabel(func)} are ` +
                 `unknown, search for bindings. ` +
                 `Chain len: ${this.callChain.length}`
             );
@@ -1470,7 +1501,7 @@ export class Analyzer {
         if (this.options.debugCallChains) {
             log(`found ${callSites.length} call sites`);
             for (const cs of callSites) {
-                log(`* cs: ` + cs);
+                console.error(`    * cs: ` + cs);
             }
         }
 
@@ -1597,6 +1628,11 @@ export class Analyzer {
 
     private proceedAlongCallChain(node: CallExpression): void {
         const f = this.callChain[this.callChainPosition];
+
+        if (this.options.debugCallChains) {
+            logCallStep(node, f.code);
+        }
+
         this.setArgValues(node.arguments, f.args, f.code);
         this.callChainPosition++;
         this.extractDEPs(f.code, f);
@@ -1885,11 +1921,7 @@ export class Analyzer {
 
                 const callee = node.callee;
 
-                const calleeValue = this.valueFromASTNode(callee);
-
-                if (!isUnknown(callee)) {
-                    this.callManager.saveCallees(path, calleeValue);
-                }
+                this.saveCallInfo(path);
 
                 if (!isMemberExpression(callee)) {
                     return;
@@ -1908,7 +1940,8 @@ export class Analyzer {
                 ) {
                     this.debugLogValues(node.arguments);
                 }
-            }
+            },
+            ReturnStatement: path => this.saveReturnValue(path)
         };
 
         if (code instanceof NodePath) {
@@ -1952,6 +1985,9 @@ export class Analyzer {
     }
 
     private extractDEPsWithCallChain(callConfig: CallConfig): void {
+        if (this.options.debugCallChains) {
+            logCallChains(this.callQueue, callConfig);
+        }
         this.callChain = callConfig.chain;
         this.callChainPosition = 0;
 
