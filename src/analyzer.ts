@@ -1251,7 +1251,13 @@ export class Analyzer {
             return UNKNOWN;
         }
         const getProp = n => {
-            return this.getObjectProperty(ob, String(n));
+            let propName;
+            try {
+                propName = String(n);
+            } catch {
+                return UNKNOWN;
+            }
+            return this.getObjectProperty(ob, propName);
         };
         if (prop instanceof ValueSet) {
             return ValueSet.join(...prop.getValues().map(getProp));
