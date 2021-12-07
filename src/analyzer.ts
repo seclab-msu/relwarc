@@ -1926,7 +1926,8 @@ export class Analyzer {
                 ) {
                     this.debugLogValues(node.arguments);
                 }
-            }
+            },
+            ReturnStatement: path => this.saveReturnValue(path)
         };
 
         if (code instanceof NodePath) {
