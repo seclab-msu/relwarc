@@ -40,6 +40,13 @@ import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { ClassObject, ClassManager, Instance, isVanillaMethod } from './types/classes';
 
+import {
+    CallConfigType,
+    FunctionDescription,
+    FunctionCallDescription,
+    CallConfig
+} from './call-chains';
+
 import { CallManager } from './call-manager';
 import { FunctionManager } from './function-manager';
 
@@ -94,26 +101,6 @@ const PREDEFINED_CLASSES = [
 ];
 
 type VarScope = { [varName: string]: Value };
-
-enum CallConfigType {
-    Function,
-    Global
-}
-
-interface FunctionDescription {
-    type: CallConfigType;
-    args: string[];
-    code: NodePath;
-}
-
-interface FunctionCallDescription extends FunctionDescription {
-    callSite: CallExpression
-}
-
-interface CallConfig {
-    func: NodePath;
-    chain: FunctionCallDescription[];
-}
 
 export interface SinkCall {
     funcName: string;
