@@ -77,7 +77,7 @@ import {
 } from './call-sequence';
 
 import { log } from './logging';
-import { setDebug } from './debug';
+import { setDebug, logCallChains, logCallStep, debugFuncLabel } from './debug';
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
@@ -1473,7 +1473,7 @@ export class Analyzer {
 
         if (this.options.debugCallChains) {
             log(
-                `args of function  ${String(func).substring(0, 75)} are ` +
+                `args of function  ${debugFuncLabel(func)} are ` +
                 `unknown, search for bindings. ` +
                 `Chain len: ${this.callChain.length}`
             );
@@ -1487,7 +1487,7 @@ export class Analyzer {
         if (this.options.debugCallChains) {
             log(`found ${callSites.length} call sites`);
             for (const cs of callSites) {
-                log(`* cs: ` + cs);
+                console.error(`    * cs: ` + cs);
             }
         }
 
@@ -1614,6 +1614,11 @@ export class Analyzer {
 
     private proceedAlongCallChain(node: CallExpression): void {
         const f = this.callChain[this.callChainPosition];
+
+        if (this.options.debugCallChains) {
+            logCallStep(node, f.code);
+        }
+
         this.setArgValues(node.arguments, f.args, f.code);
         this.callChainPosition++;
         this.extractDEPs(f.code, f);
@@ -1965,6 +1970,9 @@ export class Analyzer {
     }
 
     private extractDEPsWithCallChain(callConfig: CallConfig): void {
+        if (this.options.debugCallChains) {
+            logCallChains(this.callQueue, callConfig);
+        }
         this.callChain = callConfig.chain;
         this.callChainPosition = 0;
 
