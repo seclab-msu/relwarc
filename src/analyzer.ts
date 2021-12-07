@@ -1179,15 +1179,17 @@ export class Analyzer {
     }
 
     private getArgumentValue(index: number): Value {
+        const isDepExtraction = this.stage === AnalysisPhase.DEPExtracting;
+        const unknown = isDepExtraction ? FROM_ARG : UNKNOWN;
         const cf = this.currentFunction();
         if (!cf) {
-            return FROM_ARG;
+            return unknown;
         }
         const possibleArgs = this.callManager.getArgument(cf.node, index);
         if (possibleArgs) {
             return possibleArgs.join(FROM_ARG);
         }
-        return FROM_ARG;
+        return unknown;
     }
 
     getVariable(name: string): Value {
@@ -1209,6 +1211,12 @@ export class Analyzer {
             formalArgs = this.argsStack[
                 this.argsStack.length - this.argsStackOffset - 1
             ];
+        } else if (
+            this.stage === AnalysisPhase.VarGathering &&
+            this.argsStack.length > 0 &&
+            binding
+        ) {
+            formalArgs = this.argsStack[this.argsStack.length - 1];
         }
         if (formalArgs.includes(name)) {
             return this.getArgumentValue(formalArgs.indexOf(name));
