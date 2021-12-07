@@ -218,4 +218,138 @@ describe('Test support of class method calls:', () => {
             args: [{ url: '/api/base/test/action.php?param=test' }]
         });
     });
+    describe('two classes', () => {
+        it('url builder helper', () => {
+            const src = `
+                class TestClass1 {
+                    constructor() {
+                        this.endpoint = 'act.ion.aspx';
+                    }
+                    makeURL(base, params) {
+                        return base + '/' + this.endpoint + '?' + params;
+                    }
+                }
+
+                class TestClass2 {
+                    constructor() {
+                        this.helper = new TestClass1();
+                    }
+                    testing() {
+                        var u = this.helper.makeURL('/a/p/i/tst', 'x=foo&y=bar');
+                        fetch(u);
+                    }
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/a/p/i/tst/act.ion.aspx?x=foo&y=bar']
+            });
+        });
+        it('req sender helper', () => {
+            const src = `
+                class TestClass1 {
+                    constructor() {
+                        this.endpoint = 'act.ion.aspx';
+                    }
+                    sendReq(params) {
+                        var base = '/api/base/'
+                        fetch(base + this.endpoint + '?' + params);
+                    }
+                }
+
+                class TestClass2 {
+                    constructor() {
+                        this.requester = new TestClass1();
+                    }
+                    testing() {
+                        this.requester.sendReq('x=foo&y=bar');
+                    }
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/base/act.ion.aspx?x=foo&y=bar']
+            });
+        });
+    });
+    describe('classes + call chains', () => {
+        it('one step', () => {
+            const src = `
+                class TestClass {
+                    constructor() {
+                        this.endpoint = 'act.ion.aspx';
+                    }
+                    sendReq(params) {
+                        var base = '/api/base/'
+                        fetch(base + this.endpoint + '?' + params);
+                    }
+                }
+
+                function f(x) {
+                    var tc = new TestClass();
+
+                    tc.sendReq(x);
+                }
+
+                function g(arg) {
+                    f('par=abc&par2=foobar');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/base/act.ion.aspx?par=abc&par2=foobar']
+            });
+        });
+        it('two steps', () => {
+            const src = `
+                class TestClass {
+                    constructor() {
+                        this.endpoint = 'act.ion.aspx';
+                    }
+                    sendReq(params) {
+                        var base = '/api/base/'
+                        fetch(base + this.endpoint + '?' + params);
+                    }
+                }
+
+                function f(x) {
+                    var tc = new TestClass();
+
+                    tc.sendReq(x);
+                }
+
+                function g(arg) {
+                    f('par=' + arg);
+                }
+
+                function k() {
+                    g('abc&par2=foobar');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/base/act.ion.aspx?par=abc&par2=foobar']
+            });
+        });
+    });
 });

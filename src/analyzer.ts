@@ -728,6 +728,7 @@ export class Analyzer {
 
     private addCurrentThis(node: FunctionASTNode): void {
         const inst = this.classManager.getClassInstanceForMethod(node);
+
         if (inst !== null) {
             this.pushCurrentThis(inst);
         } else if (!isArrowFunctionExpression(node)) {
@@ -2000,6 +2001,7 @@ export class Analyzer {
                 this.argsStack.push(
                     this.argNamesForFunctionNode(funcInfo.code.node)
                 );
+                this.addCurrentThis(funcInfo.code.node);
             }
         } else {
             this.formalArgs = [];
@@ -2007,6 +2009,7 @@ export class Analyzer {
         this.traverseASTForDEPExtraction(code);
         if (funcInfo !== null) {
             this.functionsStack.pop();
+            this.popCurrentThis();
         }
         if (isFunction(funcInfo?.code.node)) {
             this.argsStack.pop();
