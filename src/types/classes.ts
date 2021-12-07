@@ -224,6 +224,13 @@ export class ClassManager {
         return this.instance2Class.get(inst)?.methodNames?.get(name) || null;
     }
 
+    getMethodForClassObject(
+        cls: ClassObject,
+        name: string
+    ): FunctionASTNode | null {
+        return this.classObject2Class.get(cls)?.methodNames?.get(name) || null;
+    }
+
     containsClass(node: FunctionASTNode): boolean {
         return this.method2Class.has(node);
     }

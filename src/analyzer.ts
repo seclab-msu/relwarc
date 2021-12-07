@@ -1145,9 +1145,22 @@ export class Analyzer {
 
         if (cls instanceof ClassObject) {
             // NB(asterite): ctor arguments are currently ignored
+            const ctorNode = this.classManager.getMethodForClassObject(
+                cls,
+                'constructor'
+            );
+            if (ctorNode) {
+                const ctorFunc = this.functionManager.getOrCreate(ctorNode);
+                this.callManager.saveCallArgs(ctorFunc, node.arguments.map(
+                    v => this.valueFromASTNode(v)
+                ));
+            }
             const inst = this.classManager.getClassInstanceForClassObject(cls);
             return inst || UNKNOWN_FROM_FUNCTION;
         } else if (cls instanceof FunctionValue) {
+            this.callManager.saveCallArgs(cls, node.arguments.map(
+                v => this.valueFromASTNode(v)
+            ));
             const inst = this.classManager.getClassInstanceForMethod(cls.ast);
             return inst || UNKNOWN_FROM_FUNCTION;
         }

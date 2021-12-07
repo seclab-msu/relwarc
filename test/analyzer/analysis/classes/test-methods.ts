@@ -218,6 +218,59 @@ describe('Test support of class method calls:', () => {
             args: [{ url: '/api/base/test/action.php?param=test' }]
         });
     });
+    describe('constructor args', () => {
+        it('new style', () => {
+            const src = `
+                class TestClass {
+                    constructor(bu) {
+                        this.baseURL = bu;
+                    }
+                    doReq(param) {
+                        fetch(this.baseURL + '/acti.on?p=' + param);
+                    }
+                }
+
+                function f() {
+                    var ob = new TestClass('/api/testbase');
+                    ob.doReq('foobar');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/testbase/acti.on?p=foobar']
+            });
+        });
+        it('vanilla', () => {
+            const src = `
+                function TestClass(bu) {
+                    this.baseURL = bu;
+                }
+
+                TestClass.prototype.doReq = function(param) {
+                    fetch(this.baseURL + '/acti.on?p=' + param);
+                }
+
+                function f() {
+                    var ob = new TestClass('/api/testbase');
+                    ob.doReq('foobar');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/testbase/acti.on?p=foobar']
+            });
+        });
+    });
     describe('two classes', () => {
         it('url builder helper', () => {
             const src = `
