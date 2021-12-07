@@ -499,6 +499,20 @@ export class Analyzer {
         }
     }
 
+    private stringFromPrimitive(v: Value): string | null {
+        switch (typeof v) {
+        case 'string':
+            return v;
+        case 'number':
+        case 'boolean':
+        case 'undefined':
+            return String(v);
+        case 'object':
+            return v === null ? String(v) : null;
+        }
+        return null;
+    }
+
     private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
         let propName;
@@ -522,6 +536,8 @@ export class Analyzer {
 
         const updatedObject = this.valueFromASTNode(node.object);
 
+        const safeName = this.stringFromPrimitive(propName);
+
         if (ClassManager.nodeIsProbablyVanillaPrototypeMethod(node)) {
             if (node.object.type !== 'MemberExpression') {
                 throw new Error('Expected node.object to be MemberExpression');
@@ -529,7 +545,8 @@ export class Analyzer {
             const clsValue = this.valueFromASTNode(node.object.object);
             this.classManager.tryToAddVanillaPrototypeMethod(
                 clsValue,
-                value
+                value,
+                safeName
             );
         }
 
@@ -568,7 +585,8 @@ export class Analyzer {
                     ) {
                         this.classManager.addMethodForInstance(
                             ob,
-                            value.ast
+                            value.ast,
+                            safeName
                         );
                     }
                     if (!(value instanceof ValueSet)) {
@@ -594,6 +612,17 @@ export class Analyzer {
             if (!ob || !this.shouldGetObjectProperty(propName)) {
                 return undefined;
             }
+            if (typeof ob !== 'object') {
+                return undefined; // NOTE: maybe UNKNOWN is better here?
+            }
+
+            if (ob instanceof Instance) {
+                const m = this.classManager.getMethodForInstance(ob, propName);
+                if (m !== null) {
+                    return this.functionManager.getOrCreate(m);
+                }
+            }
+
             return ob[propName];
         };
         if (ob instanceof ValueSet) {

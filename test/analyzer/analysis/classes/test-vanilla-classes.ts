@@ -357,4 +357,57 @@ describe('Test support for OOP (Vanilla Classes):', () => {
             });
         });
     });
+    describe('method names are correctly determined', () => {
+        it('in prototype assinment', () => {
+            const src = `
+                function TestClass() {
+                    this.base = '/testapi/actions/';
+                }
+
+                TestClass.prototype.testMethod1 = function(a) {
+                    fetch(this.base + 'do.action?' + a);
+                }
+
+                function testing() {
+                    var pc = new TestClass();
+
+                    pc.testMethod1('x=3');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/testapi/actions/do.action?x=3']
+            });
+        });
+        it('in this assinment', () => {
+            const src = `
+                function TestClass() {
+                    this.base = '/testapi/actions/';
+                    this.testMethod1 = function(a) {
+                        fetch(this.base + 'do.action?' + a);
+                    }
+                }
+
+                function testing() {
+                    var pc = new TestClass();
+
+                    pc.testMethod1('x=3');
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/testapi/actions/do.action?x=3']
+            });
+        });
+    });
 });
