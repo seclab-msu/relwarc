@@ -704,12 +704,12 @@ export class Analyzer {
         let declaredValue: FunctionValue | ClassObject;
         if (isFunctionDeclaration(node)) {
             if (!this.classManager.containsClass(node)) {
-                this.classManager.create(node);
+                this.classManager.createVanillaClass(node);
             }
             declaredValue = this.functionManager.getOrCreate(node);
             this.addFunctionBinding(node, binding);
         } else if (isClassDeclaration(node)) {
-            const cls = this.classManager.create(node);
+            const cls = this.classManager.createModernClass(node);
             declaredValue = cls;
         } else {
             throw new Error('Unexpected value');
@@ -1477,7 +1477,7 @@ export class Analyzer {
                 isFunctionExpression(node) &&
                 !this.classManager.containsClass(node)
             ) {
-                this.classManager.create(node);
+                this.classManager.createVanillaClass(node);
             }
             return this.functionManager.getOrCreate(node);
         } else {
@@ -1486,7 +1486,7 @@ export class Analyzer {
     }
 
     private processClassExpression(node: ClassExpression): Value {
-        return this.classManager.create(node);
+        return this.classManager.createModernClass(node);
     }
 
     private processThisExpression(): Instance | Unknown {

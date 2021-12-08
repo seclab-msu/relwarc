@@ -3,7 +3,7 @@ import {
     ClassMethod, ClassPrivateMethod,
     MemberExpression,
     Function as FunctionASTNode,
-    Class as ClassNode,
+    Class as ModernClassNode,
     isClassMethod, isClassPrivateMethod,
     isFunctionDeclaration, isFunctionExpression,
     isMemberExpression, isIdentifier
@@ -19,9 +19,10 @@ import { log } from '../logging';
 type VanillaMethod = FunctionExpression | FunctionDeclaration;
 type Method = ClassMethod | ClassPrivateMethod | VanillaMethod;
 type VanillaClassNode = VanillaMethod; // same for vanilla
+type ClassNode = ModernClassNode | VanillaClassNode;
 
 function isVanillaClassNode(
-    node: FunctionASTNode | ClassNode
+    node: FunctionASTNode
 ): node is VanillaClassNode {
     return isFunctionDeclaration(node) || isFunctionExpression(node);
 }
@@ -97,7 +98,7 @@ export class ClassManager {
     readonly classes: Class[];
     private readonly method2Class: Map<FunctionASTNode, Class>;
     private readonly classObject2Class: Map<ClassObject, Class>;
-    private readonly node2Class: Map<ClassNode | VanillaClassNode, Class>;
+    private readonly node2Class: Map<ClassNode, Class>;
     private readonly instance2Class: Map<Instance, Class>;
 
     constructor() {
@@ -109,35 +110,45 @@ export class ClassManager {
     }
 
     private static getMethods(
-        node: ClassNode | VanillaClassNode
+        node: ModernClassNode
     ): Array<[string | null, Method]> {
         const result: Array<[string | null, Method]> = [];
-        if (isVanillaClassNode(node)) {
-            // XXX(mirond): here we have access only to ctor of vanilla
-            // classes. Other methods we will find at analyzer side.
-            result.push(['constructor', node]);
-        } else {
-            for (const el of node.body.body) {
-                if (isClassMethod(el)) {
-                    const k = el.key;
-                    if (!el.computed && isIdentifier(k)) {
-                        result.push([k.name, el]);
-                    } else {
-                        log(
-                            'warning: computed class method names are not '+
-                            'currently supported ' + JSON.stringify(el)
-                        );
-                        result.push([null, el]);
-                    }
-                } else if (isClassPrivateMethod(el)) {
-                    result.push(['#' + el.key.id.name, el]);
+        for (const el of node.body.body) {
+            if (isClassMethod(el)) {
+                const k = el.key;
+                if (!el.computed && isIdentifier(k)) {
+                    result.push([k.name, el]);
+                } else {
+                    log(
+                        'warning: computed class method names are not '+
+                        'currently supported ' + JSON.stringify(el)
+                    );
+                    result.push([null, el]);
                 }
+            } else if (isClassPrivateMethod(el)) {
+                result.push(['#' + el.key.id.name, el]);
             }
         }
         return result;
     }
 
-    create(node: ClassNode | VanillaClassNode): ClassObject {
+    private create(
+        node: ClassNode,
+        methods: Array<[string | null, Method]>,
+        name: string
+    ): ClassObject {
+        const cls = new Class(name, methods);
+        this.classes.push(cls);
+        for (const [, m] of methods) {
+            this.method2Class.set(m, cls);
+        }
+        this.classObject2Class.set(cls.classObject, cls);
+        this.node2Class.set(node, cls);
+        this.instance2Class.set(cls.instance, cls);
+        return cls.classObject;
+    }
+
+    createModernClass(node: ModernClassNode): ClassObject {
         if (this.node2Class.has(node)) {
             return (this.node2Class.get(node) as Class).classObject;
         }
@@ -149,16 +160,23 @@ export class ClassManager {
         }
 
         const methods = ClassManager.getMethods(node);
+        return this.create(node, methods, name);
+    }
 
-        const cls = new Class(name, methods);
-        this.classes.push(cls);
-        for (const [, m] of methods) {
-            this.method2Class.set(m, cls);
+    createVanillaClass(node: VanillaClassNode): ClassObject {
+        if (this.node2Class.has(node)) {
+            return (this.node2Class.get(node) as Class).classObject;
         }
-        this.classObject2Class.set(cls.classObject, cls);
-        this.node2Class.set(node, cls);
-        this.instance2Class.set(cls.instance, cls);
-        return cls.classObject;
+        const ident = node.id;
+        let name = 'anonymous';
+
+        if (ident && ident.type === 'Identifier') {
+            name = ident.name;
+        }
+
+        // XXX(mirond): here we have access only to ctor of vanilla
+        // classes. Other methods we will find at analyzer side.
+        return this.create(node, [['constructor', node]], name);
     }
 
     static nodeIsProbablyVanillaPrototypeMethod(
