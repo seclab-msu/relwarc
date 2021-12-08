@@ -702,13 +702,15 @@ export class Analyzer {
         }
 
         let declaredValue: FunctionValue | ClassObject;
-        if (isFunctionDeclaration(node) || isClassDeclaration(node)) {
+        if (isFunctionDeclaration(node)) {
+            if (!this.classManager.containsClass(node)) {
+                this.classManager.create(node);
+            }
+            declaredValue = this.functionManager.getOrCreate(node);
+            this.addFunctionBinding(node, binding);
+        } else if (isClassDeclaration(node)) {
             const cls = this.classManager.create(node);
             declaredValue = cls;
-            if (isFunctionDeclaration(node)) {
-                declaredValue = this.functionManager.getOrCreate(node);
-                this.addFunctionBinding(node, binding);
-            }
         } else {
             throw new Error('Unexpected value');
         }
@@ -1471,7 +1473,10 @@ export class Analyzer {
             }
             return UNKNOWN_FUNCTION;
         } else if (this.stage === AnalysisPhase.VarGathering) {
-            if (isFunctionExpression(node)) {
+            if (
+                isFunctionExpression(node) &&
+                !this.classManager.containsClass(node)
+            ) {
                 this.classManager.create(node);
             }
             return this.functionManager.getOrCreate(node);
