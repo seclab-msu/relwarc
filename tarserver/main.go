@@ -23,11 +23,45 @@ const (
 	localhost = "127.0.0.1"
 )
 
+type analyzerBackend struct {
+	runnerPath         string
+	analyzerScriptPath string
+}
+
+var backends = map[string]analyzerBackend{
+	"slimerjs": analyzerBackend{
+		runnerPath:         "%s/../src/backend/slimerjs/slimerjs",
+		analyzerScriptPath: "%s/../src/backend/slimerjs/run-analyzer.js",
+	},
+	"chrome": analyzerBackend{
+		runnerPath:         "node",
+		analyzerScriptPath: "%s/../src/backend/chrome/run-analyzer.js",
+	},
+}
+
+func formatPath(p string) string {
+	if !strings.Contains(p, "%s") {
+		return p
+	}
+	ex, err := os.Executable()
+	if err != nil {
+		log.Panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	return fmt.Sprintf(p, exPath)
+}
+
+func (a *analyzerBackend) getRunnerPath() string {
+	return formatPath(a.runnerPath)
+}
+
+func (a *analyzerBackend) getAnalyzerScriptPath() string {
+	return formatPath(a.analyzerScriptPath)
+}
+
 var (
 	sslCrtPath     = "%s/ssl/server.crt"
 	sslKeyPath     = "%s/ssl/server.key"
-	slimerPath     = "%s/../src/backend/slimerjs/slimerjs"
-	analyzerPath   = "%s/../src/backend/slimerjs/run-analyzer.js"
 	excludeHeaders = map[string]struct{}{
 		"age":               struct{}{},
 		"alt-svc":           struct{}{},
@@ -43,6 +77,7 @@ var (
 		"transfer-encoding": struct{}{},
 	}
 	tarserverLogs = flag.Bool("no-tarserver-logs", false, "Disable tarserver logs")
+	chosenBackend = flag.String("backend", "slimerjs", "Analyzer backend")
 )
 
 func init() {
@@ -53,11 +88,9 @@ func init() {
 	exPath := filepath.Dir(ex)
 	sslCrtPath = fmt.Sprintf(sslCrtPath, exPath)
 	sslKeyPath = fmt.Sprintf(sslKeyPath, exPath)
-	slimerPath = fmt.Sprintf(slimerPath, exPath)
-	analyzerPath = fmt.Sprintf(analyzerPath, exPath)
 }
 
-func run(outStream, errStream io.Writer, tarPath string, args []string) {
+func run(outStream, errStream io.Writer, tarPath string, backend *analyzerBackend, args []string) {
 	resources, err := readTar(tarPath)
 	if err != nil {
 		log.Panic(err)
@@ -100,7 +133,7 @@ func run(outStream, errStream io.Writer, tarPath string, args []string) {
 
 	srvHTTP, srvHTTPS := startServers(resources, &httpServerExitDone)
 
-	runCmd(resources["index.html"].URL, args, outStream, errStream)
+	runCmd(resources["index.html"].URL, args, outStream, errStream, backend)
 
 	if err := srvHTTP.Shutdown(context.Background()); err != nil {
 		log.Panic(err)
@@ -119,7 +152,11 @@ func main() {
 	flag.Parse()
 	tarPath := flag.Args()[0]
 	args := flag.Args()[1:]
-	run(os.Stdout, os.Stderr, tarPath, args)
+	backend, ok := backends[*chosenBackend]
+	if !ok {
+		log.Panicf("Bad backend: %q", *chosenBackend)
+	}
+	run(os.Stdout, os.Stderr, tarPath, &backend, args)
 }
 
 func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Server, *http.Server) {
@@ -198,9 +235,13 @@ func startServers(resources map[string]*Resource, wg *sync.WaitGroup) (*http.Ser
 	return &srvHTTP, &srvHTTPS
 }
 
-func runCmd(indexURL string, args []string, outStream, errStream io.Writer) {
+func runCmd(indexURL string, args []string, outStream, errStream io.Writer, backend *analyzerBackend) {
 	if _, ok := os.LookupEnv("TARSERVER_RAW_ARGS"); !ok {
-		args = append([]string{slimerPath, analyzerPath, indexURL}, args...)
+		args = append([]string{
+			backend.getRunnerPath(),
+			backend.getAnalyzerScriptPath(),
+			indexURL,
+		}, args...)
 	}
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = outStream

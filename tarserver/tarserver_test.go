@@ -33,6 +33,7 @@ type HAR struct {
 }
 
 var tarserverDir string
+var backend = backends["chrome"]
 
 func init() {
 	ex, err := os.Executable()
@@ -61,7 +62,7 @@ func TestHTTPServer(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-1.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-1.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -75,7 +76,7 @@ func TestHTTPSServer(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-2.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-2.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -89,7 +90,7 @@ func TestParamsInDifferentScripts(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-3.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-3.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -109,14 +110,14 @@ func TestTarWithoutRequiredScript(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-4.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-4.tar", &backend, analyzerArgs)
 }
 
 func TestScriptsWithQueryString(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-5.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-5.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -136,7 +137,7 @@ func TestScriptsWithSamePaths(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-6.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-6.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -166,7 +167,7 @@ func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-7.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-7.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -196,7 +197,7 @@ func TestDefaultPortOnMainPage(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-8.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-8.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -210,7 +211,7 @@ func TestDefaultPortOnResource(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-9.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-9.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
@@ -224,7 +225,7 @@ func TestCrossoriginScripts(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string
 
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-crossorigin.tar", analyzerArgs)
+	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-crossorigin.tar", &backend, analyzerArgs)
 	var results []HAR
 	json.Unmarshal(buf.Bytes(), &results)
 
