@@ -1051,6 +1051,12 @@ export class Analyzer {
             return result;
         }
 
+        const transpiledClass = this.classManager.createTranspiledClass(node);
+
+        if (transpiledClass !== null) {
+            return transpiledClass;
+        }
+
         const returnValues = this.callManager.getReturnValuesForCallSite(node);
 
         if (returnValues === null) {

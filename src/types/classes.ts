@@ -1,12 +1,19 @@
 import {
     FunctionDeclaration, FunctionExpression,
     ClassMethod, ClassPrivateMethod,
-    MemberExpression,
+    MemberExpression, CallExpression,
+    SequenceExpression, Expression, SpreadElement,
     Function as FunctionASTNode,
     Class as ModernClassNode,
     isClassMethod, isClassPrivateMethod,
     isFunctionDeclaration, isFunctionExpression,
-    isMemberExpression, isIdentifier
+    isMemberExpression, isIdentifier,
+    isReturnStatement, isSequenceExpression,
+    isLogicalExpression, isAssignmentExpression,
+    isArrayExpression, isObjectExpression,
+    isObjectProperty, isStringLiteral,
+    isCallExpression
+
 } from '@babel/types';
 
 import { debugEnabled } from '../debug';
@@ -19,7 +26,8 @@ import { log } from '../logging';
 type VanillaMethod = FunctionExpression | FunctionDeclaration;
 type Method = ClassMethod | ClassPrivateMethod | VanillaMethod;
 type VanillaClassNode = VanillaMethod; // same for vanilla
-type ClassNode = ModernClassNode | VanillaClassNode;
+type TranspiledClassNode = CallExpression;
+type ClassNode = ModernClassNode | VanillaClassNode | TranspiledClassNode;
 
 function isVanillaClassNode(
     node: FunctionASTNode
@@ -179,6 +187,55 @@ export class ClassManager {
         return this.create(node, [['constructor', node]], name);
     }
 
+
+    createTranspiledClass(node: CallExpression): ClassObject | null {
+        if (this.node2Class.has(node)) {
+            return (this.node2Class.get(node) as Class).classObject;
+        }
+        const callee = node.callee;
+
+        if (!isFunctionExpression(callee)) {
+            return null;
+        }
+
+        let ctorNode: FunctionDeclaration | null = null;
+        for (const node of callee.body.body) {
+            if (isFunctionDeclaration(node)) {
+                ctorNode = node;
+                break;
+            }
+        }
+        if (ctorNode === null) {
+            return null;
+        }
+
+        const lastStatement = callee.body.body[callee.body.body.length - 1];
+        if (!isReturnStatement(lastStatement)) {
+            return null;
+        }
+
+        if (
+            lastStatement.argument === null ||
+            !isSequenceExpression(lastStatement.argument)
+        ) {
+            return null;
+        }
+
+        const methods = ClassManager.tryToGetTranspiledMethods(
+            lastStatement.argument
+        );
+
+        if (methods === null) {
+            return null;
+        }
+
+        // XXX(mirond): add ctor only if all others checks have been passed.
+        // Because these checks contain checks for class methods, now we
+        // DO NOT analyze transpiled classes that contains only ctor.
+        methods.push(['constructor', ctorNode]);
+        return this.create(node, methods, 'anonymous');
+    }
+
     static nodeIsProbablyVanillaPrototypeMethod(
         node: MemberExpression
     ): boolean {
@@ -251,5 +308,71 @@ export class ClassManager {
 
     containsClass(node: FunctionASTNode): boolean {
         return this.method2Class.has(node);
+    }
+
+    private static extractTranspiledMethods(
+        elems: (Expression | SpreadElement | null)[]
+    ): Array<[string | null, Method]> | null {
+        const result: Array<[string | null, Method]> = [];
+        for (const elem of elems) {
+            if (!isObjectExpression(elem)) {
+                return null;
+            }
+
+            let methodName: string | null = null;
+            let method: Method | null = null;
+
+            for (const prop of elem.properties) {
+                if (!isObjectProperty(prop)) {
+                    return null;
+                }
+                if (!isIdentifier(prop.key)) {
+                    return null;
+                }
+                const name = prop.key.name;
+
+                if (name === 'key' && isStringLiteral(prop.value)) {
+                    methodName = prop.value.value;
+                }
+
+                if (name == 'value' && isFunctionExpression(prop.value)) {
+                    method = prop.value;
+                }
+            }
+            if (method !== null) {
+                result.push([methodName, method]);
+            }
+        }
+
+        return result;
+    }
+
+    private static tryToGetTranspiledMethods(
+        node: SequenceExpression
+    ): Array<[string | null, Method]> | null {
+        for (const expr of node.expressions) {
+            if (isLogicalExpression(expr)) {
+                if (!isAssignmentExpression(expr.left)) {
+                    return null;
+                }
+                const propablyObjWithMethods = expr.left.right;
+                if (!isArrayExpression(propablyObjWithMethods)) {
+                    return null;
+                }
+
+                return ClassManager.extractTranspiledMethods(
+                    propablyObjWithMethods.elements
+                );
+            } else if (isCallExpression(expr)) {
+                for (const arg of expr.arguments) {
+                    if (isArrayExpression(arg)) {
+                        return ClassManager.extractTranspiledMethods(
+                            arg.elements
+                        );
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
