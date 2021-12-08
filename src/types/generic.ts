@@ -16,6 +16,7 @@ export type NontrivialValue =
     | FunctionValue
     | FormDataModel
     | URL
+    | URLSearchParams
     | ValueSet
     | ClassObject
     | Instance
