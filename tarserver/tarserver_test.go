@@ -133,36 +133,6 @@ func TestScriptsWithQueryString(t *testing.T) {
 	assert.Contains(t, results, *expected)
 }
 
-func TestScriptsWithSamePaths(t *testing.T) {
-	var buf bytes.Buffer
-	var analyzerArgs []string
-
-	run(&buf, os.Stderr, tarserverDir+"/testdata/test-tar-6.tar", &backend, analyzerArgs)
-	var results []HAR
-	json.Unmarshal(buf.Bytes(), &results)
-
-	expected := newHAR()
-	expected.URL = "http://test.com/test/testing?s=1"
-	expected.QueryString = []KeyValue{
-		KeyValue{
-			Name:  "s",
-			Value: "1",
-		},
-	}
-
-	assert.Contains(t, results, *expected)
-
-	expected.URL = "http://test.com/test/example?q=123"
-	expected.QueryString = []KeyValue{
-		KeyValue{
-			Name:  "q",
-			Value: "123",
-		},
-	}
-
-	assert.Contains(t, results, *expected)
-}
-
 func TestScriptsWithSamePathsButDifferentHosts(t *testing.T) {
 	var buf bytes.Buffer
 	var analyzerArgs []string

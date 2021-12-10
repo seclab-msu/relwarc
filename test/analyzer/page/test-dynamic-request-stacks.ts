@@ -205,11 +205,6 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
         let columnNumber1 = 15;
         let columnNumber2 = 44;
 
-        if (currentBackend === BackendKind.Chrome) { // because chrome gives column number for html page
-            columnNumber1 = 73;
-            columnNumber2 = 93;
-        }
-
         expect(hars).toContain(jasmine.objectContaining({
             "initiator": {
                 "type": "fetch",

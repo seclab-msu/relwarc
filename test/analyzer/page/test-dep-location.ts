@@ -76,47 +76,8 @@ describe('Tests for DEPs location on web page', () => {
             }
         }
 
-        if (currentBackend === BackendKind.Chrome) { // TODO (See #6826)
-            delete wantTestData.initiator;
-        }
-
         expect(hars).toContain(jasmine.objectContaining(wantTestData));
         dpa.close();
-    });
-
-    it('Mark on commented DEP', async () => {
-        const dpa = new DynamicPageAnalyzer();
-        const url = testWS.getFullURL('/test-dep-location5.html');
-
-        await dpa.run(url, true);
-
-        const hars = dpa.analyzerDEPs.map(JSONObjectFromHAR);
-
-        expect(hars).toContain(jasmine.objectContaining({
-            'method': 'GET',
-            'url': testWS.getFullURL('/example'),
-            'queryString': [],
-            'bodySize': 0,
-            'initiator': {
-                'type': 'analyzer',
-                'url': testWS.getFullURL('/test-dep-location5.html'),
-                'lineNumber': 3,
-                'columnNumber': 1,
-                'commented': true
-            }
-        }));
-        expect(hars).toContain(jasmine.objectContaining({
-            'method': 'GET',
-            'url': testWS.getFullURL('/test'),
-            'queryString': [],
-            'bodySize': 0,
-            'initiator': {
-                'type': 'analyzer',
-                'url': testWS.getFullURL('/test-dep-location5.html'),
-                'lineNumber': 5,
-                'columnNumber': 8
-            }
-        }));
     });
 });
 
