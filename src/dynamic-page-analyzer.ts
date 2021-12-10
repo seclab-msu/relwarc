@@ -89,7 +89,6 @@ export class DynamicPageAnalyzer {
     /* eslint-disable-next-line max-params */
     async run(
         url: string,
-        uncomment=true,
         mineHTMLDEPs=true,
         addHtmlDynamicDEPsLocation=false,
         reloadPage=true
@@ -138,7 +137,7 @@ export class DynamicPageAnalyzer {
         log(`Opened URL ${url} with http status ${status}, now run analyzer`);
 
         const baseURI = await this.bot.extractBaseURI();
-        this.analyzer.analyze(url, uncomment, baseURI);
+        this.analyzer.analyze(url, baseURI);
 
         this.analyzerDEPs = this.analyzer.hars;
 
