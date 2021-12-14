@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <script type="text/javascript">
+        function f() {
+            fetch("/test");
+        }
+        function g() {
+            f();
+        }
+        function k() {
+            g();
+        }
+    </script>
+</head>
+<body onload="g();">
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+.dockerignore
+Dockerfile
+slimerjs_docs
+examples
+README.md
+test_reports
+tsconfig.tsbuildinfo
+node_modules
+.git

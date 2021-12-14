@@ -1,0 +1,377 @@
+[
+    {
+       "queryString" : [],
+       "httpVersion" : "HTTP/1.1",
+       "method" : "POST",
+       "postData" : {
+          "text" : "{\"content\":\"UNKNOWN\",\"status\":\"UNKNOWN\",\"expires_in\":\"UNKNOWN\"}",
+          "mimeType" : "application/json"
+       },
+       "bodySize" : 63,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "value" : "application/json",
+             "name" : "Content-Type"
+          },
+          {
+             "value" : "63",
+             "name" : "Content-Length"
+          }
+       ],
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/messages"
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/messages?UNKNOWN",
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          }
+       ],
+       "bodySize" : 0,
+       "method" : "GET",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [
+          {
+             "value" : "",
+             "name" : "UNKNOWN"
+          }
+       ]
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/messages/UNKNOWN",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          }
+       ],
+       "bodySize" : 0,
+       "method" : "GET",
+       "queryString" : [],
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/messages/UNKNOWN?operation=SUPPRESS",
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "0"
+          }
+       ],
+       "postData" : {
+          "text" : ""
+       },
+       "bodySize" : 0,
+       "method" : "PUT",
+       "queryString" : [
+          {
+             "value" : "SUPPRESS",
+             "name" : "operation"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "value" : "0",
+             "name" : "Content-Length"
+          }
+       ],
+       "postData" : {
+          "text" : ""
+       },
+       "bodySize" : 0,
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/messages/UNKNOWN?operation=POST",
+       "method" : "PUT",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [
+          {
+             "value" : "POST",
+             "name" : "operation"
+          }
+       ]
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/subscriptions",
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "value" : "application/json",
+             "name" : "Content-Type"
+          },
+          {
+             "value" : "40",
+             "name" : "Content-Length"
+          }
+       ],
+       "bodySize" : 40,
+       "postData" : {
+          "text" : "{\"user_id\":\"UNKNOWN\",\"status\":\"UNKNOWN\"}",
+          "mimeType" : "application/json"
+       },
+       "method" : "POST",
+       "queryString" : [],
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          }
+       ],
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/subscriptions?UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [
+          {
+             "name" : "UNKNOWN",
+             "value" : ""
+          }
+       ],
+       "method" : "GET"
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "method" : "GET",
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/subscriptions/UNKNOWN",
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          }
+       ]
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/subscriptions/UNKNOWN?operation=BLOCK",
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "value" : "0",
+             "name" : "Content-Length"
+          }
+       ],
+       "bodySize" : 0,
+       "postData" : {
+          "text" : ""
+       },
+       "method" : "PUT",
+       "queryString" : [
+          {
+             "value" : "BLOCK",
+             "name" : "operation"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "method" : "PUT",
+       "queryString" : [
+          {
+             "value" : "ACTIVATE",
+             "name" : "operation"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN/subscriptions/UNKNOWN?operation=ACTIVATE",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "0"
+          }
+       ],
+       "bodySize" : 0,
+       "postData" : {
+          "text" : ""
+       }
+    },
+    {
+       "queryString" : [],
+       "httpVersion" : "HTTP/1.1",
+       "method" : "POST",
+       "url" : "http://js-training.seclab/api/v1/topics",
+       "postData" : {
+          "text" : "{\"external_id\":\"UNKNOWN\",\"status\":\"UNKNOWN\"}",
+          "mimeType" : "application/json"
+       },
+       "bodySize" : 44,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "value" : "application/json",
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "44"
+          }
+       ]
+    },
+    {
+       "method" : "GET",
+       "queryString" : [
+          {
+             "name" : "UNKNOWN",
+             "value" : ""
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "http://js-training.seclab/api/v1/topics?UNKNOWN",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          }
+       ],
+       "bodySize" : 0
+    },
+    {
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          }
+       ],
+       "bodySize" : 0,
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN",
+       "method" : "GET",
+       "queryString" : [],
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN?operation=BLOCK",
+       "postData" : {
+          "text" : ""
+       },
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "0"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [
+          {
+             "value" : "BLOCK",
+             "name" : "operation"
+          }
+       ],
+       "method" : "PUT"
+    },
+    {
+       "method" : "PUT",
+       "queryString" : [
+          {
+             "name" : "operation",
+             "value" : "ACTIVATE"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "http://js-training.seclab/api/v1/topics/UNKNOWN?operation=ACTIVATE",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "0"
+          }
+       ],
+       "bodySize" : 0,
+       "postData" : {
+          "text" : ""
+       }
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/users/UNKNOWN/subscriptions?UNKNOWN",
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [
+          {
+             "name" : "UNKNOWN",
+             "value" : ""
+          }
+       ],
+       "method" : "GET"
+    },
+    {
+       "method" : "GET",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [
+          {
+             "name" : "UNKNOWN",
+             "value" : ""
+          }
+       ],
+       "url" : "http://js-training.seclab/api/v1/users/UNKNOWN/messages?UNKNOWN",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          }
+       ],
+       "bodySize" : 0
+    },
+    {
+       "url" : "http://js-training.seclab/api/v1/users/UNKNOWN/messages/UNKNOWN",
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          },
+          {
+             "value" : "0",
+             "name" : "Content-Length"
+          }
+       ],
+       "postData" : {
+          "text" : ""
+       },
+       "bodySize" : 0,
+       "method" : "PUT",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : []
+    }
+ ]
+ 

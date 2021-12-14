@@ -1,0 +1,21 @@
+[
+    {
+      "funcName": "$.get",
+      "args": [
+        "http://u.7654.com/Package/UNKNOWN/uid//pid/243",
+        "UNKNOWN",
+        "jsonp"
+      ]
+    },
+    {
+      "funcName": "$.get",
+      "args": [
+        "http://u.7654.com/Badge/light_badge",
+        {
+          "type": 2
+        },
+        "UNKNOWN",
+        "jsonp"
+      ]
+    }
+]

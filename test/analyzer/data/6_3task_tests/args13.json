@@ -1,0 +1,23 @@
+[
+    {
+      "funcName": "$.ajax",
+      "args": [
+        {
+          "type": "POST",
+          "url": "?m=zhongce&c=index&a=getstatus",
+          "data": {
+            "id": "UNKNOWN"
+          },
+          "dataType": "",
+          "success": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "$.getJSON",
+      "args": [
+        "/index.php?m=mood&c=index&a=post&id=UNKNOWN&catid=UNKNOWN&site=1&0.8782736846632295&callback=?",
+        "UNKNOWN"
+      ]
+    }
+  ]

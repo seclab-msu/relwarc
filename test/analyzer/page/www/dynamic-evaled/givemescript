@@ -1,0 +1,12 @@
+<script type="text/javascript">
+    $(document).ready(function() {
+        const dataHandlers = [];
+        dataHandlers.push(function() {
+            $.ajax({
+                type : "GET",
+                url  : "/test"
+            });
+        });
+        window.configuredDataHandlers = dataHandlers;
+    });
+</script>

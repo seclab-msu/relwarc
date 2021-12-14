@@ -1,0 +1,149 @@
+[
+   {
+      "httpVersion" : "HTTP/1.1",
+      "queryString" : [],
+      "headers" : [
+         {
+            "name" : "Host",
+            "value" : "js-training.seclab"
+         }
+      ],
+      "method" : "GET",
+      "url" : "http://js-training.seclab/clip/getSessionVideo",
+      "bodySize" : 0
+   },
+   {
+      "headers" : [
+         {
+            "name" : "Host",
+            "value" : "js-training.seclab"
+         }
+      ],
+      "method" : "GET",
+      "httpVersion" : "HTTP/1.1",
+      "queryString" : [
+         {
+            "value" : "UNKNOWN",
+            "name" : "q"
+         },
+         {
+            "value" : "UNKNOWN",
+            "name" : "type"
+         }
+      ],
+      "url" : "http://js-training.seclab/search/suggest?q=UNKNOWN&type=UNKNOWN",
+      "bodySize" : 0
+   },
+   {
+      "url" : "http://js-training.seclab/clip/ondemandapi",
+      "bodySize" : 90,
+      "method" : "POST",
+      "headers" : [
+         {
+            "value" : "js-training.seclab",
+            "name" : "Host"
+         },
+         {
+            "value" : "application/x-www-form-urlencoded",
+            "name" : "Content-Type"
+         },
+         {
+            "value" : "90",
+            "name" : "Content-Length"
+         }
+      ],
+      "postData" : {
+         "params" : [
+            {
+               "value" : "%7B%22type%22%3A%22loadmore%22%2C%22arrId%22%3A%5B%5D%2C%22id%22%3A%22UNKNOWN%22%7D",
+               "name" : "result"
+            }
+         ],
+         "text" : "result=%7B%22type%22%3A%22loadmore%22%2C%22arrId%22%3A%5B%5D%2C%22id%22%3A%22UNKNOWN%22%7D",
+         "mimeType" : "application/x-www-form-urlencoded"
+      },
+      "httpVersion" : "HTTP/1.1",
+      "queryString" : []
+   },
+   {
+      "queryString" : [],
+      "httpVersion" : "HTTP/1.1",
+      "postData" : {
+         "params" : [
+            {
+               "value" : "UNKNOWN",
+               "name" : "toggle"
+            }
+         ],
+         "mimeType" : "application/x-www-form-urlencoded",
+         "text" : "toggle=UNKNOWN"
+      },
+      "method" : "POST",
+      "headers" : [
+         {
+            "value" : "js-training.seclab",
+            "name" : "Host"
+         },
+         {
+            "name" : "Content-Type",
+            "value" : "application/x-www-form-urlencoded"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "14"
+         }
+      ],
+      "url" : "http://js-training.seclab/clip/setSessionAjax",
+      "bodySize" : 14
+   },
+   {
+      "httpVersion" : "HTTP/1.1",
+      "postData" : {
+         "text" : "{\"section\":\"clip\",\"id\":\"UNKNOWN\"}",
+         "mimeType" : "application/json"
+      },
+      "queryString" : [],
+      "headers" : [
+         {
+            "value" : "js-training.seclab",
+            "name" : "Host"
+         },
+         {
+            "value" : "application/json",
+            "name" : "Content-Type"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "33"
+         }
+      ],
+      "method" : "POST",
+      "bodySize" : 33,
+      "url" : "http://js-training.seclab/clip/ondemandapi"
+   },
+   {
+      "queryString" : [],
+      "httpVersion" : "HTTP/1.1",
+      "postData" : {
+         "text" : "{\"section\":\"loadmore\",\"id\":\"UNKNOWN\",\"arrId\":[]}",
+         "mimeType" : "application/json"
+      },
+      "headers" : [
+         {
+            "value" : "js-training.seclab",
+            "name" : "Host"
+         },
+         {
+            "value" : "application/json",
+            "name" : "Content-Type"
+         },
+         {
+            "value" : "48",
+            "name" : "Content-Length"
+         }
+      ],
+      "method" : "POST",
+      "url" : "http://js-training.seclab/tv/clipapi",
+      "bodySize" : 48
+   }
+]

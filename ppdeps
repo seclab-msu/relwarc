@@ -1,0 +1,5 @@
+#!/bin/bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+node "$SCRIPT_DIR/src/filter-hars.js" --dep-deduplication none --pretty-print < $1
