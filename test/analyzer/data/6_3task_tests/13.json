@@ -1,0 +1,93 @@
+[
+    {
+       "httpVersion" : "HTTP/1.1",
+       "bodySize" : 10,
+       "method" : "POST",
+       "postData" : {
+          "params" : [
+             {
+                "value" : "UNKNOWN",
+                "name" : "id"
+             }
+          ],
+          "text" : "id=UNKNOWN",
+          "mimeType" : "application/x-www-form-urlencoded"
+       },
+       "url" : "http://js-training.seclab/js-dep/func-args/samples/computed/13.html?m=zhongce&c=index&a=getstatus",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "js-training.seclab"
+          },
+          {
+             "value" : "application/x-www-form-urlencoded",
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "10"
+          }
+       ],
+       "queryString" : [
+          {
+             "value" : "zhongce",
+             "name" : "m"
+          },
+          {
+             "name" : "c",
+             "value" : "index"
+          },
+          {
+             "name" : "a",
+             "value" : "getstatus"
+          }
+       ]
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "headers" : [
+          {
+             "value" : "js-training.seclab",
+             "name" : "Host"
+          }
+       ],
+       "url" : "http://js-training.seclab/index.php?m=mood&c=index&a=post&id=UNKNOWN&catid=UNKNOWN&site=1&0.8782736846632295&callback=?",
+       "queryString" : [
+          {
+             "name" : "m",
+             "value" : "mood"
+          },
+          {
+             "name" : "c",
+             "value" : "index"
+          },
+          {
+             "value" : "post",
+             "name" : "a"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "id"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "catid"
+          },
+          {
+             "value" : "1",
+             "name" : "site"
+          },
+          {
+             "value" : "",
+             "name" : "0.8782736846632295"
+          },
+          {
+             "value" : "?",
+             "name" : "callback"
+          }
+       ],
+       "bodySize" : 0,
+       "method" : "GET"
+    }
+ ]
+ 

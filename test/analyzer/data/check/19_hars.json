@@ -1,0 +1,422 @@
+[
+    {
+        "bodySize": 0,
+        "headers": [
+            {
+                "value": "www.smzdm.com",
+                "name": "Host"
+            }
+        ],
+        "url": "http://www.smzdm.com/user/login/jsonp_check?user_login=UNKNOWN&user_pass=UNKNOWN&rememberme=UNKNOWN0&is_third=UNKNOWN&is_pop=UNKNOWN&captcha=UNKNOWN",
+        "httpVersion": "HTTP/1.1",
+        "method": "GET",
+        "queryString": [
+            {
+                "value": "UNKNOWN",
+                "name": "user_login"
+            },
+            {
+                "value": "UNKNOWN",
+                "name": "user_pass"
+            },
+            {
+                "name": "rememberme",
+                "value": "UNKNOWN0"
+            },
+            {
+                "name": "is_third",
+                "value": "UNKNOWN"
+            },
+            {
+                "value": "UNKNOWN",
+                "name": "is_pop"
+            },
+            {
+                "name": "captcha",
+                "value": "UNKNOWN"
+            }
+        ]
+    },
+    {
+        "method": "GET",
+        "httpVersion": "HTTP/1.1",
+        "bodySize": 0,
+        "url": "http://js-training.seclab/js-dep/func-args/samples/computed/UNKNOWN/user/info/jsonp_get_current?pid=UNKNOWN&type=UNKNOWN&prob=1",
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            }
+        ],
+        "queryString": [
+            {
+                "value": "UNKNOWN",
+                "name": "pid"
+            },
+            {
+                "value": "UNKNOWN",
+                "name": "type"
+            },
+            {
+                "name": "prob",
+                "value": "1"
+            }
+        ]
+    },
+    {
+        "bodySize": 0,
+        "url": "http://js-training.seclab/user_prob_info",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "js-training.seclab"
+            },
+            {
+                "name": "Content-Length",
+                "value": "0"
+            }
+        ],
+        "httpVersion": "HTTP/1.1",
+        "method": "POST",
+        "postData": {
+            "text": ""
+        },
+        "queryString": []
+    },
+    {
+        "method": "POST",
+        "httpVersion": "HTTP/1.1",
+        "bodySize": 27,
+        "url": "http://new.www.bq.com/safe_pass_auth",
+        "headers": [
+            {
+                "value": "new.www.bq.com",
+                "name": "Host"
+            },
+            {
+                "value": "application/x-www-form-urlencoded",
+                "name": "Content-Type"
+            },
+            {
+                "name": "Content-Length",
+                "value": "27"
+            }
+        ],
+        "postData": {
+            "mimeType": "application/x-www-form-urlencoded",
+            "params": [
+                {
+                    "value": "UNKNOWN",
+                    "name": "safepass"
+                }
+            ],
+            "text": "safepass=UNKNOWN"
+        },
+        "queryString": []
+    },
+    {
+        "bodySize": 88,
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            },
+            {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+            },
+            {
+                "value": "88",
+                "name": "Content-Length"
+            }
+        ],
+        "url": "http://js-training.seclab/ajax_probation_apply",
+        "method": "POST",
+        "httpVersion": "HTTP/1.1",
+        "postData": {
+            "mimeType": "application/x-www-form-urlencoded",
+            "params": [
+                {
+                    "value": "UNKNOWN",
+                    "name": "p_id"
+                },
+                {
+                    "name": "code",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "value": "UNKNOWN",
+                    "name": "plan"
+                },
+                {
+                    "name": "safepass",
+                    "value": "UNKNOWN"
+                }
+            ],
+            "text": "p_id=UNKNOWN&code=UNKNOWN&plan=UNKNOWN&safepass=UNKNOWN"
+        },
+        "queryString": []
+    },
+    {
+        "queryString": [],
+        "postData": {
+            "text": "article_id=UNKNOWN&channel=UNKNOWN",
+            "params": [
+                {
+                    "name": "article_id",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "name": "channel",
+                    "value": "UNKNOWN"
+                }
+            ],
+            "mimeType": "application/x-www-form-urlencoded"
+        },
+        "method": "POST",
+        "httpVersion": "HTTP/1.1",
+        "url": "http://js-training.seclab/ajax_collect",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "js-training.seclab"
+            },
+            {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+            },
+            {
+                "value": "34",
+                "name": "Content-Length"
+            }
+        ],
+        "bodySize": 34
+    },
+    {
+        "method": "POST",
+        "httpVersion": "HTTP/1.1",
+        "bodySize": 34,
+        "url": "http://js-training.seclab/ajax_love",
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            },
+            {
+                "value": "application/x-www-form-urlencoded",
+                "name": "Content-Type"
+            },
+            {
+                "value": "34",
+                "name": "Content-Length"
+            }
+        ],
+        "postData": {
+            "mimeType": "application/x-www-form-urlencoded",
+            "text": "article_id=UNKNOWN&channel=UNKNOWN",
+            "params": [
+                {
+                    "name": "article_id",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "value": "UNKNOWN",
+                    "name": "channel"
+                }
+            ]
+        },
+        "queryString": []
+    },
+    {
+        "postData": {
+            "params": [
+                {
+                    "name": "report_id",
+                    "value": "UNKNOWN"
+                }
+            ],
+            "text": "report_id=UNKNOWN",
+            "mimeType": "application/x-www-form-urlencoded"
+        },
+        "queryString": [],
+        "bodySize": 17,
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            },
+            {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+            },
+            {
+                "name": "Content-Length",
+                "value": "17"
+            }
+        ],
+        "url": "http://js-training.seclab/ajax_delete_report",
+        "httpVersion": "HTTP/1.1",
+        "method": "POST"
+    },
+    {
+        "httpVersion": "HTTP/1.1",
+        "method": "POST",
+        "bodySize": 31,
+        "url": "http://js-training.seclab/json_more",
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            },
+            {
+                "value": "application/x-www-form-urlencoded",
+                "name": "Content-Type"
+            },
+            {
+                "value": "31",
+                "name": "Content-Length"
+            }
+        ],
+        "postData": {
+            "params": [
+                {
+                    "name": "current_page",
+                    "value": "UNKNOWN"
+                }
+            ],
+            "text": "current_page=UNKNOWN",
+            "mimeType": "application/x-www-form-urlencoded"
+        },
+        "queryString": []
+    },
+    {
+        "bodySize": 55,
+        "url": "http://js-training.seclab/ajax_probation_plan",
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            },
+            {
+                "value": "application/x-www-form-urlencoded",
+                "name": "Content-Type"
+            },
+            {
+                "value": "55",
+                "name": "Content-Length"
+            }
+        ],
+        "httpVersion": "HTTP/1.1",
+        "method": "POST",
+        "postData": {
+            "text": "probation_id=UNKNOWN&evaluation_plan=UNKNOWN",
+            "params": [
+                {
+                    "name": "probation_id",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "value": "UNKNOWN",
+                    "name": "evaluation_plan"
+                }
+            ],
+            "mimeType": "application/x-www-form-urlencoded"
+        },
+        "queryString": []
+    },
+    {
+        "url": "http://js-training.seclab/ajax_probation_confirm",
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            },
+            {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+            },
+            {
+                "name": "Content-Length",
+                "value": "99"
+            }
+        ],
+        "bodySize": 99,
+        "httpVersion": "HTTP/1.1",
+        "method": "POST",
+        "queryString": [],
+        "postData": {
+            "mimeType": "application/x-www-form-urlencoded",
+            "params": [
+                {
+                    "name": "probation_id",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "value": "UNKNOWN",
+                    "name": "name"
+                },
+                {
+                    "name": "address",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "name": "zipcode",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "name": "telephone",
+                    "value": "UNKNOWN"
+                },
+                {
+                    "value": "UNKNOWN",
+                    "name": "partake"
+                }
+            ],
+            "text": "probation_id=UNKNOWN&name=UNKNOWN&address=UNKNOWN&zipcode=UNKNOWN&telephone=UNKNOWN&partake=UNKNOWN"
+        }
+    },
+    {
+        "queryString": [
+            {
+                "name": "page",
+                "value": "UNKNOWN"
+            },
+            {
+                "name": "probation_id",
+                "value": "UNKNOWN"
+            }
+        ],
+        "httpVersion": "HTTP/1.1",
+        "method": "GET",
+        "bodySize": 0,
+        "headers": [
+            {
+                "value": "js-training.seclab",
+                "name": "Host"
+            }
+        ],
+        "url": "http://js-training.seclab/ajax_get_apply_all_user?page=UNKNOWN&probation_id=UNKNOWN"
+    },
+    {
+        "headers": [
+            {
+                "name": "Host",
+                "value": "js-training.seclab"
+            }
+        ],
+        "url": "http://js-training.seclab/ajax_get_apply_success_user?page=UNKNOWN&probation_id=UNKNOWN",
+        "bodySize": 0,
+        "httpVersion": "HTTP/1.1",
+        "method": "GET",
+        "queryString": [
+            {
+                "name": "page",
+                "value": "UNKNOWN"
+            },
+            {
+                "value": "UNKNOWN",
+                "name": "probation_id"
+            }
+        ]
+    }
+]

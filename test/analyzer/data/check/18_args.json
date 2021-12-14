@@ -1,0 +1,30 @@
+[
+    {
+        "funcName": "$.getJSON",
+        "args": [
+            "modulos/skyscanner/obtener_localizaciones.php?buscador=UNKNOWN&idioma=UNKNOWN&pais=UNKNOWN&moneda=UNKNOWN&busqueda=UNKNOWN",
+            "UNKNOWN"
+        ]
+    },
+    {
+        "funcName": "$.get",
+        "args": [
+            "modulos/mysql/query.php?accion=rtt_bd_1&input1=UNKNOWN&input2=UNKNOWN&input3=UNKNOWN&input4=UNKNOWN&input5=UNKNOWN",
+            "UNKNOWN"
+        ]
+    },
+    {
+        "funcName": "$.get",
+        "args": [
+            "modulos/mysql/query.php?accion=rtt_bd_8&input1=UNKNOWN&input2=UNKNOWN&input3=UNKNOWN",
+            "UNKNOWN"
+        ]
+    },
+    {
+        "funcName": "$.get",
+        "args": [
+            "modulos/mysql/query.php?accion=rtt_bd_12&input1=UNKNOWN",
+            "UNKNOWN"
+        ]
+    }
+]

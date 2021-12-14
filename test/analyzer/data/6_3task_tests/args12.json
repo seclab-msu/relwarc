@@ -1,0 +1,39 @@
+[
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/ajax/history-item?seriesId=UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/ajax/favorite/one?seriesId=UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "axios.get",
+      "args": [
+        "/ajax/favorite/one?withFolders=1&seriesId=UNKNOWN"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "/ajax/favorite/upsert",
+        {
+          "seriesId": "UNKNOWN",
+          "folderId": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "/ajax/favorite/delete",
+        {
+          "seriesIds": "UNKNOWN"
+        }
+      ]
+    }
+  ]

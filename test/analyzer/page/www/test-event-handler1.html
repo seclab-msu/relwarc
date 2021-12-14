@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script>
+        function getXHR () {
+            return new XMLHttpRequest;
+        }
+        function sendXHR(url, data){
+            var x = getXHR();
+            x.open('POST', url, true);
+
+            x.send(data);
+        }
+        function doLogin(loginURL, l, p) {
+            sendXHR(loginURL, 'login=' + l + '&password=' + p);
+        }
+    </script>
+    <input type="text" id="login"/>
+    <input type="text" id="pass"/>
+    <button onclick="doLogin('/login.php', login.value, pass.value);">send credentials</button>
+</head>
+<body>
+</body>
+</html>

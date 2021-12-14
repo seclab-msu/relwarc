@@ -1,0 +1,100 @@
+[
+    {
+        "method": "GET",
+        "bodySize": 0,
+        "url": "http://js-training.seclab/servers/public/index.php?c=store&a=getproductlicense&pc_name=UNKNOWN&device_name=UNKNOWN&prefix_licence_name=UNKNOWN&pro_id=UNKNOWN&currency=EUR&action_type=UNKNOWN&site_id=UNKNOWN",
+        "httpVersion": "HTTP/1.1",
+        "queryString": [
+            {
+                "name": "c",
+                "value": "store"
+            },
+            {
+                "name": "a",
+                "value": "getproductlicense"
+            },
+            {
+                "name": "pc_name",
+                "value": "UNKNOWN"
+            },
+            {
+                "name": "device_name",
+                "value": "UNKNOWN"
+            },
+            {
+                "value": "UNKNOWN",
+                "name": "prefix_licence_name"
+            },
+            {
+                "name": "pro_id",
+                "value": "UNKNOWN"
+            },
+            {
+                "value": "EUR",
+                "name": "currency"
+            },
+            {
+                "value": "UNKNOWN",
+                "name": "action_type"
+            },
+            {
+                "name": "site_id",
+                "value": "UNKNOWN"
+            }
+        ],
+        "headers": [
+            {
+                "name": "Host",
+                "value": "js-training.seclab"
+            }
+        ]
+    },
+    {
+        "httpVersion": "HTTP/1.1",
+        "bodySize": 0,
+        "url": "http://js-training.seclab/servers/public/index.php?c=product&a=getproductinfo&site_id=UNKNOWN&pro_id=UNKNOWN",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "js-training.seclab"
+            }
+        ],
+        "queryString": [
+            {
+                "value": "product",
+                "name": "c"
+            },
+            {
+                "value": "getproductinfo",
+                "name": "a"
+            },
+            {
+                "name": "site_id",
+                "value": "UNKNOWN"
+            },
+            {
+                "name": "pro_id",
+                "value": "UNKNOWN"
+            }
+        ],
+        "method": "GET"
+    },
+    {
+        "method": "GET",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "www.telize.com"
+            }
+        ],
+        "queryString": [
+            {
+                "name": "callback",
+                "value": "?"
+            }
+        ],
+        "url": "http://www.telize.com/geoip?callback=?",
+        "bodySize": 0,
+        "httpVersion": "HTTP/1.1"
+    }
+]

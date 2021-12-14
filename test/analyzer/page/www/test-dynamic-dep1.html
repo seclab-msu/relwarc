@@ -1,0 +1,10 @@
+<script>
+    const A = {
+        test: 'joy',
+    };
+    var x = new XMLHttpRequest();
+
+    x.open('GET', '/example/test?q=en' + A.test, true);
+    x.onreadystatechange = function () {}
+    x.send(null);
+</script>

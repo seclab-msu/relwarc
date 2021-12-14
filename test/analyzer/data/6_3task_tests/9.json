@@ -1,0 +1,42 @@
+[
+   {
+      "postData" : {
+         "text" : ""
+      },
+      "bodySize" : 0,
+      "url" : "https://event.1111.com.tw/careermaster/position/random",
+      "httpVersion" : "HTTP/1.1",
+      "method" : "POST",
+      "queryString" : [],
+      "headers" : [
+         {
+            "name" : "Host",
+            "value" : "event.1111.com.tw"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "0"
+         }
+      ]
+   },
+   {
+      "bodySize" : 0,
+      "postData" : {
+         "text" : ""
+      },
+      "queryString" : [],
+      "method" : "POST",
+      "headers" : [
+         {
+            "name" : "Host",
+            "value" : "event.1111.com.tw"
+         },
+         {
+            "name" : "Content-Length",
+            "value" : "0"
+         }
+      ],
+      "httpVersion" : "HTTP/1.1",
+      "url" : "https://event.1111.com.tw/careermaster/detail/%replaceData%/4/json"
+   }
+]

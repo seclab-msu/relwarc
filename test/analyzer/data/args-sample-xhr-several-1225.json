@@ -1,0 +1,47 @@
+[
+    {
+        "funcName": "XMLHttpRequest.send",
+        "args": [
+            {
+                "name": "open",
+                "args": [
+                    "POST",
+                    "https://ampcid.google.com/v1/publisher:getClientId?key=AIzaSyA65lEHUEizIsNtlbNo-l2K18dT680nsaM",
+                    true
+                ]
+            },
+            {
+                "name": "setRequestHeader",
+                "args": [
+                    "Content-Type",
+                    "text/plain"
+                ]
+            },
+            {
+                "name": "send",
+                "args": [
+                    "{\"originScope\":\"AMP_ECID_GOOGLE\",\"securityToken\":\"UNKNOWN\"}"
+                ]
+            }
+        ]
+    },
+    {
+        "funcName": "XMLHttpRequest.send",
+        "args": [
+            {
+                "name": "open",
+                "args": [
+                    "POST",
+                    "/foo",
+                    true
+                ]
+            },
+            {
+                "name": "send",
+                "args": [
+                    "bar"
+                ]
+            }
+        ]
+    }
+]

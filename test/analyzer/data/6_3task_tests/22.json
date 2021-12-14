@@ -1,0 +1,688 @@
+[
+    {
+       "bodySize" : 0,
+       "method" : "GET",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Author",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/articles/status/UNKNOWN/UNKNOWN/UNKNOWN/UNKNOWN"
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/category/100",
+       "bodySize" : 0,
+       "queryString" : [],
+       "method" : "GET",
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          }
+       ]
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/tags/500",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "method" : "GET",
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          }
+       ],
+       "bodySize" : 0
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/articles/UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "method" : "DELETE",
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "2"
+          }
+       ],
+       "postData" : {
+          "text" : "{}",
+          "mimeType" : "text/plain"
+       },
+       "bodySize" : 2
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/removeBlankArticles/",
+       "httpVersion" : "HTTP/1.1",
+       "method" : "DELETE",
+       "queryString" : [],
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          },
+          {
+             "value" : "2",
+             "name" : "Content-Length"
+          }
+       ],
+       "bodySize" : 2,
+       "postData" : {
+          "mimeType" : "text/plain",
+          "text" : "{}"
+       }
+    },
+    {
+       "bodySize" : 0,
+       "queryString" : [],
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          }
+       ],
+       "method" : "GET",
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/UNKNOWNUNKNOWN"
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/getUserInfo",
+       "postData" : {
+          "text" : "{}",
+          "mimeType" : "text/plain"
+       },
+       "bodySize" : 2,
+       "method" : "POST",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "2"
+          }
+       ]
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/lockArticles/UNKNOWN",
+       "bodySize" : 2,
+       "postData" : {
+          "text" : "{}",
+          "mimeType" : "text/plain"
+       },
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "2"
+          }
+       ],
+       "queryString" : [],
+       "method" : "POST"
+    },
+    {
+       "postData" : {
+          "mimeType" : "text/plain",
+          "text" : "{}"
+       },
+       "bodySize" : 2,
+       "method" : "POST",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "value" : "2",
+             "name" : "Content-Length"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/UnLockArticles/UNKNOWN"
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/changeUserOfPost/UNKNOWN/UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          }
+       ],
+       "method" : "GET",
+       "bodySize" : 0
+    },
+    {
+       "postData" : {
+          "text" : "{\"user\":\"UNKNOWN\",\"host\":\"UNKNOWN://UNKNOWN:UNKNOWN\"}",
+          "mimeType" : "text/plain"
+       },
+       "bodySize" : 53,
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "value" : "text/plain",
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "53"
+          }
+       ],
+       "method" : "POST",
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/addUsers"
+    },
+    {
+       "postData" : {
+          "mimeType" : "text/plain",
+          "text" : "{\"user\":\"UNKNOWN\"}"
+       },
+       "bodySize" : 18,
+       "queryString" : [],
+       "method" : "PUT",
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "value" : "text/plain",
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "value" : "18",
+             "name" : "Content-Length"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/updateUsers/UNKNOWN"
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/updateProfile",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "method" : "PUT",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "value" : "text/plain",
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "18"
+          }
+       ],
+       "postData" : {
+          "text" : "{\"user\":\"UNKNOWN\"}",
+          "mimeType" : "text/plain"
+       },
+       "bodySize" : 18
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/changePassword",
+       "bodySize" : 18,
+       "postData" : {
+          "mimeType" : "text/plain",
+          "text" : "{\"user\":\"UNKNOWN\"}"
+       },
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          },
+          {
+             "value" : "18",
+             "name" : "Content-Length"
+          }
+       ],
+       "queryString" : [],
+       "method" : "PUT"
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/getUserRole",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "method" : "GET",
+       "bodySize" : 0
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/post/schedule",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "method" : "GET",
+       "bodySize" : 0
+    },
+    {
+       "method" : "GET",
+       "queryString" : [],
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "bodySize" : 0,
+       "url" : "https://api1.blavity.com/v1/recentPost/UNKNOWN/UNKNOWN",
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/article-history/UNKNOWN/UNKNOWN/UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "method" : "GET",
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          }
+       ],
+       "bodySize" : 0
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/user/authorList",
+       "httpVersion" : "HTTP/1.1",
+       "method" : "GET",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "bodySize" : 0
+    },
+    {
+       "bodySize" : 20,
+       "postData" : {
+          "text" : "{\"series\":\"UNKNOWN\"}",
+          "mimeType" : "text/plain"
+       },
+       "method" : "POST",
+       "queryString" : [],
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "value" : "text/plain",
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "value" : "20",
+             "name" : "Content-Length"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/series/add"
+    },
+    {
+       "bodySize" : 0,
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "method" : "GET",
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/series/list/UNKNOWN/UNKNOWN"
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1//article-series/UNKNOWN",
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          }
+       ],
+       "queryString" : [],
+       "method" : "GET"
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/post-editors-comments/UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          },
+          {
+             "value" : "21",
+             "name" : "Content-Length"
+          }
+       ],
+       "method" : "POST",
+       "postData" : {
+          "mimeType" : "text/plain",
+          "text" : "{\"comment\":\"UNKNOWN\"}"
+       },
+       "bodySize" : 21
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/autoSchedule/UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "0"
+          }
+       ],
+       "method" : "PUT",
+       "bodySize" : 0,
+       "postData" : {
+          "mimeType" : "text/plain",
+          "text" : ""
+       }
+    },
+    {
+       "queryString" : [],
+       "headers" : [
+          {
+             "value" : "api1.blavity.com",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type"
+          }
+       ],
+       "method" : "GET",
+       "bodySize" : 0,
+       "url" : "https://api1.blavity.com/v1/blankarticles",
+       "httpVersion" : "HTTP/1.1"
+    },
+    {
+       "url" : "https://api1.blavity.com/v1/videos/top/UNKNOWN/UNKNOWN",
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type"
+          },
+          {
+             "value" : "UNKNOWN",
+             "name" : "token"
+          }
+       ],
+       "method" : "GET",
+       "bodySize" : 0
+    },
+    {
+       "url" : "https://api.blavity.io/subscribers/blavity?list=blavityDaily",
+       "httpVersion" : "HTTP/1.1",
+       "method" : "POST",
+       "queryString" : [
+          {
+             "name" : "list",
+             "value" : "blavityDaily"
+          }
+       ],
+       "headers" : [
+          {
+             "value" : "api.blavity.io",
+             "name" : "Host"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "application/json"
+          },
+          {
+             "name" : "Content-Length",
+             "value" : "36"
+          }
+       ],
+       "bodySize" : 36,
+       "postData" : {
+          "mimeType" : "application/json",
+          "text" : "{\"email\":\"UNKNOWN\",\"name\":\"UNKNOWN\"}"
+       }
+    },
+    {
+       "postData" : {
+          "text" : "{}",
+          "mimeType" : "text/plain"
+       },
+       "bodySize" : 2,
+       "queryString" : [],
+       "method" : "POST",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          },
+          {
+             "name" : "Content-Type",
+             "value" : "text/plain"
+          },
+          {
+             "name" : "token",
+             "value" : "UNKNOWN"
+          },
+          {
+             "value" : "2",
+             "name" : "Content-Length"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/articles1/new/"
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/articles/type/video/21/0",
+       "bodySize" : 0,
+       "method" : "GET",
+       "queryString" : [],
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          }
+       ]
+    },
+    {
+       "httpVersion" : "HTTP/1.1",
+       "url" : "https://api1.blavity.com/v1/articles/type/video/UNKNOWN/UNKNOWN",
+       "bodySize" : 0,
+       "queryString" : [],
+       "method" : "GET",
+       "headers" : [
+          {
+             "name" : "Host",
+             "value" : "api1.blavity.com"
+          }
+       ]
+    }
+ ]
+ 
