@@ -5,14 +5,17 @@ import { hasattr } from './utils/common';
 
 const undefinedValues = ['UNKNOWN', ''];
 const importantParams = ['route', 'action', 'type', 'r'];
-const importantHeaders = ['Content-Type', 'Host'];
-const urlMarkers = ['/', '%2F'];
+const importantHeaders = ['content-type', 'host'];
+const urlMarkers = ['/', '%2F', '%2f'];
 const urlStarts = ['//', 'https://', 'http://'];
+const uuidRegex = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
 
 export enum DeduplicationMode {
     Default = 'default',
     Extended = 'extended',
-    None = 'none'
+    None = 'none',
+    FastDefault = 'fast-default',
+    FastExtended = 'fast-extended'
 }
 
 const reverseDeduplicationMode: Record<string, DeduplicationMode> = {};
@@ -342,6 +345,176 @@ function deduplicateStrictlyEqual(hars: HAR[]): HAR[] {
     return result;
 }
 
+function removeNumbers(a, mode: DeduplicationMode) {
+    switch (getType(a)) {
+    case 'array':
+        for (let i = 0; i < a.length; i++) {
+            a[i] = removeNumbers(a[i], mode);
+        }
+        return a;
+
+    case 'object':
+        for (const [key, value] of Object.entries(a)) {
+            a[key] = removeNumbers(value, mode);
+        }
+        return a;
+
+    case 'null':
+        if (mode === DeduplicationMode.FastExtended) {
+            return '';
+        }
+        return a;
+
+    case 'boolean':
+        if (mode === DeduplicationMode.FastExtended) {
+            return '';
+        }
+        return a;
+
+    default:
+        if (isUselessValue(a)) {
+            return '';
+        }
+
+        if (mode === DeduplicationMode.FastExtended) {
+            return '';
+        }
+        return a.slice(0, 100);
+    }
+}
+
+function isUselessValue(value: string) {
+    if (
+        !Number.isNaN(Number(value)) ||
+        value === 'UNKNOWN' ||
+        uuidRegex.test(value)
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
+function isUselessParam(param: KeyValue, mode: DeduplicationMode) {
+    if (isUselessValue(param.value)) {
+        return true;
+    }
+
+    if (mode === DeduplicationMode.FastExtended) {
+        if (!importantParams.includes(param.name)) {
+            return true;
+        }
+
+        return param.name == 'r' && !urlMarkers.some(marker => {
+            return param.value.includes(marker);
+        });
+    }
+
+    return false;
+}
+
+function compareKeyValue(a: KeyValue, b: KeyValue) {
+    if (a.name === b.name) {
+        return 0;
+    }
+    if (a.name > b.name) {
+        return 1;
+    }
+
+    return -1;
+}
+
+function convertToGeneralFrom(har: HAR, mode: DeduplicationMode): HAR {
+    har.url = har.url.split('?')[0];
+
+    har.headers = har.headers.filter(header => {
+        header.name = header.name.toLowerCase();
+        return importantHeaders.includes(header.name);
+    });
+
+    har.headers.sort(compareKeyValue);
+
+    har.queryString.forEach(param => {
+        if (isUselessParam(param, mode)) {
+            param.value = '';
+        }
+    });
+
+    har.queryString.sort(compareKeyValue);
+
+    const postData = har.getPostData();
+
+    if (postData) {
+        if (postData.params) {
+            postData.params.forEach(param => {
+                if (isUselessParam(param, mode)) {
+                    param.value = '';
+                }
+            });
+
+            postData.params.sort(compareKeyValue);
+
+            const newPostData = postData.params.map(param => {
+                return param.name + '=' + param.value;
+            }).join('&');
+
+            har.setPostData(newPostData);
+        } else {
+            if (postData.text !== null) {
+                try {
+                    const jsonBody = JSON.parse(postData.text);
+                    const genericJSON = removeNumbers(jsonBody, mode);
+                    har.setPostData(JSON.stringify(genericJSON));
+                } catch {
+                    har.setPostData(postData.text.slice(0, 100));
+                }
+            }
+        }
+    }
+
+    har.httpVersion = '';
+    har.bodySize = 0;
+    har.originURL = undefined;
+    har.initiator = undefined;
+
+    return har;
+}
+
+function fastDeduplicate(
+    hars: HAR[],
+    workMode: DeduplicationMode
+): HAR[] {
+    const hashMap = hars.reduce(
+        (map, har) => {
+            const copyHar = JSON.parse(JSON.stringify(har));
+            Object.setPrototypeOf(copyHar, HAR.prototype);
+
+            const genericHar = convertToGeneralFrom(copyHar, workMode);
+
+            const key = JSON.stringify(genericHar);
+
+            const similarHARs = map.get(key);
+            if (similarHARs === undefined) {
+                map.set(key, new Array<HAR>(har));
+            } else {
+                similarHARs.push(har);
+            }
+            return map;
+        },
+        new Map<string, Array<HAR>>()
+    );
+
+    const result: HAR[] = [];
+
+    for (const hars of hashMap.values()) {
+        result.push(
+            hars.reduce((prev, curr) => uniteDEPs(prev, curr))
+        );
+    }
+
+    return result;
+}
+
 export function deduplicateDEPs(
     hars: HAR[],
     workMode: DeduplicationMode
@@ -349,19 +522,28 @@ export function deduplicateDEPs(
     if (workMode === DeduplicationMode.None) {
         return deduplicateStrictlyEqual(hars);
     }
-    hars.forEach((har, id, hars) => {
-        for (let i = id + 1; i < hars.length; i++) {
-            if (
-                compareDEPs(
-                    har,
-                    hars[i],
-                    workMode === DeduplicationMode.Extended
-                )
-            ) {
-                har = uniteDEPs(har, hars[i]);
-                hars.splice(i--, 1);
+
+    if (
+        workMode === DeduplicationMode.Default ||
+        workMode === DeduplicationMode.Extended
+    ) {
+        hars.forEach((har, id, hars) => {
+            for (let i = id + 1; i < hars.length; i++) {
+                if (
+                    compareDEPs(
+                        har,
+                        hars[i],
+                        workMode === DeduplicationMode.Extended
+                    )
+                ) {
+                    har = uniteDEPs(har, hars[i]);
+                    hars.splice(i--, 1);
+                }
             }
-        }
-    });
-    return hars;
+        });
+
+        return hars;
+    }
+
+    return fastDeduplicate(hars, workMode);
 }
