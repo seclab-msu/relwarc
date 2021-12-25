@@ -5,7 +5,7 @@ import {
     identifier, blockStatement, functionExpression
 } from '@babel/types';
 
-import { Debundler } from '../../wprl/src/debundler';
+import { Debundler } from 'page-disassembler';
 
 import { Value } from './types/generic';
 import { UNKNOWN } from './types/unknown';
@@ -14,8 +14,6 @@ import { FunctionValue } from './types/function';
 import { debugEnabled } from './debug';
 
 // import { log } from './logging';
-
-const BUNDLE_SIGNATURES_PATH = '../wprl/bundler-signatures';
 
 function wrapModule(src: string): string {
     return `(function(module, exports, require) {\n${src}\n})`;
@@ -69,7 +67,7 @@ export class ModuleManager {
 
     constructor() {
         this.rawModules = null;
-        this.debundler = new Debundler(BUNDLE_SIGNATURES_PATH);
+        this.debundler = new Debundler();
         this.modulesByName = new Map();
         this.modulesByFn = new Map();
     }
