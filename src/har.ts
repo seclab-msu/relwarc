@@ -8,6 +8,7 @@ import { hasattr, isNotNullObject } from './utils/common';
 export interface KeyValue {
     name: string;
     value: string;
+    type?: string;
 }
 
 export interface PostData {
@@ -133,6 +134,8 @@ export class HAR {
             }
         } else if (ctType === 'multipart/form-data') {
             this.postData.text = null;
+        }
+        if (rawData) {
             this.postData.params = <KeyValue[]>rawData;
         }
     }
