@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { Node as ASTNode } from '@babel/types';
+import { Node as ASTNode, isFunction } from '@babel/types';
 import { simpletraverse, TraverseCommand } from '../../utils/ast';
 
 import { ASTPatternMatcher } from 'js-ast-matcher';
@@ -32,6 +32,9 @@ export function matchAST(node: ASTNode): boolean {
                 const n = body[body.length - 1 - i];
 
                 simpletraverse(n, node => {
+                    if (isFunction(node) && node !== n) {
+                        return TraverseCommand.Skip;
+                    }
                     if (matcher.matchSubtree(chk, node)) {
                         matched = true;
                         return TraverseCommand.Break;

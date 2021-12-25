@@ -36,9 +36,6 @@
             "right": {                    
                 "type": "Identifier",
                 "name": "jQuery"
-            },
-            "_parent": {
-                "type": "ExpressionStatement"
             }
         }
     }],
