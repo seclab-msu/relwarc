@@ -19,7 +19,8 @@ import {
     isTemplateLiteral, isSpreadElement, isFunction,
     isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
     isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression,
-    isFunctionExpression
+    isFunctionExpression,
+    identifier as makeIdentifier,
 } from '@babel/types';
 
 import {
@@ -38,6 +39,7 @@ import { FormDataModel } from './types/form-data';
 import { FunctionValue } from './types/function';
 import { Value, NontrivialValue } from './types/generic';
 import { ValueSet } from './types/value-set';
+import { Memory, GlobalWindowObject } from './types/memory';
 import { ClassObject, ClassManager, Instance, isVanillaMethod } from './types/classes';
 
 import {
@@ -56,6 +58,11 @@ import { STRING_METHODS, REGEXP_UNSETTABLE_PROPS } from './utils/analyzer';
 
 import { HAR, BadURLError } from './har';
 import { makeHAR } from './library-models/sinks';
+
+import {
+    combineComments,
+    parseComments
+} from './uncommenter';
 
 import { LoadType } from './load-type';
 
@@ -97,7 +104,6 @@ const PREDEFINED_CLASSES = [
     'URLSearchParams'
 ];
 
-type VarScope = { [varName: string]: Value };
 
 export interface SinkCall {
     funcName: string;
@@ -131,7 +137,6 @@ export class Analyzer {
 
     private readonly dynamic: DynamicAnalyzer | null;
 
-    private readonly globalDefinitions: VarScope;
     private readonly argsStack: string[][];
     private readonly callQueue: CallConfig[];
 
@@ -149,10 +154,11 @@ export class Analyzer {
     private readonly functionsStack: NodePath[];
     private mergedProgram: AST | null;
 
-    private readonly memory: WeakMap<Binding, Value>;
+    private readonly memory: Memory;
     private readonly functionToBinding: WeakMap<ASTNode, Binding[]>;
 
     private currentPath: NodePath | null;
+    private globalProgramPath: NodePath | null;
 
     private stage: AnalysisPhase | null;
 
@@ -193,7 +199,6 @@ export class Analyzer {
             dynamicAnalyzer.newScriptCallback = this.addScript.bind(this);
         }
 
-        this.globalDefinitions = { undefined };
         this.argsStack = [];
         this.formalArgs = [];
 
@@ -211,10 +216,11 @@ export class Analyzer {
 
         this.functionsStack = [];
 
-        this.memory = new WeakMap();
+        this.memory = new Memory();
         this.functionToBinding = new WeakMap();
 
         this.currentPath = null;
+        this.globalProgramPath = null;
         this.stage = null;
         this.selectedFunction = null;
         this.argsStackOffset = null;
@@ -297,19 +303,12 @@ export class Analyzer {
     }
 
     private lessConcreteThanOldVal(
-        key: string | Binding,
+        key: Binding,
         value: Value
     ): boolean {
         // TODO: this is bad
         if (!isUnknownOrUnknownString(value)) {
             return false;
-        }
-        if (typeof key === 'string') {
-            // global variable
-            if (!hasattr(this.globalDefinitions, key)) {
-                return false;
-            }
-            return !isUnknown(this.globalDefinitions[key]);
         }
 
         // local variable
@@ -335,13 +334,13 @@ export class Analyzer {
         }
     }
 
-    private setLocalVariable(binding: Binding, value: Value, op: string): void {
+    private saveVariable(binding: Binding, value: Value, op: string): void {
         if (op === '=' && this.lessConcreteThanOldVal(binding, value)) {
             return;
         }
 
         if (this.currentPath === null) {
-            throw new Error('setLocalVariable called without currentPath set');
+            throw new Error('saveVariable called without currentPath set');
         }
 
         if (
@@ -400,52 +399,6 @@ export class Analyzer {
             newValue = ValueSet.join(oldValue, newValue);
         }
         this.memory.set(binding, newValue);
-    }
-
-    private setGlobalVariable(name: string, value: Value, op: string): void {
-        if (name === 'location') {
-            return;
-        }
-
-        if (op === '=' && this.lessConcreteThanOldVal(name, value)) {
-            return;
-        }
-
-        let newValue: Value;
-
-        const oldValue = this.globalDefinitions[name];
-
-        if (op === '=') {
-            newValue = value;
-        } else if (op === '+=') {
-            if (
-                isUnknownOrUnknownString(oldValue) &&
-                isUnknownOrUnknownString(value)
-            ) {
-                return;
-            }
-
-            if ((oldValue instanceof ValueSet) || (value instanceof ValueSet)) {
-                newValue = ValueSet.map2(oldValue, value, (l, r) => {
-                    return this.probeAddition(l, r);
-                });
-            } else {
-                newValue = this.probeAddition(oldValue, value);
-            }
-
-            if (
-                typeof newValue === 'string' &&
-                newValue.length > MAX_ACCUMULATED_STRING
-            ) {
-                return;
-            }
-        } else {
-            return;
-        }
-        if (oldValue !== newValue && this.ifStack[0] > 0) {
-            newValue = ValueSet.join(oldValue, newValue);
-        }
-        this.globalDefinitions[name] = newValue;
     }
 
     private shouldSetObjectProperty(
@@ -552,7 +505,7 @@ export class Analyzer {
                 ob &&
                 typeof ob === 'object' &&
                 !isUnknown(ob) &&
-                ob !== this.globalDefinitions.location
+                ob !== this.memory.globalVars.location
             ) {
                 if (propName instanceof ValueSet) {
                     // TODO(asterite): maybe implement this somehow
@@ -593,6 +546,13 @@ export class Analyzer {
                         value = value.join(ob[propName]);
                     }
                 }
+                if (ob instanceof GlobalWindowObject) {
+                    if (prop.type === 'Identifier') {
+                        this.setGlobalVariable(prop, value, false);
+                    }
+                    return;
+                }
+
                 ob[propName] = value;
             }
         };
@@ -611,6 +571,10 @@ export class Analyzer {
             }
             if (typeof ob !== 'object') {
                 return undefined; // NOTE: maybe UNKNOWN is better here?
+            }
+
+            if (ob instanceof GlobalWindowObject) {
+                return this.getGlobalVariable(propName);
             }
 
             if (ob instanceof Instance) {
@@ -644,17 +608,19 @@ export class Analyzer {
             }
 
             if (!node.init) {
-                this.memory.set(binding, undefined);
+                if (!this.memory.has(binding)) {
+                    if (binding.scope.block.type === 'Program') {
+                        this.memory.set(binding, UNKNOWN);
+                    } else {
+                        this.memory.set(binding, undefined);
+                    }
+                }
                 return;
             }
 
             const value = this.valueFromASTNode(node.init);
 
-            if (binding.scope.block.type === 'Program') {
-                this.globalDefinitions[node.id.name] = value;
-            } else {
-                this.memory.set(binding, value);
-            }
+            this.memory.set(binding, value);
 
             if (value instanceof FunctionValue) {
                 this.addFunctionBinding(value.ast, binding);
@@ -662,17 +628,29 @@ export class Analyzer {
         } else if (node.type === 'AssignmentExpression') {
             const value = this.valueFromASTNode(node.right);
             if (node.left.type === 'Identifier') {
-                const binding = path.scope.getBinding(node.left.name);
-                const op = node.operator;
-                if (typeof binding === 'undefined' || binding.scope.block.type === 'Program') {
-                    this.setGlobalVariable(node.left.name, value, op);
-                } else {
-                    this.setLocalVariable(binding, value, op);
-                }
+                const binding = this.createBindingIfNotExists(path, node.left);
+                this.saveVariable(binding, value, node.operator);
             } else if (node.left.type === 'MemberExpression') {
                 this.setObjectProperty(node.left, value);
             }
         }
+    }
+
+    private createBindingIfNotExists(path: NodePath, id: Identifier): Binding {
+        if (this.globalProgramPath === null ) {
+            throw new Error('createBindingIfNotExists called without globalProgramPath set');
+        }
+        let binding = path.scope.getBinding(id.name);
+        if (typeof binding === 'undefined') {
+            this.globalProgramPath.scope.push({ id });
+            binding = this.globalProgramPath.scope.getBinding(id.name);
+        }
+
+        if (typeof binding === 'undefined') {
+            throw new Error('Warning: no binding for variable');
+        }
+
+        return binding;
     }
 
     private declare(node: FunctionDeclaration | ClassDeclaration): void {
@@ -711,10 +689,6 @@ export class Analyzer {
         }
 
         this.memory.set(binding, declaredValue);
-
-        if (binding.scope.block.type === 'Program') {
-            this.globalDefinitions[name] = declaredValue;
-        }
     }
 
     private pushCurrentThis(t: Instance | Unknown): void {
@@ -782,7 +756,7 @@ export class Analyzer {
         }
     }
 
-    private gatherVariableValues(): void {
+    private gatherVariableValues(url: string): void {
         this.stage = AnalysisPhase.VarGathering;
         if (this.mergedProgram === null) {
             throw new Error('gatherVariableValues was called before mergeASTs');
@@ -791,6 +765,9 @@ export class Analyzer {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
                 this.currentPath = path;
+                if (!this.globalProgramPath) {
+                    this.seedGlobalScope(path, url);
+                }
                 if (
                     isFunctionDeclaration(node) || isClassDeclaration(node)
                 ) {
@@ -1309,6 +1286,49 @@ export class Analyzer {
         return unknown;
     }
 
+    getGlobalVariable(name: string): Value {
+        if (this.globalProgramPath === null) {
+            throw new Error('getGlobalVariable called without globalProgramPath set');
+        }
+        const binding = this.globalProgramPath.scope.getBinding(name);
+
+        if (typeof binding !== 'undefined' && binding.scope.block.type === 'Program') {
+            if (this.memory.has(binding)) {
+                return this.memory.get(binding);
+            }
+        }
+
+        return undefined;
+    }
+
+    setGlobalVariable(
+        variable: string|Identifier,
+        value: Value,
+        directSet: boolean
+    ) {
+        if (this.globalProgramPath === null) {
+            throw new Error('setObjectProperty called without globalProgramPath set');
+        }
+
+        let id: Identifier;
+        if (typeof variable === 'string') {
+            id = makeIdentifier(variable);
+        } else {
+            id = variable;
+        }
+
+        const binding = this.createBindingIfNotExists(
+            this.globalProgramPath,
+            id
+        );
+
+        if (directSet) {
+            this.memory.set(binding, value);
+        } else {
+            this.saveVariable(binding, value, '=');
+        }
+    }
+
     getVariable(name: string): Value {
         if (this.currentPath === null) {
             throw new Error('getVariable called without currentPath set');
@@ -1341,8 +1361,10 @@ export class Analyzer {
         if (this.upperArgumentExists(name)) {
             return UNKNOWN;
         }
-        if (hasattr(this.globalDefinitions, name)) {
-            return this.globalDefinitions[name];
+        if (typeof binding !== 'undefined' && binding.scope.block.type === 'Program') {
+            if (this.memory.has(binding)) {
+                return this.memory.get(binding);
+            }
         }
         return UNKNOWN;
     }
@@ -1988,15 +2010,15 @@ export class Analyzer {
 
             const isLocationObject = (
                 (
-                    ob === this.globalDefinitions.window ||
-                    ob === this.globalDefinitions.document
-                ) && val === this.globalDefinitions.location
+                    ob === this.memory.globalVars.window ||
+                    ob === this.memory.globalVars.document
+                ) && val === this.memory.globalVars.location
             );
 
             const isLocationHref = (
-                this.globalDefinitions.location instanceof URL &&
-                ob === this.globalDefinitions.location &&
-                val === this.globalDefinitions.location.href
+                this.memory.globalVars.location instanceof URL &&
+                ob === this.memory.globalVars.location &&
+                val === this.memory.globalVars.location.href
             );
 
             if (isLocationObject || isLocationHref) {
@@ -2006,7 +2028,7 @@ export class Analyzer {
         if (node.left.type === 'Identifier') {
             const ob = this.valueFromASTNode(node.left);
 
-            if (ob === this.globalDefinitions.location) {
+            if (ob === this.memory.globalVars.location) {
                 this.extractDEPFromArgs('replace_location', [node.right], node.loc);
             }
         }
@@ -2144,8 +2166,9 @@ export class Analyzer {
         this.extractDEPs(func, this.makeFunctionDescription(func));
     }
 
-    private seedGlobalScope(url: string): void {
-        const globals = this.globalDefinitions;
+    private seedGlobalScope(path: NodePath, url: string): void {
+        this.globalProgramPath = path;
+
         const locationObject = new URL(url);
         const propDescr = {
             configurable: false,
@@ -2153,12 +2176,13 @@ export class Analyzer {
             set: () => {/* ignore setting */}
         };
 
-        Object.defineProperty(globals, 'location', propDescr);
-        globals.document = {};
+        const doc = {};
+        Object.defineProperty(doc, 'location', propDescr);
 
-        Object.defineProperty(globals.document, 'location', propDescr);
-
-        globals.window = globals;
+        this.setGlobalVariable('window', new GlobalWindowObject(), true);
+        this.setGlobalVariable('document', doc, true);
+        this.setGlobalVariable('location', locationObject, true);
+        this.setGlobalVariable('undefined', undefined, true);
     }
 
     private parseCode(): void {
@@ -2182,6 +2206,24 @@ export class Analyzer {
         return this.trackedCallSequencesStack[lastNum];
     }
 
+    private addCommentedCode(): void {
+        for (const script of this.scripts) {
+            let combComments: CommentASTNode[];
+            const srcTxt = script.sourceText.replace(/^\s*[\r\n]/gm, '');
+            try {
+                combComments = combineComments(parser.parse(srcTxt, {
+                    startLine: script.startLine,
+                    sourceFilename: script.url,
+                }).comments);
+            } catch {
+                continue;
+            }
+
+            const parsedComments = parseComments(combComments);
+            this.parsedScripts.push(...parsedComments);
+        }
+    }
+
     private newHARCallback(har: HAR): void {
         if (!this.harFilter || this.harFilter(har)) {
             this.onNewHAR(har);
@@ -2196,18 +2238,20 @@ export class Analyzer {
         this.scripts.length = 0;
     }
 
-    mineArgsForDEPCalls(url: string): void {
+    mineArgsForDEPCalls(url: string, uncomment?: boolean): void {
         log('Analyzer: start parsing code');
         this.parseCode();
+
+        if (uncomment) {
+            this.addCommentedCode();
+        }
 
         log('Analyzer: done parsing code');
 
         this.mergeASTs();
 
-        this.seedGlobalScope(url);
-
         log('Analyzer: start gathering variable values');
-        this.gatherVariableValues();
+        this.gatherVariableValues(url);
 
         log('Analyzer: search code for DEP calls');
         this.extractDEPs(this.mergedProgram, null);
@@ -2282,8 +2326,8 @@ export class Analyzer {
         }
     }
 
-    analyze(url: string, baseURI?: string): void {
-        this.mineArgsForDEPCalls(url);
+    analyze(url: string, uncomment?: boolean, baseURI?: string): void {
+        this.mineArgsForDEPCalls(url, uncomment);
         log('Analyzer: code analysis done, now make HARs from found calls');
         this.makeHARsFromMinedDEPCallArgs(url, baseURI);
     }

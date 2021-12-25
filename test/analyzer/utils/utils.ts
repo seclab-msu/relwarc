@@ -59,15 +59,15 @@ export function removeLocation(obj: SinkCall[]): SinkCall[] {
     return obj;
 }
 
-export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://test.com/test'): Analyzer {
+export function makeAndRunSimple(scripts: string[], isHAR: boolean, url='http://test.com/test', uncomment?: boolean): Analyzer {
     const analyzer = new Analyzer();
     scripts.forEach(script => {
         analyzer.addScript(script);
     });
     if (isHAR === true) {
-        analyzer.analyze(url);
+        analyzer.analyze(url, uncomment);
     } else {
-        analyzer.mineArgsForDEPCalls(url);
+        analyzer.mineArgsForDEPCalls(url, uncomment);
     }
     return analyzer;
 }
@@ -93,8 +93,9 @@ export function runSingleTestHAR(
     scripts: string[],
     checkingHAR: HAR|TestHAR,
     url='http://test.com/test',
+    uncomment?: boolean,
 ): void {
-    const analyzer = makeAndRunSimple(scripts, true, url);
+    const analyzer = makeAndRunSimple(scripts, true, url, uncomment);
     let convertedHars = JSON.parse(JSON.stringify(analyzer.hars), function (k, v) {
         if (typeof v === 'number' && k !== 'bodySize') {
             return String(v);

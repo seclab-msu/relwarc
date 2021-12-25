@@ -13,6 +13,8 @@ import { outputDEPs, outputArgs } from './output';
 
 import { log } from './logging';
 
+import { uncommenterRetry } from './uncommenter';
+
 async function main(): Promise<number> {
     const parser = new ArgumentParser();
 
@@ -33,23 +35,25 @@ async function main(): Promise<number> {
 
     const source = await fs.readFile(args.script_path, { encoding: 'utf8' });
 
-    const analyzer = new Analyzer(null, { debug: args.debug });
+    await uncommenterRetry(uncomment => {
+        const analyzer = new Analyzer(null, { debug: args.debug });
 
-    analyzer.addScript(source);
+        analyzer.addScript(source);
 
-    analyzer.analyze(baseURL);
+        analyzer.analyze(baseURL, uncomment);
 
-    if (args.args) {
-        outputArgs(analyzer.results, args.output);
-    } else {
-        // hars
-        const deps = deduplicateDEPs(
-            analyzer.hars,
-            deduplicationModeFromString(args.dep_deduplication)
-        );
+        if (args.args) {
+            outputArgs(analyzer.results, args.output);
+        } else {
+            // hars
+            const deps = deduplicateDEPs(
+                analyzer.hars,
+                deduplicationModeFromString(args.dep_deduplication)
+            );
 
-        outputDEPs(deps, args.output);
-    }
+            outputDEPs(deps, args.output);
+        }
+    }, !args.no_comments);
 
     return 0;
 }

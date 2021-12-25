@@ -1,10 +1,3 @@
-const system = require('system');
-
-declare const slimer: {
-    exit(status: number): void;
-    isExiting(): boolean;
-};
-
 import { ArgumentParser } from 'argparse';
 
 import { DynamicPageAnalyzer } from '../../dynamic-page-analyzer';
@@ -21,11 +14,15 @@ import { outputDEPs, outputArgs } from '../../output';
 
 import { log } from '../../logging';
 
+import { uncommenterRetry } from '../../uncommenter';
+
 let targetURL;
 
+// TODO: deduplicate this with slimer's run-analyzer.ts
+
 /* eslint max-lines-per-function:off */
-async function main(argc: number, argv: string[]): Promise<number> {
-    const parser = new ArgumentParser({ prog: `slimerjs ${argv[0]}` });
+async function main(): Promise<number> {
+    const parser = new ArgumentParser();
 
     parser.add_argument('target_url');
     parser.add_argument('--tar-page', { type: String });
@@ -50,13 +47,10 @@ async function main(argc: number, argv: string[]): Promise<number> {
     parser.add_argument('--record-request-stacks', { action: 'store_true' });
     parser.add_argument('--output', { type: String, default: null });
     parser.add_argument('--no-reload-page', { action: 'store_true' });
-    parser.add_argument('--analyzer-debug', { action: 'store_true' });
+    parser.add_argument('-p', '--proxy', { type: String });
+    parser.add_argument('--debug', { action: 'store_true' });
 
-    const args = parser.parse_args(argv.slice(1));
-
-    if (slimer.isExiting()) { // this means arg parsing failed and called exit
-        return 1;
-    }
+    const args = parser.parse_args();
 
     targetURL = args.target_url;
 
@@ -70,7 +64,8 @@ async function main(argc: number, argv: string[]): Promise<number> {
         loadTimeout: args.load_timeout || undefined,
         recordRequestStackTraces: args.record_request_stacks,
         filterStatic: !args.no_static_filter,
-        debug: args.analyzer_debug
+        proxy: args.proxy,
+        debug: args.debug
     };
 
     if (args.tar_page) {
@@ -82,24 +77,27 @@ async function main(argc: number, argv: string[]): Promise<number> {
     const addHtmlDynamicDEPsLocation =
         args.add_dynamic_html_dep_location as boolean;
 
-    const analyzer = new DynamicPageAnalyzer(analyzerOptions);
+    await uncommenterRetry(async uncomment => {
+        const analyzer = new DynamicPageAnalyzer(analyzerOptions);
 
-    await analyzer.run(
-        targetURL,
-        !args.no_html_deps,
-        addHtmlDynamicDEPsLocation,
-        !args.no_reload_page
-    );
-
-    if (args.args) {
-        outputArgs(analyzer.analyzer.results, args.output);
-    } else {
-        // hars
-        const deps = analyzer.getAllDeps(
-            deduplicationModeFromString(args.dep_deduplication)
+        await analyzer.run(
+            targetURL,
+            uncomment,
+            !args.no_html_deps,
+            addHtmlDynamicDEPsLocation,
+            !args.no_reload_page
         );
-        outputDEPs(deps, args.output);
-    }
+
+        if (args.args) {
+            outputArgs(analyzer.analyzer.results, args.output);
+        } else {
+            // hars
+            const deps = analyzer.getAllDeps(
+                deduplicationModeFromString(args.dep_deduplication)
+            );
+            outputDEPs(deps, args.output);
+        }
+    }, !args.no_comments);
 
     return 0;
 }
@@ -109,13 +107,11 @@ async function main(argc: number, argv: string[]): Promise<number> {
     let exitStatus: number;
 
     try {
-        exitStatus = await main(system.args.length, system.args);
+        exitStatus = await main();
     } catch (e) {
-        system.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
+        process.stderr.write('Error: ' + e + '\nstack:\n' + e.stack + '\n');
         exitStatus = 1;
     }
     log(`All done on ${targetURL}, exiting`);
-    if (!slimer.isExiting()) {
-        slimer.exit(exitStatus);
-    }
+    process.exit(exitStatus);
 })();

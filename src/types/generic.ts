@@ -3,6 +3,7 @@ import type { FunctionValue } from './function';
 import type { Unknown } from './unknown';
 import type { ValueSet } from './value-set';
 import type { ClassObject, Instance } from './classes';
+import type { GlobalWindowObject } from './memory';
 
 export type TrivialValue = undefined | null;
 
@@ -20,6 +21,7 @@ export type NontrivialValue =
     | ValueSet
     | ClassObject
     | Instance
-    | Value[];
+    | Value[]
+    | GlobalWindowObject;
 
 export type Value = TrivialValue | NontrivialValue;

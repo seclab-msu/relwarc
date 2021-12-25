@@ -1,13 +1,14 @@
 {
   "name": "js-analyzer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "bin": {
     "js-analyzer": "./run",
     "js-analyzer-chrome": "./crun",
     "js-analyzer-file": "./nrun"
   },
   "dependencies": {
-    "@babel/parser": "7.20.7",
+    "@babel/generator": "^7.21.1",
+    "@babel/parser": "^7.21.3",
     "@babel/traverse": "7.20.12",
     "@types/ansi": "^0.3.3",
     "@types/argparse": "^2.0.10",
@@ -19,11 +20,16 @@
     "htmlparser2": "^8.0.1",
     "jasmine": "3.5.0",
     "jasmine-terminal-reporter": "^1.0.3",
-    "json-stable-stringify": "^1.0.2",
-    "psl": "^1.9.0",
+    "js-ast-matcher": "^1.2.1",
+    "json-stable-stringify": "1.1.1",
+    "minicrawler": "git+https://github.com/asterite3/minicrawler.git",
+    "page-disassembler": "^0.2.0",
+    "psl": "1.12.0",
     "punycode": "2.2.0",
+    "puppeteer": "19.9.1",
     "srcset-parse": "^1.1.0",
-    "tar-stream": "^2.2.0"
+    "tar-stream": "^2.2.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.48.2",
