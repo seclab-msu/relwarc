@@ -88,6 +88,7 @@ import { setDebug, logCallChains, logCallStep, debugFuncLabel } from './debug';
 
 import {
     ModuleManager,
+    ModuleObject,
     REQUIRE_FUNCTION
 } from './module-manager';
 
@@ -555,6 +556,10 @@ export class Analyzer {
                 if (prop.type === 'Identifier') {
                     this.setGlobalVariable(prop, value, false);
                 }
+                return;
+            }
+            if (ob instanceof ModuleObject && safeName === 'exports') {
+                this.moduleManager.setExportsObject(ob, value);
                 return;
             }
 

@@ -8,7 +8,7 @@ import {
 import { Debundler } from 'page-disassembler';
 
 import { Value } from './types/generic';
-import { UNKNOWN } from './types/unknown';
+import { UNKNOWN, isUnknown } from './types/unknown';
 import { FunctionValue } from './types/function';
 
 import { debugEnabled } from './debug';
@@ -23,6 +23,7 @@ class Module {
     readonly name: string;
     readonly sourceText: string;
     readonly code: FunctionExpression;
+    readonly moduleObject: ModuleObject;
     exports: Value;
 
     constructor(name: string, sourceText: string, code: FunctionExpression) {
@@ -30,6 +31,7 @@ class Module {
         this.sourceText = sourceText;
         this.code = code;
         this.exports = {};
+        this.moduleObject = new ModuleObject();
     }
 }
 
@@ -57,19 +59,19 @@ export class ModuleObject {
     }
 }
 
-export const MODULE_OBJECT = new ModuleObject();
-
 export class ModuleManager {
     private readonly debundler: Debundler;
     private rawModules: Map<string, string> | null;
     private readonly modulesByName: Map<string, Module>;
     private readonly modulesByFn: Map<FunctionExpression, Module>;
+    private readonly moduleObject2Module: Map<ModuleObject, Module>;
 
     constructor() {
         this.rawModules = null;
         this.debundler = new Debundler();
         this.modulesByName = new Map();
         this.modulesByFn = new Map();
+        this.moduleObject2Module = new Map();
     }
 
     addScript(sourceText: string, name: string): boolean {
@@ -117,10 +119,11 @@ export class ModuleManager {
         if (!m) {
             throw new Error('No module found for node');
         }
+        this.moduleObject2Module.set(m.moduleObject, m);
         return {
             require: REQUIRE_FUNCTION,
             exports: m.exports,
-            module: MODULE_OBJECT
+            module: m.moduleObject
         };
     }
     exportsForName(name: string): Value {
@@ -129,5 +132,17 @@ export class ModuleManager {
             return UNKNOWN;
         }
         return m.exports;
+    }
+    setExportsObject(moduleObject: ModuleObject, exports: Value): void {
+        if (isUnknown(exports)) {
+            return;
+        }
+        const m = this.moduleObject2Module.get(moduleObject);
+
+        if (typeof m === 'undefined') {
+            throw new Error('No module for module object');
+        }
+
+        m.exports = exports;
     }
 }
