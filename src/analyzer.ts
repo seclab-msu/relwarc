@@ -268,12 +268,6 @@ export class Analyzer {
             sourceText = this.adjustSource(sourceText, url);
         }
 
-        const bundleName = url || '<anonymous>';
-
-        if (this.moduleManager.addScript(sourceText, bundleName)) {
-            log(`Analyzer: debundler has detected a bundle in ${bundleName}`);
-            return;
-        }
         this.scripts.push({
             sourceText,
             startLine,
@@ -2274,6 +2268,21 @@ export class Analyzer {
 
     private parseCode(): void {
         for (const script of this.scripts) {
+            const bundleName = script.url || '<anonymous>';
+
+            if (this.options.debugModules) {
+                log(`Feed script ${bundleName} to debundler`);
+            }
+
+            if (this.moduleManager.addScript(script.sourceText, bundleName)) {
+                log(
+                    `Analyzer: debundler has detected a bundle in ${bundleName}`
+                );
+                continue;
+            }
+            if (this.options.debugModules) {
+                log(`Debundler done on ${bundleName}`);
+            }
             try {
                 this.parsedScripts.push(parser.parse(
                     script.sourceText,
