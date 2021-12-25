@@ -1,4 +1,1 @@
-#!/usr/bin/env bash
-
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-exec node "$SCRIPT_DIR/test/analyzer/run-tests.js" $@
+bin/nrun-tests

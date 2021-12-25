@@ -77,7 +77,7 @@ var (
 		"transfer-encoding": struct{}{},
 	}
 	tarserverLogs = flag.Bool("no-tarserver-logs", false, "Disable tarserver logs")
-	chosenBackend = flag.String("backend", "slimerjs", "Analyzer backend")
+	chosenBackend = flag.String("backend", "chrome", "Analyzer backend")
 )
 
 func init() {
