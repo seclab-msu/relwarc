@@ -14,12 +14,13 @@ import {
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     FunctionDeclaration, ClassDeclaration, ClassExpression, ReturnStatement,
+    Expression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
     isAssignmentPattern, isMemberExpression, isIfStatement, isSwitchStatement,
     isFunctionDeclaration, isClassDeclaration, isArrowFunctionExpression,
-    isFunctionExpression,
+    isFunctionExpression, isBlockStatement,
     identifier as makeIdentifier,
 } from '@babel/types';
 
@@ -763,8 +764,15 @@ export class Analyzer {
         if (!path.node.argument) {
             return;
         }
-        const v = this.valueFromASTNode(path.node.argument);
-        const f = this.functionManager.getOrCreate(functionNode);
+        this.saveReturnValueForFunction(functionNode, path.node.argument);
+    }
+
+    private saveReturnValueForFunction(
+        fn: FunctionASTNode,
+        retExpr: Expression
+    ): void {
+        const v = this.valueFromASTNode(retExpr);
+        const f = this.functionManager.getOrCreate(fn);
         this.callManager.saveReturnValue(f, v);
     }
 
@@ -920,7 +928,14 @@ export class Analyzer {
                     this.debugLogValues(node.arguments);
                 }
             },
-            ReturnStatement: path => this.saveReturnValue(path)
+            ReturnStatement: path => this.saveReturnValue(path),
+            ArrowFunctionExpression: path => {
+                const body = path.node.body;
+
+                if (!isBlockStatement(body)) {
+                    this.saveReturnValueForFunction(path.node, body);
+                }
+            }
         });
         this.argsStack.length = 0; // clear args stack just in case
     }
@@ -2263,7 +2278,14 @@ export class Analyzer {
                     this.debugLogValues(node.arguments);
                 }
             },
-            ReturnStatement: path => this.saveReturnValue(path)
+            ReturnStatement: path => this.saveReturnValue(path),
+            ArrowFunctionExpression: path => {
+                const body = path.node.body;
+
+                if (!isBlockStatement(body)) {
+                    this.saveReturnValueForFunction(path.node, body);
+                }
+            }
         };
 
         if (code instanceof NodePath) {
