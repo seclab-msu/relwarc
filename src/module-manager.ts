@@ -31,7 +31,7 @@ class Module {
         this.sourceText = sourceText;
         this.code = code;
         this.exports = {};
-        this.moduleObject = new ModuleObject();
+        this.moduleObject = new ModuleObject(this);
     }
 }
 
@@ -48,6 +48,12 @@ class RequireFunction extends FunctionValue {
 export const REQUIRE_FUNCTION = new RequireFunction();
 
 export class ModuleObject {
+    #owner: Module;
+
+    constructor(owner: Module) {
+        this.#owner = owner;
+    }
+
     toString() {
         if (debugEnabled()) {
             return '<Module>';
@@ -56,6 +62,9 @@ export class ModuleObject {
     }
     toJSON() {
         return this.toString();
+    }
+    get exports() {
+        return this.#owner.exports;
     }
 }
 
