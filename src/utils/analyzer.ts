@@ -42,3 +42,9 @@ function makeRegExpUnsettablePropNamesSnapshot(): RegExpPropNames {
 
 export const REGEXP_UNSETTABLE_PROPS: RegExpPropNames =
     makeRegExpUnsettablePropNamesSnapshot();
+
+export function validateAnalysisPasses(ap: number): void {
+    if (ap <= 0 || Math.floor(ap) !== ap) {
+        throw new Error(`Invalid number of analysis passes given: ${ap}`);
+    }
+}
