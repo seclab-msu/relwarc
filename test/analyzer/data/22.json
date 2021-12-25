@@ -1,0 +1,33 @@
+[
+    {
+        "method": "GET",
+        "url": "http://test.com/index.php?param=123",
+        "httpVersion": "HTTP/1.1",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "test.com"
+            }
+        ],
+        "queryString": [
+            {
+                "name": "param",
+                "value": "123"
+            }
+        ],
+        "bodySize": 0
+    },
+    {
+        "method": "GET",
+        "url": "http://example.com/test",
+        "httpVersion": "HTTP/1.1",
+        "headers": [
+            {
+                "name": "Host",
+                "value": "example.com"
+            }
+        ],
+        "queryString": [],
+        "bodySize": 0
+    }
+]

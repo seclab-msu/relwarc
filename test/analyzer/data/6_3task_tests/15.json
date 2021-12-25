@@ -1,0 +1,34 @@
+[
+    {
+       "bodySize" : 0,
+       "headers" : [
+          {
+             "value" : "u.7654.com",
+             "name" : "Host"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "queryString" : [],
+       "method" : "GET",
+       "url" : "http://u.7654.com/Package/UNKNOWN/uid//pid/243"
+    },
+    {
+       "headers" : [
+          {
+             "value" : "u.7654.com",
+             "name" : "Host"
+          }
+       ],
+       "bodySize" : 0,
+       "queryString" : [
+          {
+             "name" : "type",
+             "value" : "2"
+          }
+       ],
+       "httpVersion" : "HTTP/1.1",
+       "url" : "http://u.7654.com/Badge/light_badge?type=2",
+       "method" : "GET"
+    }
+ ]
+ 

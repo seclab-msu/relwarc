@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script>
+        const unique = 1337;
+        const api_url = "/api/v2"
+        new Function('a','b', 'const unique = a + b; $.get(api_url, "action=logout"); return unique;')
+    </script>
+</body>
+</html>

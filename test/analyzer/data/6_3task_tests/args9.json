@@ -1,0 +1,14 @@
+[
+    {
+      "funcName": "axios.post",
+      "args": [
+        "https://event.1111.com.tw/careermaster/position/random"
+      ]
+    },
+    {
+      "funcName": "axios.post",
+      "args": [
+        "https://event.1111.com.tw/careermaster/detail/%replaceData%/4/json"
+      ]
+    }
+]
