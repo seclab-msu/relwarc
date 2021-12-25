@@ -55,6 +55,11 @@ import { FunctionManager } from './function-manager';
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
 import { STRING_METHODS, REGEXP_UNSETTABLE_PROPS } from './utils/analyzer';
+import {
+    safeToString,
+    safeStringFromPrimitive,
+    safeToStringOrRegexp
+} from './utils/string-conversions';
 
 import { HAR, BadURLError } from './har';
 import { makeHAR } from './library-models/sinks';
@@ -449,45 +454,6 @@ export class Analyzer {
         }
     }
 
-    private safeStringFromPrimitive(v: NontrivialValue): string | null {
-        switch (typeof v) {
-        case 'string':
-            return v;
-        case 'number':
-        case 'boolean':
-            return String(v);
-        default:
-            // NOTE: when type of v is 'object' or any other unexpected, we just
-            // refuse to cast it to string
-            return null;
-        }
-    }
-
-    private safeToString(v: Value): string {
-        if (typeof v === 'undefined' || v === null) {
-            return String(v);
-        }
-        if (isUnknown(v)) {
-            return 'UNKNOWN';
-        }
-        if (v instanceof URL || v instanceof URLSearchParams) {
-            return String(v);
-        }
-        const sv = this.safeStringFromPrimitive(v);
-
-        if (sv === null) {
-            return 'UNKNOWN';
-        }
-        return sv;
-    }
-
-    private safeToStringOrRegexp(v: Value): string | RegExp {
-        if (v instanceof RegExp) {
-            return v;
-        }
-        return this.safeToString(v);
-    }
-
     private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
         let propName: Value;
@@ -526,7 +492,7 @@ export class Analyzer {
 
         const updatedObject = this.valueFromASTNode(node.object);
 
-        const safeName = this.safeStringFromPrimitive(propName);
+        const safeName = safeStringFromPrimitive(propName);
 
         if (ClassManager.nodeIsProbablyVanillaPrototypeMethod(node)) {
             if (node.object.type !== 'MemberExpression') {
@@ -873,8 +839,8 @@ export class Analyzer {
                 if (isUnknown(args[0])) {
                     return UNKNOWN;
                 }
-                args = [this.safeToStringOrRegexp(args[0])].concat(
-                    args.slice(1).map(arg => this.safeToString(arg))
+                args = [safeToStringOrRegexp(args[0])].concat(
+                    args.slice(1).map(arg => safeToString(arg))
                 );
             } else {
                 if (
@@ -883,7 +849,7 @@ export class Analyzer {
                 ) {
                     return UNKNOWN;
                 }
-                args = args.map(arg => this.safeToString(arg));
+                args = args.map(arg => safeToString(arg));
             }
 
             const method = STRING_METHODS[methodName];
