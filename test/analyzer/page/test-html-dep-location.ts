@@ -8,12 +8,20 @@ function JSONObjectFromHAR(har: object): object {
     return JSON.parse(JSON.stringify(har));
 }
 
+async function mineHTMLDEPs(url: string): Promise<object[]> {
+    const dpa = new DynamicPageAnalyzer({ filterStatic: false });
+    const fullURL = testWS.getFullURL(url);
+    await dpa.run(fullURL, false, true, true);
+    const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+    dpa.close();
+    return hars;
+}
+
 describe('Testing HTML info of dynamic HTML DEPS', () => {
+    let hars: object[] | undefined;
+
     it('Script nested in class unique div tags', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         expect(hars).toContain(jasmine.objectContaining({
             'initiator': {
                 'type': 'script',
@@ -25,14 +33,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 28
             }
         }));
-        dpa.close();
     });
 
     it('Script nested in not class unique div tags', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         expect(hars).toContain(jasmine.objectContaining({
             'initiator': {
                 'type': 'script',
@@ -44,14 +48,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 28
             }
         }));
-        dpa.close();
     });
 
     it('Subdocument via iframe tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         if (currentBackend == BackendKind.SlimerJS) {
             expect(hars).toContain(jasmine.objectContaining({
                 'initiator': {
@@ -77,14 +77,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 }
             }));
         }
-        dpa.close();
     });
 
     it('Media load type via audio tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         expect(hars).toContain(jasmine.objectContaining({
             'initiator': {
                 'type': 'media',
@@ -96,14 +92,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 12
             }
         }));
-        dpa.close();
     });
 
     it('Img load type via img tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         expect(hars).toContain(jasmine.objectContaining({
             'initiator': {
                 'type': 'img',
@@ -115,14 +107,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 16
             }
         }));
-        dpa.close();
     });
 
     it('Imageset load type via img tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         if (currentBackend == BackendKind.SlimerJS) {
             expect(hars).toContain(jasmine.objectContaining({
                 'initiator': {
@@ -148,14 +136,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 }
             }));
         }
-        dpa.close();
     });
 
     it('Imageset load type via source tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         if (currentBackend == BackendKind.SlimerJS) {
             expect(hars).toContain(jasmine.objectContaining({
                 'initiator': {
@@ -181,14 +165,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 }
             }));
         }
-        dpa.close();
     });
 
     it('Stylesheet load type via link tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         expect(hars).toContain(jasmine.objectContaining({
             'initiator': {
                 'type': 'stylesheet',
@@ -200,14 +180,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 8
             }
         }));
-        dpa.close();
     });
 
     it('Media load type via source tag', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         expect(hars).toContain(jasmine.objectContaining({
             'initiator': {
                 'type': 'media',
@@ -219,14 +195,10 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 'columnNumber': 12
             }
         }));
-        dpa.close();
     });
 
     it('Imageset load type, for resource from srcset attr', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/css-selectors.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
+        hars = hars || await mineHTMLDEPs('/css-selectors.html');
         if (currentBackend == BackendKind.SlimerJS) {
             expect(hars).toContain(jasmine.objectContaining({
                 'initiator': {
@@ -252,134 +224,117 @@ describe('Testing HTML info of dynamic HTML DEPS', () => {
                 }
             }));
         }
-        dpa.close();
     });
 
-    it('Img from page with bad encoding', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/bad-encoding.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'img',
-                'htmlInfo': {
-                    'outerHTML': '<img src="/bad-enc/img.png">',
-                    'selector': 'body > div:nth-child(5) > img:nth-child(1)'
-                },
-                'lineNumber': 17,
-                'columnNumber': 4
-            }
-        }));
-        dpa.close();
-    });
+    describe('bad encoding', () => {
+        let hars: object[] | undefined;
 
-    it('Script from page with bad encoding', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/bad-encoding.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'script',
-                'htmlInfo': {
-                    'outerHTML': '<script src="/bad-enc/script1.js"></script>',
-                    'selector': 'body > div:nth-child(6) > script:nth-child(1)'
-                },
-                'lineNumber': 19,
-                'columnNumber': 33
-            }
-        }));
-        dpa.close();
-    });
-
-    it('URL from img src with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        if (currentBackend == BackendKind.SlimerJS) {
-            expect(hars).toContain(jasmine.objectContaining({
-                'initiator': {
-                    'type': 'imageset',
-                    'htmlInfo': {
-                        'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
-                        'selector': 'body > img:nth-child(1)'
-                    },
-                    'lineNumber': 2,
-                    'columnNumber': 8
-                }
-            }));
-        } else{
+        it('Img from page with', async () => {
+            hars = hars || await mineHTMLDEPs('/bad-encoding.html');
             expect(hars).toContain(jasmine.objectContaining({
                 'initiator': {
                     'type': 'img',
                     'htmlInfo': {
-                        'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
-                        'selector': 'body > img:nth-child(1)'
+                        'outerHTML': '<img src="/bad-enc/img.png">',
+                        'selector': 'body > div:nth-child(5) > img:nth-child(1)'
                     },
-                    'lineNumber': 2,
+                    'lineNumber': 17,
+                    'columnNumber': 4
+                }
+            }));
+        });
+
+        it('Script from page with', async () => {
+            hars = hars || await mineHTMLDEPs('/bad-encoding.html');
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'script',
+                    'htmlInfo': {
+                        'outerHTML': '<script src="/bad-enc/script1.js"></script>',
+                        'selector': 'body > div:nth-child(6) > script:nth-child(1)'
+                    },
+                    'lineNumber': 19,
+                    'columnNumber': 33
+                }
+            }));
+        });
+    });
+
+    describe('with relative path', () => {
+        let hars: object[] | undefined;
+
+        it('URL from img src', async () => {
+            hars = hars || await mineHTMLDEPs('/relative_path_html_tracking/index.html');
+            if (currentBackend == BackendKind.SlimerJS) {
+                expect(hars).toContain(jasmine.objectContaining({
+                    'initiator': {
+                        'type': 'imageset',
+                        'htmlInfo': {
+                            'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
+                            'selector': 'body > img:nth-child(1)'
+                        },
+                        'lineNumber': 2,
+                        'columnNumber': 8
+                    }
+                }));
+            } else{
+                expect(hars).toContain(jasmine.objectContaining({
+                    'initiator': {
+                        'type': 'img',
+                        'htmlInfo': {
+                            'outerHTML': '<img src="images/img7.png" srcset="images/img5x.png 480w, images/img5x.png 800w">',
+                            'selector': 'body > img:nth-child(1)'
+                        },
+                        'lineNumber': 2,
+                        'columnNumber': 8
+                    }
+                }));
+            }
+        });
+
+        it('URL from image with', async () => {
+            hars = hars || await mineHTMLDEPs('/relative_path_html_tracking/index.html');
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'img',
+                    'htmlInfo': {
+                        'outerHTML': '<img src="images/img8.png">',
+                        'selector': 'body > img:nth-child(2)'
+                    },
+                    'lineNumber': 3,
                     'columnNumber': 8
                 }
             }));
-        }
-        dpa.close();
-    });
+        });
 
-    it('URL from image with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'img',
-                'htmlInfo': {
-                    'outerHTML': '<img src="images/img8.png">',
-                    'selector': 'body > img:nth-child(2)'
-                },
-                'lineNumber': 3,
-                'columnNumber': 8
-            }
-        }));
-        dpa.close();
-    });
+        it('URL from style', async () => {
+            hars = hars || await mineHTMLDEPs('/relative_path_html_tracking/index.html');
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'stylesheet',
+                    'htmlInfo': {
+                        'outerHTML': '<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">',
+                        'selector': 'body > link:nth-child(3)'
+                    },
+                    'lineNumber': 4,
+                    'columnNumber': 8
+                }
+            }));
+        });
 
-    it('URL from style with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'stylesheet',
-                'htmlInfo': {
-                    'outerHTML': '<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">',
-                    'selector': 'body > link:nth-child(3)'
-                },
-                'lineNumber': 4,
-                'columnNumber': 8
-            }
-        }));
-        dpa.close();
-    });
-
-    it('URL from script with relative path', async () => {
-        const dpa = new DynamicPageAnalyzer({ filterStatic: false });
-        const url = testWS.getFullURL('/relative_path_html_tracking/index.html');
-        await dpa.run(url, false, true, true);
-        const hars = dpa.getAllDeps().map(JSONObjectFromHAR);
-        expect(hars).toContain(jasmine.objectContaining({
-            'initiator': {
-                'type': 'script',
-                'htmlInfo': {
-                    'outerHTML': '<script src="js/script.js"></script>',
-                    'selector': 'body > script:nth-child(4)'
-                },
-                'lineNumber': 5,
-                'columnNumber': 8
-            }
-        }));
-        dpa.close();
+        it('URL from script with', async () => {
+            hars = hars || await mineHTMLDEPs('/relative_path_html_tracking/index.html');
+            expect(hars).toContain(jasmine.objectContaining({
+                'initiator': {
+                    'type': 'script',
+                    'htmlInfo': {
+                        'outerHTML': '<script src="js/script.js"></script>',
+                        'selector': 'body > script:nth-child(4)'
+                    },
+                    'lineNumber': 5,
+                    'columnNumber': 8
+                }
+            }));
+        });
     });
 });
