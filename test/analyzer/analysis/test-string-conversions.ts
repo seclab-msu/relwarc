@@ -54,7 +54,7 @@ describe('Test handling of JS builtins', () => {
                 `);
                 const analyzer = makeAndRunSimple([src], false);
                 const result = analyzer.getGlobalVariable('$test');
-                expect(result as string).toEqual('123http://test.com/a?b=c');
+                expect(result as unknown).toEqual('123http://test.com/a?b=c');
             });
         });
         it('substring', () => {
@@ -67,6 +67,46 @@ describe('Test handling of JS builtins', () => {
         });
         it('replace with bad 2nd arg', () => {
             const src = makeTestCode('$test = x.replace("123", y);');
+            makeAndRunSimple([src], false);
+        });
+    });
+    it('toString', () => {
+        const src = `
+            function f() {
+                var x1 = {
+                    toString: badUnknownFunc()
+                };
+                var x2 = 'abcd';
+
+                var z = x1.toString();
+
+                $test = x2.toString();
+            }
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const x2 = analyzer.getGlobalVariable('$test');
+        expect(x2 as unknown).toEqual('abcd');
+    });
+    it('Angular HttpRequest', () => {
+        const src = `
+            var y = {
+                toString: 'badThing'
+            };
+
+
+            var z = new HttpRequest(y, '/', {});
+        `;
+        makeAndRunSimple([src], false);
+    });
+    describe('URLSearchParams', () => {
+        it('append', () => {
+            const src = `
+                var y = {
+                    toString: 'badThing'
+                };
+                var x = new URLSearchParams();
+                x.append('aaa', y);
+            `;
             makeAndRunSimple([src], false);
         });
     });

@@ -953,7 +953,7 @@ export class Analyzer {
         const prop = callee.property;
         let propIsIdentifier = false;
         let propName = '';
-        if (prop.type === 'Identifier') {
+        if (prop.type === 'Identifier') { // TODO: there is a bug here, .computed should be checked
             propIsIdentifier = true;
             propName = prop.name;
         }
@@ -981,7 +981,7 @@ export class Analyzer {
         if (propIsIdentifier) {
             propStr = propName;
         } else {
-            propStr = String(this.valueFromASTNode(prop));
+            propStr = safeToString(this.valueFromASTNode(prop));
         }
 
         if (propStr === 'toString') {
@@ -989,7 +989,7 @@ export class Analyzer {
                 if (isUnknown(v)) {
                     return v;
                 }
-                return String(v);
+                return safeToString(v);
             };
             return obValue instanceof ValueSet ? obValue.map(f) : f(obValue);
         }
@@ -1055,7 +1055,7 @@ export class Analyzer {
         }
 
         let method = this.valueFromASTNode(node.arguments[0]) || 'GET';
-        method = method.toString();
+        method = safeToString(method);
 
         let body,
             settings = {};
@@ -1098,7 +1098,7 @@ export class Analyzer {
                 base = undefined;
             }
             try {
-                return new URL(String(url), base);
+                return new URL(safeToString(url), base);
             } catch {
                 return UNKNOWN;
             }
@@ -1130,8 +1130,16 @@ export class Analyzer {
                     // @ts-ignore
                     return new URLSearchParams(arg);
                 } catch {
+                    const sArg = ((): string => {
+                        try {
+                            return String(arg);
+                        } catch {
+                            return '<String failed>';
+                        }
+                    })();
                     log(
-                        `Warning: failed to create URLSearchParams with ${arg}`
+                        `Warning: failed to create URLSearchParams with ` +
+                        `${typeof arg} ${sArg}`
                     );
                 }
             }
@@ -1386,15 +1394,7 @@ export class Analyzer {
         ) {
             return UNKNOWN;
         }
-        const getProp = n => {
-            let propName;
-            try {
-                propName = String(n);
-            } catch {
-                return UNKNOWN;
-            }
-            return this.getObjectProperty(ob, propName);
-        };
+        const getProp = n => this.getObjectProperty(ob, safeToString(n));
         if (prop instanceof ValueSet) {
             return ValueSet.join(...prop.getValues().map(getProp));
         } else {
@@ -1476,10 +1476,10 @@ export class Analyzer {
                 continue;
             }
 
-            if (isIdentifier(prop.key)) {
+            if (isIdentifier(prop.key)) { // TODO: there is a bug here, .computed should be checked
                 key = prop.key.name;
             } else {
-                key = String(this.valueFromASTNode(prop.key));
+                key = safeToString(this.valueFromASTNode(prop.key));
             }
             result[key] = this.valueFromASTNode(prop.value);
         }
@@ -1841,7 +1841,7 @@ export class Analyzer {
                 value = value.tryToPeekConcrete();
             }
             if (typeof name === 'string') {
-                usp[methNode.name](name, String(value));
+                usp[methNode.name](name, safeToString(value));
             }
         }
     }
