@@ -1,0 +1,46 @@
+{
+    "checks": [{
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+            "type": "MemberExpression",
+            "property": {
+                "type": "Identifier",
+                "name": "jQuery"
+            }
+        },
+        "right": {
+            "type": "AssignmentExpression",
+            "operator": "=",
+            "left": {
+                "type": "MemberExpression",
+                "property": {
+                    "type": "Identifier",
+                    "name": "$"
+                }
+            }
+        }
+    },
+    {
+        "type": "ExpressionStatement",
+        "expression": {
+            "type": "AssignmentExpression",
+            "operator": "=",
+            "left": {
+                "type": "MemberExpression",
+                "property": {
+                    "type": "Identifier",
+                    "name": "$"
+                }
+            },
+            "right": {                    
+                "type": "Identifier",
+                "name": "jQuery"
+            },
+            "_parent": {
+                "type": "ExpressionStatement"
+            }
+        }
+    }],
+    "$length": 25000
+}

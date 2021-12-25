@@ -1,4 +1,6 @@
-import type { SinkSignature } from '../signatures';
+import type { Signature } from '../signatures';
+
+import { matchAST } from './ast-matcher';
 
 const jQueryAjaxFunctions = [
     'ajax',
@@ -9,7 +11,7 @@ const jQueryAjaxFunctions = [
     'getScript'
 ];
 
-const signatures: SinkSignature[] = [
+const signatures: Signature[] = [
     {
         type: 'bound',
         signature: {
@@ -24,6 +26,12 @@ const signatures: SinkSignature[] = [
             'jQuery': ['load']
         }
 
+    },
+    {
+        type: 'libAST',
+        baseNodeType: 'FunctionExpression',
+        matcher: matchAST,
+        excludeFromAnalysis: true
     }
 ];
 

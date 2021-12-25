@@ -77,6 +77,8 @@ import {
     callSequenceMethodNames
 } from './library-models/signatures';
 
+import { checkExclusion } from './library-models/lib-exclusion';
+
 import {
     CallSequence,
     TrackedCallSequence,
@@ -801,6 +803,10 @@ export class Analyzer {
                 this.currentPath = path;
                 if (!this.globalProgramPath) {
                     this.seedGlobalScope(path, url);
+                }
+                if (checkExclusion(node)) {
+                    path.skip();
+                    return;
                 }
                 if (
                     isFunctionDeclaration(node) || isClassDeclaration(node)
@@ -2126,6 +2132,10 @@ export class Analyzer {
             enter: (path: NodePath): void => {
                 const node = path.node;
                 this.currentPath = path;
+                if (checkExclusion(node)) {
+                    path.skip();
+                    return;
+                }
                 if (isFunction(node)) {
                     if (this.moduleManager.isModule(node)) {
                         this.setModuleVars(path, node);
