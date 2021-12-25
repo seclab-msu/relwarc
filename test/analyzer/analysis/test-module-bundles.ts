@@ -108,14 +108,9 @@ describe('Test ability analyze code with bundled modules', () => {
         const bundle = getTestFile('require-define.js');
         const analyzer = makeAndRunSimple([bundle], false);
 
-        const res = analyzer.getGlobalVariable('$test');
-        let values;
-
-        if (res instanceof ValueSet) {
-            values = res.getValues();
-        } else {
-            values = [res];
-        }
-        expect(values.includes('abc123')).toBe(true);
+        const res = ValueSet.produceCombinations(
+            analyzer.getGlobalVariable('$test')
+        );
+        expect(res as unknown[]).toContain('abc123');
     });
 });
