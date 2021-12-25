@@ -810,6 +810,7 @@ export class Analyzer {
                 if (isFunction(node)) {
                     if (this.moduleManager.isModule(node)) {
                         this.setModuleVars(path, node);
+                        this.argsStack.push([]);
                     } else {
                         this.argsStack.push(this.argNamesForFunctionNode(node));
                     }
