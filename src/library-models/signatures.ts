@@ -12,6 +12,7 @@ import jQuerySignatures from './jquery/signatures';
 import angularSignatures from './angular/signatures';
 import axiosSignatures from './axios/signatures';
 import xmlHttpRequestSignatures from './xmlhttprequest/signatures';
+import angularFileUploadSignatures from './angular-file-upload/signatures';
 
 
 interface BaseSinkSignature {
@@ -64,7 +65,8 @@ const signatureList = ([] as Signature[])
     .concat(angularSignatures)
     .concat(fetchSignatures)
     .concat(xmlHttpRequestSignatures)
-    .concat(axiosSignatures);
+    .concat(axiosSignatures)
+    .concat(angularFileUploadSignatures);
 
 const signatures = {
     freeStanding: [] as string[],
