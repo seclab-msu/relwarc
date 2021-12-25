@@ -3,7 +3,7 @@ import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
 import { HAR } from '../../har';
 
-function makeHARAngularFileUpload(
+function makeHARAngularFileUpload( // eslint-disable-line complexity
     name: string,
     args: Value[],
     baseURL: string
@@ -42,6 +42,14 @@ function makeHARAngularFileUpload(
         name: 'Content-Type',
         value: 'multipart/form-data'
     });
+
+    if ('authToken' in options && typeof options.authToken === 'string') {
+        har.headers.push({
+            name: 'Authorization',
+            value: options.authToken
+        });
+    }
+
     har.setPostData('', false, [{
         name: fieldName,
         value: '',
