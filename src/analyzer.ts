@@ -79,8 +79,10 @@ import { LoadType } from './load-type';
 import {
     matchFreeStandingCallSignature,
     matchMethodCallSignature,
-    callSequenceMethodNames
+    callSequenceMethodNames,
+    checkForLibraryClass
 } from './library-models/signatures';
+import { LibClass, LibObject } from './types/lib-objects';
 
 import { checkExclusion } from './library-models/lib-exclusion';
 
@@ -1344,6 +1346,24 @@ export class Analyzer {
         }
     }
 
+    private checkForLibClass(clsObj: ClassObject): LibClass | null {
+        const cls = this.classManager.classForClassObject(clsObj);
+        if (!cls) {
+            return null;
+        }
+        return checkForLibraryClass(cls);
+    }
+
+    private processLibClassInstantiation(
+        lc: LibClass,
+        node: NewExpression
+    ): Value {
+        if (lc.isAJAXCall) {
+            this.extractDEPFromArgs(lc.libName, node.arguments, node.loc);
+        }
+        return new LibObject(lc.libName);
+    }
+
     private processNewExpression(node: NewExpression): Value {
         const callee = node.callee;
 
@@ -1354,7 +1374,10 @@ export class Analyzer {
         const cls = this.valueFromASTNode(callee);
 
         if (cls instanceof ClassObject) {
-            // NB(asterite): ctor arguments are currently ignored
+            const libCls = this.checkForLibClass(cls);
+            if (libCls) {
+                return this.processLibClassInstantiation(libCls, node);
+            }
             const ctorNode = this.classManager.getMethodForClassObject(
                 cls,
                 'constructor'

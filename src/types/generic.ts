@@ -5,6 +5,7 @@ import type { ValueSet } from './value-set';
 import type { ClassObject, Instance } from './classes';
 import type { GlobalWindowObject } from './memory';
 import type { ModuleObject } from '../module-manager';
+import type { LibClass, LibObject } from './lib-objects';
 
 export type TrivialValue = undefined | null;
 
@@ -22,8 +23,10 @@ export type NontrivialValue =
     | ValueSet
     | ClassObject
     | Instance
-    | Value[]
     | GlobalWindowObject
-    | ModuleObject;
+    | ModuleObject
+    | LibClass
+    | LibObject
+    | Value[];
 
 export type Value = TrivialValue | NontrivialValue;

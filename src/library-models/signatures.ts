@@ -2,6 +2,10 @@ import { Node as ASTNode, Identifier } from '@babel/types';
 
 import { hasattr } from '../utils/common';
 import { CallSequenceSignatureInfo, CallSequence } from '../call-sequence';
+import type { Class } from '../types/classes';
+
+import { ClassASTSignatureSet, matchClassASTSignature } from './ast-signatures';
+import { LibClass } from '../types/lib-objects';
 
 import fetchSignatures from './fetch/signatures';
 import jQuerySignatures from './jquery/signatures';
@@ -40,10 +44,16 @@ export interface LibASTSignature {
     excludeFromAnalysis: boolean;
 }
 
+interface ClassASTSinkSignature extends BaseSinkSignature {
+    type: 'classAST';
+    signature: ClassASTSignatureSet;
+}
+
 export type SinkSignature =
     | FreeStandingSinkSignature
     | BoundSinkSignature
-    | CallSequenceSinkSignature;
+    | CallSequenceSinkSignature
+    | ClassASTSinkSignature;
 
 export type Signature =
     | SinkSignature
@@ -60,7 +70,8 @@ const signatures = {
     freeStanding: [] as string[],
     bound: {} as ObjectSignatureSet,
     boundToCall: {} as ObjectSignatureSet,
-    callSequence: {} as Record<string, CallSequenceSignatureInfo>
+    callSequence: {} as Record<string, CallSequenceSignatureInfo>,
+    cls: [] as ClassASTSignatureSet[]
 };
 
 export const libASTSignatures: LibASTSignature[] = [];
@@ -84,6 +95,8 @@ for (const sign of signatureList) {
         }
     } else if (sign.type === 'libAST') {
         libASTSignatures.push(sign);
+    } else if (sign.type === 'classAST') {
+        signatures.cls.push(sign.signature);
     }
 }
 
@@ -135,6 +148,16 @@ export function matchMethodCallSignature(
 
     if (obSignatures[obName].includes(prop.name)) {
         return obName;
+    }
+    return null;
+}
+
+export function checkForLibraryClass(cls: Class): LibClass | null {
+    for (const sig of signatures.cls) {
+        const result = matchClassASTSignature(sig, cls);
+        if (result) {
+            return new LibClass(result[0], result[1]);
+        }
     }
     return null;
 }
