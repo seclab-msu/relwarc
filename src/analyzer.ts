@@ -478,7 +478,7 @@ export class Analyzer {
     private setArrayLengthFromSet(arr: Array<Value>, length: ValueSet): void {
         const numbers: number[] = [];
         length.forEach(
-            v => typeof v === 'number' && numbers.push(v)
+            v => typeof v === 'number' && !isNaN(v) && numbers.push(v)
         );
         if (numbers.length > 0) {
             arr.length = Math.max(...numbers);
