@@ -47,7 +47,7 @@ interface POSTFormRequestData extends GenericFormRequestData {
     method: string;
     action: string;
     encType: string;
-    params: Record<string, string>;
+    params: KeyValue[];
 }
 
 export type FormRequestData = GETFormRequestData | POSTFormRequestData;
@@ -79,7 +79,7 @@ export function reqDataFromPOSTForm(
 
     const encType = form.enctype || defaultEncType;
 
-    const searchParamsDict = {};
+    const searchParams: KeyValue[] = [];
 
     for (const el of form.elements) {
         if (!isSupportedFormInput(el)) {
@@ -90,14 +90,23 @@ export function reqDataFromPOSTForm(
             continue;
         }
 
-        searchParamsDict[el.name] = el.value;
+        const param: KeyValue = {
+            name: el.name,
+            value: el.value
+        };
+
+        if (el instanceof HTMLInputElement) {
+            param.type = el.type;
+        }
+
+        searchParams.push(param);
     }
 
     return {
         method: form.method,
         encType,
         action: url.href,
-        params: searchParamsDict
+        params: searchParams
     };
 }
 
@@ -139,17 +148,13 @@ export function harFromFormReqData(reqData: FormRequestData): HAR | null {
                 'value': reqData.encType
             });
 
-            const searchParams = new URLSearchParams(reqData.params);
+            const searchParams = new URLSearchParams();
 
-            if (reqData.encType === 'multipart/form-data') {
-                const rawData: KeyValue[] = [];
-                for (const [name, value] of searchParams) {
-                    rawData.push({ name, value });
-                }
-                har.setPostData(searchParams.toString(), false, rawData);
-            } else {
-                har.setPostData(searchParams.toString());
+            for (const param of reqData.params) {
+                searchParams.append(param.name, param.value);
             }
+
+            har.setPostData(searchParams.toString(), false, reqData.params);
 
             return har;
         } else {

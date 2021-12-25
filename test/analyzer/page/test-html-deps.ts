@@ -158,7 +158,8 @@ describe('Analyzing HTML DEPs', () => {
                 "params": [
                     {
                         "name": "ae9ieC",
-                        "value": ""
+                        "value": "",
+                        "type": "text"
                     }
                 ]
             }
@@ -188,15 +189,18 @@ describe('Analyzing HTML DEPs', () => {
                 "params": [
                     {
                         "name": "password",
-                        "value": ""
+                        "value": "",
+                        "type": "text"
                     },
                     {
                         "name": "tag",
-                        "value": "default"
+                        "value": "default",
+                        "type": "text"
                     },
                     {
                         "name": "username",
-                        "value": ""
+                        "value": "",
+                        "type": "text"
                     }
                 ]
             }
@@ -226,17 +230,53 @@ describe('Analyzing HTML DEPs', () => {
                 "params": [
                     {
                         "name": "password",
-                        "value": "random"
+                        "value": "random",
+                        "type": "text"
                     },
                     {
                         "name": "tag",
-                        "value": "default"
+                        "value": "default",
+                        "type": "text"
                     },
                     {
                         "name": "username",
-                        "value": "admin"
+                        "value": "admin",
+                        "type": "text"
                     }
                 ]
+            }
+        }));
+        dpa.close();
+    });
+
+    it('form POST request with input type "password"', async () => {
+        const dpa = new DynamicPageAnalyzer();
+        const url = testWS.getFullURL('/test-html-dep9.html');
+
+        await dpa.run(url);
+
+        expect(dpa.htmlDEPs.length).toBeGreaterThan(0);
+
+        const hars = dpa.htmlDEPs.map(JSONObjectFromHAR);
+
+        expect(hars).toContain(jasmine.objectContaining({
+            "method": "POST",
+            "url": testWS.getFullURL('/user/login'),
+            "httpVersion": "HTTP/1.1",
+            "queryString": [],
+            "bodySize": 11,
+            "postData": {
+                "text": "user=&pswd=",
+                "mimeType": "application/x-www-form-urlencoded",
+                "params": [{
+                    "name": "user",
+                    "value": "",
+                    "type": "text"
+                }, {
+                    "name": "pswd",
+                    "value": "",
+                    "type": "password"
+                }]
             }
         }));
         dpa.close();
