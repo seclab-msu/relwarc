@@ -34,6 +34,7 @@ interface CallSequenceSinkSignature extends BaseSinkSignature {
 
 export interface LibASTSignature {
     type: 'libAST';
+    name: string;
     baseNodeType: string;
     matcher: (node: ASTNode) => boolean;
     excludeFromAnalysis: boolean;

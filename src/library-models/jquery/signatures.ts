@@ -29,6 +29,7 @@ const signatures: Signature[] = [
     },
     {
         type: 'libAST',
+        name: 'jQuery code (main obj assignment)',
         baseNodeType: 'FunctionExpression',
         matcher: matchAST,
         excludeFromAnalysis: true

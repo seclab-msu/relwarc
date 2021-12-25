@@ -141,6 +141,7 @@ export interface AnalyzerOptions {
     debugCallChains: boolean;
     debugValueSets: boolean;
     debugModules: boolean;
+    debugLibExclusion: boolean;
 }
 
 export class Analyzer {
@@ -203,6 +204,7 @@ export class Analyzer {
             debugCallChains: false,
             debugValueSets: false,
             debugModules: false,
+            debugLibExclusion: true,
             ...options
         };
 
@@ -804,7 +806,11 @@ export class Analyzer {
                 if (!this.globalProgramPath) {
                     this.seedGlobalScope(path, url);
                 }
-                if (checkExclusion(node)) {
+                const detectedLib = checkExclusion(node);
+                if (detectedLib) {
+                    if (this.options.debugLibExclusion) {
+                        log(`Analyzer: detected lib ${detectedLib}, skip node`);
+                    }
                     path.skip();
                     return;
                 }
@@ -2132,7 +2138,11 @@ export class Analyzer {
             enter: (path: NodePath): void => {
                 const node = path.node;
                 this.currentPath = path;
-                if (checkExclusion(node)) {
+                const detectedLib = checkExclusion(node);
+                if (detectedLib) {
+                    if (this.options.debugLibExclusion) {
+                        log(`Analyzer: detected lib ${detectedLib}, skip node`);
+                    }
                     path.skip();
                     return;
                 }

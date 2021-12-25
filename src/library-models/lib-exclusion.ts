@@ -3,7 +3,7 @@ import type { Node as ASTNode } from '@babel/types';
 import { libASTSignatures, LibASTSignature } from './signatures';
 
 const signaturesByType: Map<string, LibASTSignature[]> = new Map();
-const exclusionCache: Map<ASTNode, boolean> = new Map();
+const exclusionCache: Map<ASTNode, string | null> = new Map();
 
 for (const sig of libASTSignatures) {
     if (!sig.excludeFromAnalysis) {
@@ -21,11 +21,11 @@ for (const sig of libASTSignatures) {
     }
 }
 
-export function checkExclusion(node: ASTNode): boolean {
+export function checkExclusion(node: ASTNode): string | null {
     const relevantSigs = signaturesByType.get(node.type);
 
     if (!relevantSigs) {
-        return false;
+        return null;
     }
 
     const cached = exclusionCache.get(node);
@@ -34,14 +34,14 @@ export function checkExclusion(node: ASTNode): boolean {
         return cached;
     }
 
-    let result = false;
+    let result: string | null = null;
 
     for (const sig of relevantSigs) {
         if (!sig.excludeFromAnalysis) {
             continue;
         }
         if (sig.matcher(node)) {
-            result = true;
+            result = sig.name;
             break;
         }
     }
