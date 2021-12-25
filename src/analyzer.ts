@@ -55,7 +55,11 @@ import { FunctionManager } from './function-manager';
 
 import { hasattr } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
-import { STRING_METHODS, REGEXP_UNSETTABLE_PROPS } from './utils/analyzer';
+import {
+    STRING_METHODS,
+    REGEXP_UNSETTABLE_PROPS,
+    validateAnalysisPasses
+} from './utils/analyzer';
 import {
     safeToString,
     safeStringFromPrimitive,
@@ -96,6 +100,8 @@ import {
     REQUIRE_DEFINE
 } from './module-manager';
 
+const DEFAULT_ANALYSIS_PASSES = 3;
+
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
 
@@ -127,7 +133,7 @@ export interface SinkCall {
 }
 
 enum AnalysisPhase {
-    VarGathering,
+    DataFlowPropagationPass,
     DEPExtracting
 }
 
@@ -139,6 +145,7 @@ interface Script {
 }
 
 export interface AnalyzerOptions {
+    analysisPasses: number;
     debug: boolean;
     debugCallChains: boolean;
     debugValueSets: boolean;
@@ -179,6 +186,8 @@ export class Analyzer {
 
     private stage: AnalysisPhase | null;
 
+    private pageURL: string | null;
+
     private argsStackOffset: number | null;
 
     private resultsAlready: Set<string>;
@@ -202,6 +211,7 @@ export class Analyzer {
         options?: Partial<AnalyzerOptions>
     ) {
         this.options = {
+            analysisPasses: DEFAULT_ANALYSIS_PASSES,
             debug: false,
             debugCallChains: false,
             debugValueSets: false,
@@ -209,6 +219,8 @@ export class Analyzer {
             debugLibExclusion: true,
             ...options
         };
+
+        validateAnalysisPasses(this.options.analysisPasses);
 
         this.parsedScripts = [];
         this.results = [];
@@ -247,6 +259,7 @@ export class Analyzer {
         this.argsStackOffset = null;
         this.mergedProgram = null;
         this.harFilter = null;
+        this.pageURL = null;
 
         this.resultsAlready = new Set();
 
@@ -465,7 +478,7 @@ export class Analyzer {
     private setArrayLengthFromSet(arr: Array<Value>, length: ValueSet): void {
         const numbers: number[] = [];
         length.forEach(
-            v => typeof v === 'number' && numbers.push(v)
+            v => typeof v === 'number' && !isNaN(v) && numbers.push(v)
         );
         if (numbers.length > 0) {
             arr.length = Math.max(...numbers);
@@ -845,17 +858,17 @@ export class Analyzer {
         }
     }
 
-    private gatherVariableValues(url: string): void {
-        this.stage = AnalysisPhase.VarGathering;
+    private analysisPass(): void {
+        this.stage = AnalysisPhase.DataFlowPropagationPass;
         if (this.mergedProgram === null) {
-            throw new Error('gatherVariableValues was called before mergeASTs');
+            throw new Error('analysisPass was called before mergeASTs');
         }
         traverse(this.mergedProgram, {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
                 this.currentPath = path;
                 if (!this.globalProgramPath) {
-                    this.seedGlobalScope(path, url);
+                    this.seedGlobalScope(path);
                 }
                 const detectedLib = checkExclusion(node);
                 if (detectedLib) {
@@ -1495,7 +1508,7 @@ export class Analyzer {
                 this.argsStack.length - this.argsStackOffset - 1
             ];
         } else if (
-            this.stage === AnalysisPhase.VarGathering &&
+            this.stage === AnalysisPhase.DataFlowPropagationPass &&
             this.argsStack.length > 0 &&
             binding
         ) {
@@ -1633,7 +1646,7 @@ export class Analyzer {
                 return this.functionManager.getOrCreate(node);
             }
             return UNKNOWN_FUNCTION;
-        } else if (this.stage === AnalysisPhase.VarGathering) {
+        } else if (this.stage === AnalysisPhase.DataFlowPropagationPass) {
             if (
                 isFunctionExpression(node) &&
                 !this.classManager.containsClass(node)
@@ -2343,10 +2356,14 @@ export class Analyzer {
         this.extractDEPs(func, this.makeFunctionDescription(func));
     }
 
-    private seedGlobalScope(path: NodePath, url: string): void {
+    private seedGlobalScope(path: NodePath): void {
         this.globalProgramPath = path;
 
-        const locationObject = new URL(url);
+        if (this.pageURL === null) {
+            throw new Error('seedGlobalScope: page URL not set');
+        }
+
+        const locationObject = new URL(this.pageURL);
         const propDescr = {
             configurable: false,
             get: () => locationObject,
@@ -2462,8 +2479,13 @@ export class Analyzer {
 
         this.mergeASTs();
 
-        log('Analyzer: start gathering variable values');
-        this.gatherVariableValues(url);
+        this.pageURL = url;
+
+        log('Analyzer: run data flow analysis passes');
+        for (let i = 0; i < this.options.analysisPasses; i++) {
+            log(`Analyzer: run analysis pass ${i}`);
+            this.analysisPass();
+        }
 
         log('Analyzer: search code for DEP calls');
         this.extractDEPs(this.mergedProgram, null);

@@ -4,8 +4,28 @@ describe('Test Arrays', () => {
     it('does not set "length" property to NaN', () => {
         const src = `
         var a = [];
-        let x;
+        let x = undefined;
         a.length = x + 1;
+        $.get('/health-check');
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+
+        expect(res as object[]).toContain({
+            funcName: '$.get',
+            args: ['/health-check']
+        });
+    });
+
+    it('does not set "length" property to NaN from ValueSet', () => {
+        const src = `
+        var a = [];
+        let x = undefined;
+        let y = someThing() ? x + 1 : x + 2;
+        a.length = y;
         $.get('/health-check');
         `;
         const analyzer = makeAndRunSimple([src], false);
