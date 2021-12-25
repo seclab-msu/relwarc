@@ -24,7 +24,7 @@ import { FunctionValue } from './function';
 import { log } from '../logging';
 
 type VanillaMethod = FunctionExpression | FunctionDeclaration;
-type Method = ClassMethod | ClassPrivateMethod | VanillaMethod;
+export type Method = ClassMethod | ClassPrivateMethod | VanillaMethod;
 type VanillaClassNode = VanillaMethod; // same for vanilla
 type TranspiledClassNode = CallExpression;
 type ClassNode = ModernClassNode | VanillaClassNode | TranspiledClassNode;
@@ -374,5 +374,8 @@ export class ClassManager {
             }
         }
         return null;
+    }
+    classForClassObject(co: ClassObject): Class | null {
+        return this.classObject2Class.get(co) || null;
     }
 }

@@ -1,0 +1,70 @@
+{
+  "type": "BlockStatement",
+  "body": [{
+    "type": "ExpressionStatement",
+    "expression": {
+      "type": "SequenceExpression",
+      "expressions": [{
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "object": {
+            "type": "ThisExpression"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "isUploading"
+          }
+        }
+      }, {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "object": {
+            "type": "ThisExpression"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "queue"
+          }
+        }
+      }, {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "object": {
+            "type": "ThisExpression"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "progress"
+          }
+        },
+        "right": {
+          "type": "NumericLiteral",
+          "value": 0
+        }
+      }, {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "MemberExpression",
+          "object": {
+            "type": "ThisExpression"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "_nextIndex"
+          }
+        },
+        "right": {
+          "type": "NumericLiteral",
+          "value": 0
+        }
+      }]
+    }
+  }]
+}

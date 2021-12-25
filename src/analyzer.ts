@@ -79,8 +79,10 @@ import { LoadType } from './load-type';
 import {
     matchFreeStandingCallSignature,
     matchMethodCallSignature,
-    callSequenceMethodNames
+    callSequenceMethodNames,
+    checkForLibraryClass
 } from './library-models/signatures';
+import { LibClass, LibObject } from './types/lib-objects';
 
 import { checkExclusion } from './library-models/lib-exclusion';
 
@@ -1344,6 +1346,54 @@ export class Analyzer {
         }
     }
 
+    private checkForLibClass(clsObj: ClassObject): LibClass | null {
+        const cls = this.classManager.classForClassObject(clsObj);
+        if (!cls) {
+            return null;
+        }
+        return checkForLibraryClass(cls);
+    }
+
+    private processLibClassInstantiation(
+        lc: LibClass,
+        node: NewExpression
+    ): Value {
+        if (lc.isAJAXCall) {
+            this.extractDEPFromArgs(lc.libName, node.arguments, node.loc);
+        }
+        return new LibObject(lc.libName);
+    }
+
+    private processNewForClassObject(
+        cls: ClassObject,
+        node: NewExpression
+    ): Value {
+        const libCls = this.checkForLibClass(cls);
+        if (libCls) {
+            return this.processLibClassInstantiation(libCls, node);
+        }
+        const ctorNode = this.classManager.getMethodForClassObject(
+            cls,
+            'constructor'
+        );
+        if (ctorNode) {
+            const ctorFunc = this.functionManager.getOrCreate(ctorNode);
+            this.callManager.saveCallArgs(ctorFunc, node.arguments.map(
+                v => this.valueFromASTNode(v)
+            ));
+        }
+        const inst = this.classManager.getClassInstanceForClassObject(cls);
+        return inst || UNKNOWN_FROM_FUNCTION;
+    }
+
+    private processNewForFunction(cls: FunctionValue, args: ASTNode[]): Value {
+        this.callManager.saveCallArgs(cls, args.map(
+            v => this.valueFromASTNode(v)
+        ));
+        const inst = this.classManager.getClassInstanceForMethod(cls.ast);
+        return inst || UNKNOWN_FROM_FUNCTION;
+    }
+
     private processNewExpression(node: NewExpression): Value {
         const callee = node.callee;
 
@@ -1351,31 +1401,22 @@ export class Analyzer {
             return this.constructPredefinedClass(callee.name, node);
         }
 
-        const cls = this.valueFromASTNode(callee);
-
-        if (cls instanceof ClassObject) {
-            // NB(asterite): ctor arguments are currently ignored
-            const ctorNode = this.classManager.getMethodForClassObject(
-                cls,
-                'constructor'
-            );
-            if (ctorNode) {
-                const ctorFunc = this.functionManager.getOrCreate(ctorNode);
-                this.callManager.saveCallArgs(ctorFunc, node.arguments.map(
-                    v => this.valueFromASTNode(v)
-                ));
+        const f = (cls: Value): Value => {
+            if (cls instanceof ClassObject) {
+                return this.processNewForClassObject(cls, node);
+            } else if (cls instanceof FunctionValue) {
+                return this.processNewForFunction(cls, node.arguments);
             }
-            const inst = this.classManager.getClassInstanceForClassObject(cls);
-            return inst || UNKNOWN_FROM_FUNCTION;
-        } else if (cls instanceof FunctionValue) {
-            this.callManager.saveCallArgs(cls, node.arguments.map(
-                v => this.valueFromASTNode(v)
-            ));
-            const inst = this.classManager.getClassInstanceForMethod(cls.ast);
-            return inst || UNKNOWN_FROM_FUNCTION;
-        }
+            return UNKNOWN_FROM_FUNCTION;
+        };
 
-        return UNKNOWN_FROM_FUNCTION;
+        const v = this.valueFromASTNode(callee);
+
+        if (v instanceof ValueSet) {
+            return v.map(f);
+        } else {
+            return f(v);
+        }
     }
 
     private addValues(left: Value, right: Value): Value {

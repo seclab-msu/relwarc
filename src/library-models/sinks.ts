@@ -4,6 +4,7 @@ import { hasattr } from '../utils/common';
 import fetchSinks from './fetch/sinks';
 import jQuerySinks from './jquery/sinks';
 import angularSinks from './angular/sinks';
+import angularFileUploadSignatures from './angular-file-upload/sinks';
 import axiosSinks from './axios/sinks';
 import xmlHttpRequestSinks from './xmlhttprequest/sinks';
 import locationSinks from './location/sinks';
@@ -35,6 +36,7 @@ const methodSinks: Record<string, Sink> = {};
 const sinkList: SinkDescr[] = ([] as SinkDescr[])
     .concat(jQuerySinks)
     .concat(angularSinks)
+    .concat(angularFileUploadSignatures)
     .concat(fetchSinks)
     .concat(xmlHttpRequestSinks)
     .concat(axiosSinks)
