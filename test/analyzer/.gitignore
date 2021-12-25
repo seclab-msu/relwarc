@@ -6,4 +6,5 @@ test-deep-copy.js
 test-code-injection.js
 test-domain-filtering.js
 test-value-set.js
+test-simpletraverse.js
 utils/*.js

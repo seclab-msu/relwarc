@@ -156,4 +156,7 @@ export class CallManager {
 
         return args[idx] || null;
     }
+    getReturnValuesForFunction(f: FunctionValue): ValueSet | null {
+        return this.returnValueTable.get(f) || null;
+    }
 }

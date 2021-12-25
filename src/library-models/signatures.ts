@@ -32,13 +32,24 @@ interface CallSequenceSinkSignature extends BaseSinkSignature {
     signature: CallSequenceSignatureInfo;
 }
 
+export interface LibASTSignature {
+    type: 'libAST';
+    name: string;
+    baseNodeType: string;
+    matcher: (node: ASTNode) => boolean;
+    excludeFromAnalysis: boolean;
+}
+
 export type SinkSignature =
     | FreeStandingSinkSignature
     | BoundSinkSignature
     | CallSequenceSinkSignature;
 
+export type Signature =
+    | SinkSignature
+    | LibASTSignature;
 
-const signatureList = ([] as SinkSignature[])
+const signatureList = ([] as Signature[])
     .concat(jQuerySignatures)
     .concat(angularSignatures)
     .concat(fetchSignatures)
@@ -51,6 +62,8 @@ const signatures = {
     boundToCall: {} as ObjectSignatureSet,
     callSequence: {} as Record<string, CallSequenceSignatureInfo>
 };
+
+export const libASTSignatures: LibASTSignature[] = [];
 
 export const callSequenceMethodNames: Set<string> = new Set();
 
@@ -69,6 +82,8 @@ for (const sign of signatureList) {
         for (const interm of sign.signature.intermediate) {
             callSequenceMethodNames.add(interm);
         }
+    } else if (sign.type === 'libAST') {
+        libASTSignatures.push(sign);
     }
 }
 

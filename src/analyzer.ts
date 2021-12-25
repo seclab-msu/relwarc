@@ -77,6 +77,8 @@ import {
     callSequenceMethodNames
 } from './library-models/signatures';
 
+import { checkExclusion } from './library-models/lib-exclusion';
+
 import {
     CallSequence,
     TrackedCallSequence,
@@ -85,6 +87,13 @@ import {
 
 import { log } from './logging';
 import { setDebug, logCallChains, logCallStep, debugFuncLabel } from './debug';
+
+import {
+    ModuleManager,
+    ModuleObject,
+    REQUIRE_FUNCTION,
+    REQUIRE_DEFINE
+} from './module-manager';
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
@@ -132,6 +141,8 @@ export interface AnalyzerOptions {
     debug: boolean;
     debugCallChains: boolean;
     debugValueSets: boolean;
+    debugModules: boolean;
+    debugLibExclusion: boolean;
 }
 
 export class Analyzer {
@@ -181,6 +192,8 @@ export class Analyzer {
 
     private readonly debug: boolean;
 
+    private readonly moduleManager: ModuleManager;
+
     private readonly options: AnalyzerOptions;
 
     constructor(
@@ -191,6 +204,8 @@ export class Analyzer {
             debug: false,
             debugCallChains: false,
             debugValueSets: false,
+            debugModules: false,
+            debugLibExclusion: true,
             ...options
         };
 
@@ -238,6 +253,8 @@ export class Analyzer {
         this.suppressedError = false;
 
         this.ifStack = [0];
+
+        this.moduleManager = new ModuleManager();
 
         this.debug = this.options.debug;
         setDebug(this.debug);
@@ -546,6 +563,10 @@ export class Analyzer {
                 }
                 return;
             }
+            if (ob instanceof ModuleObject && safeName === 'exports') {
+                this.moduleManager.setExportsObject(ob, value);
+                return;
+            }
 
             ob[safeName] = value;
         };
@@ -586,6 +607,16 @@ export class Analyzer {
         }
     }
 
+    private setVariableByName(
+        path: NodePath,
+        left: Identifier,
+        rval: Value,
+        op: string
+    ): void {
+        const binding = this.createBindingIfNotExists(path, left);
+        this.saveVariable(binding, rval, op);
+    }
+
     private setVariable(path: NodePath): void {
         const node: ASTNode = path.node;
         if (node.type === 'VariableDeclarator') {
@@ -621,8 +652,7 @@ export class Analyzer {
         } else if (node.type === 'AssignmentExpression') {
             const value = this.valueFromASTNode(node.right);
             if (node.left.type === 'Identifier') {
-                const binding = this.createBindingIfNotExists(path, node.left);
-                this.saveVariable(binding, value, node.operator);
+                this.setVariableByName(path, node.left, value, node.operator);
             } else if (node.left.type === 'MemberExpression') {
                 this.setObjectProperty(node.left, value);
             }
@@ -738,14 +768,72 @@ export class Analyzer {
         this.callManager.saveReturnValue(f, v);
     }
 
+    private requireDefineExports(path: NodePath<CallExpression>): void {
+        const args = path.node.arguments;
+
+        if (args.length < 2 || !args[0] || !args[1]) {
+            log('Warning: require.d call with less than 2 arguments, skip');
+            return;
+        }
+
+        const exports = this.valueFromASTNode(args[0]);
+        const newExports = this.valueFromASTNode(args[1]);
+
+        if (
+            isUnknown(exports) || typeof exports !== 'object' || !exports ||
+            isUnknown(newExports) || typeof newExports !== 'object' ||
+            !newExports
+        ) {
+            return;
+        }
+
+        const newExportValueSets: Record<string, ValueSet> = {};
+
+        for (const [k, v] of Object.entries(newExports)) {
+            if (!(v instanceof FunctionValue)) {
+                continue;
+            }
+            const rVals = this.callManager.getReturnValuesForFunction(v);
+            if (!rVals) {
+                continue;
+            }
+            newExportValueSets[k] = rVals;
+        }
+
+        for (const [k, v] of Object.entries(newExportValueSets)) {
+            exports[k] = v;
+        }
+    }
+
     private saveCallInfo(path: NodePath<CallExpression>): void {
         const calleeValue = this.valueFromASTNode(path.node.callee);
+
+        if (calleeValue === REQUIRE_FUNCTION) {
+            return;
+        }
+
+        if (calleeValue === REQUIRE_DEFINE) {
+            this.requireDefineExports(path);
+            return;
+        }
 
         if (CallManager.hasFunctions(calleeValue)) {
             const args = path.node.arguments.map(
                 a => this.valueFromASTNode(a)
             );
             this.callManager.saveCallInfo(path, calleeValue, args);
+        }
+    }
+
+    private setModuleVars(path: NodePath, node: FunctionASTNode): void {
+        const moduleVars = this.moduleManager.getModuleVars(node);
+
+        for (const [name, value] of Object.entries(moduleVars)) {
+            const binding = path.scope.getBinding(name);
+            if (typeof binding === 'undefined') {
+                throw new Error(`No binding for module var ${name}`);
+            }
+            this.memory.set(binding, value);
         }
     }
 
@@ -761,13 +849,26 @@ export class Analyzer {
                 if (!this.globalProgramPath) {
                     this.seedGlobalScope(path, url);
                 }
+                const detectedLib = checkExclusion(node);
+                if (detectedLib) {
+                    if (this.options.debugLibExclusion) {
+                        log(`Analyzer: detected lib ${detectedLib}, skip node`);
+                    }
+                    path.skip();
+                    return;
+                }
                 if (
                     isFunctionDeclaration(node) || isClassDeclaration(node)
                 ) {
                     this.declare(node);
                 }
                 if (isFunction(node)) {
-                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                    if (this.moduleManager.isModule(node)) {
+                        this.setModuleVars(path, node);
+                        this.argsStack.push([]);
+                    } else {
+                        this.argsStack.push(this.argNamesForFunctionNode(node));
+                    }
                     this.ifStack.unshift(0);
                     this.addCurrentThis(node);
                     this.functionsStack.push(path);
@@ -1001,6 +1102,24 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
+    private requireModule(requireArguments: ASTNode[]): Value {
+        if (requireArguments.length < 1) {
+            return UNKNOWN;
+        }
+        const arg0 = this.valueFromASTNode(requireArguments[0]);
+
+        let name: string;
+
+        if (typeof arg0 === 'string') {
+            name = arg0;
+        } else if (typeof arg0 === 'number') {
+            name = String(arg0);
+        } else {
+            return UNKNOWN;
+        }
+        return this.moduleManager.exportsForName(name);
+    }
+
     private processFunctionCall(node: CallExpression): Value {
         const callee = node.callee;
         let result: Value = UNKNOWN_FROM_FUNCTION;
@@ -1024,6 +1143,13 @@ export class Analyzer {
 
         if (transpiledClass !== null) {
             return transpiledClass;
+        }
+
+        if (isIdentifier(callee) && callee.name === 'require') {
+        // if (this.valueFromASTNode(callee) === REQUIRE_FUNCTION) {
+        // TODO: evaluating callee would be more precise here, but for some
+        // reason it took too long on our tests
+            return this.requireModule(node.arguments);
         }
 
         const returnValues = this.callManager.getReturnValuesForCallSite(node);
@@ -1513,6 +1639,21 @@ export class Analyzer {
         return this.thisStack[this.thisStack.length - 1];
     }
 
+    private processAssignmentExpression(node: AssignmentExpression): Value {
+        const path = this.currentPath;
+
+        if (path === null) {
+            throw new Error('processAssignmentExpression: no path');
+        }
+        const v = this.valueFromASTNode(node.right);
+
+        if (isIdentifier(node.left)) {
+            this.setVariableByName(path, node.left, v, node.operator);
+        }
+
+        return v;
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -1560,6 +1701,10 @@ export class Analyzer {
 
         if (node.type === 'ThisExpression') {
             return this.processThisExpression();
+        }
+
+        if (node.type === 'AssignmentExpression') {
+            return this.processAssignmentExpression(node);
         }
 
         if (isFunction(node)) {
@@ -2036,8 +2181,21 @@ export class Analyzer {
             enter: (path: NodePath): void => {
                 const node = path.node;
                 this.currentPath = path;
+                const detectedLib = checkExclusion(node);
+                if (detectedLib) {
+                    if (this.options.debugLibExclusion) {
+                        log(`Analyzer: detected lib ${detectedLib}, skip node`);
+                    }
+                    path.skip();
+                    return;
+                }
                 if (isFunction(node)) {
-                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                    if (this.moduleManager.isModule(node)) {
+                        this.setModuleVars(path, node);
+                        this.argsStack.push([]);
+                    } else {
+                        this.argsStack.push(this.argNamesForFunctionNode(node));
+                    }
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
                     this.trackedCallSequencesStack.push(new Map());
@@ -2184,6 +2342,21 @@ export class Analyzer {
 
     private parseCode(): void {
         for (const script of this.scripts) {
+            const bundleName = script.url || '<anonymous>';
+
+            if (this.options.debugModules) {
+                log(`Feed script ${bundleName} to debundler`);
+            }
+
+            if (this.moduleManager.addScript(script.sourceText, bundleName)) {
+                log(
+                    `Analyzer: debundler has detected a bundle in ${bundleName}`
+                );
+                continue;
+            }
+            if (this.options.debugModules) {
+                log(`Debundler done on ${bundleName}`);
+            }
             try {
                 this.parsedScripts.push(parser.parse(
                     script.sourceText,
@@ -2195,6 +2368,26 @@ export class Analyzer {
             } catch (err) {
                 log('Script parsing error: ' + err + '\n');
             }
+        }
+        const nModules = this.moduleManager.getModuleCount();
+        if (nModules) {
+            log(`Analyzer: taking ${nModules} modules from debundler`);
+            this.moduleManager.parseModules((name, moduleSrc) => {
+                if (this.options.debugModules) {
+                    log(`====== module '${name}' ======`);
+                    log(moduleSrc);
+                    log('============`);');
+                }
+                const ast = parser.parse(
+                    moduleSrc,
+                    {
+                        startLine: 0,
+                        sourceFilename: `<module "${name}">`,
+                    }
+                );
+                this.parsedScripts.push(ast);
+                return ast.program.body[0];
+            });
         }
     }
 

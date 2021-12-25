@@ -1,27 +1,6 @@
 import { Value } from '../../src/types/generic';
 import { ValueSet } from '../../src/types/value-set';
-
-function _setEqual<T>(s1: Set<T>, s2: Set<T>): boolean {
-    if (s1.size != s2.size) {
-        return false;
-    }
-    for (const el of s1) {
-        if (!s2.has(el)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function setEqual<T>(s1: Set<T>|T[], s2: Set<T>|T[]): boolean {
-    if (Array.isArray(s1)) {
-        s1 = new Set(s1);
-    }
-    if (Array.isArray(s2)) {
-        s2 = new Set(s2);
-    }
-    return _setEqual(s1, s2);
-}
+import { setEqual } from './utils/utils';
 
 type ValueReducer = (a: Value, b: Value) => Value;
 
