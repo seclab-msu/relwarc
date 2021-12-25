@@ -463,6 +463,31 @@ export class Analyzer {
         }
     }
 
+    private safeToString(v: Value): string {
+        if (typeof v === 'undefined' || v === null) {
+            return String(v);
+        }
+        if (isUnknown(v)) {
+            return 'UNKNOWN';
+        }
+        if (v instanceof URL || v instanceof URLSearchParams) {
+            return String(v);
+        }
+        const sv = this.safeStringFromPrimitive(v);
+
+        if (sv === null) {
+            return 'UNKNOWN';
+        }
+        return sv;
+    }
+
+    private safeToStringOrRegexp(v: Value): string | RegExp {
+        if (v instanceof RegExp) {
+            return v;
+        }
+        return this.safeToString(v);
+    }
+
     private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
         let propName: Value;
@@ -844,17 +869,21 @@ export class Analyzer {
         let args = this.valuesForArgs(argNodes);
 
         const applyMethod = args => {
-            if (methodName === 'concat') {
-                args = args.map(arg => String(arg));
-            } else if (methodName === 'replace' || methodName === 'replaceAll') {
+            if (methodName === 'replace' || methodName === 'replaceAll') {
                 if (isUnknown(args[0])) {
                     return UNKNOWN;
                 }
-                args = [args[0]].concat(args.slice(1).map(arg => String(arg)));
+                args = [this.safeToStringOrRegexp(args[0])].concat(
+                    args.slice(1).map(arg => this.safeToString(arg))
+                );
             } else {
-                if (!args.every(v => !isUnknown(v))) {
+                if (
+                    methodName !== 'concat' && // allow Unknown args for concat
+                    !args.every(v => !isUnknown(v))
+                ) {
                     return UNKNOWN;
                 }
+                args = args.map(arg => this.safeToString(arg));
             }
 
             const method = STRING_METHODS[methodName];

@@ -19,4 +19,55 @@ describe('Test handling of JS builtins', () => {
         const y = analyzer.getGlobalVariable('$test');
         expect(y && y['a']).toEqual(123);
     });
+    describe('string methods', () => {
+        const makeTestCode = methodTest => `
+            function f() {
+                var x = '123';
+
+                var y = {
+                    toString: 'bad'
+                }
+
+                ${methodTest}
+            }
+        `;
+        describe('concat', () => {
+            it('does not fail with obj with bad toString', () => {
+                const src = makeTestCode('$test = x.concat(y);');
+                makeAndRunSimple([src], false);
+            });
+            it('URLSearchParams', () => {
+                const src = makeTestCode(`
+                    const z = new URLSearchParams();
+                    z.append('x', '1');
+                    z.append('y', 'abcd');
+                    $test = x.concat(z);
+                `);
+                const analyzer = makeAndRunSimple([src], false);
+                const result = analyzer.getGlobalVariable('$test');
+                expect(result as string).toEqual('123x=1&y=abcd');
+            });
+            it('URL', () => {
+                const src = makeTestCode(`
+                    const z = new URL('http://test.com/a?b=c');
+                    $test = x.concat(z);
+                `);
+                const analyzer = makeAndRunSimple([src], false);
+                const result = analyzer.getGlobalVariable('$test');
+                expect(result as string).toEqual('123http://test.com/a?b=c');
+            });
+        });
+        it('substring', () => {
+            const src = makeTestCode('$test = x.substring(y);');
+            makeAndRunSimple([src], false);
+        });
+        it('replace with bad 1st arg', () => {
+            const src = makeTestCode('$test = x.replace(y, "13");');
+            makeAndRunSimple([src], false);
+        });
+        it('replace with bad 2nd arg', () => {
+            const src = makeTestCode('$test = x.replace("123", y);');
+            makeAndRunSimple([src], false);
+        });
+    });
 });
