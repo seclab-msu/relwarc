@@ -35,7 +35,20 @@ class Module {
     }
 }
 
+class RequireDefine extends FunctionValue {
+    constructor() {
+        super(functionExpression(
+            identifier('require_define'),
+            [],
+            blockStatement([])
+        ));
+    }
+}
+
+export const REQUIRE_DEFINE = new RequireDefine();
+
 class RequireFunction extends FunctionValue {
+    d: RequireDefine = REQUIRE_DEFINE;
     constructor() {
         super(functionExpression(
             identifier('require'),

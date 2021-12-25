@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
+import { ValueSet } from '../../../src/types/value-set';
 import { makeAndRunSimple } from '../utils/utils';
 
 const TEST_DATA_DIR = path.join(__dirname, 'data/module-bundles');
@@ -102,5 +103,19 @@ describe('Test ability analyze code with bundled modules', () => {
             funcName: 'fetch',
             args: ['/api/foobar?par1=123&par2=abc']
         });
+    });
+    it('require.d', () => {
+        const bundle = getTestFile('require-define.js');
+        const analyzer = makeAndRunSimple([bundle], false);
+
+        const res = analyzer.getGlobalVariable('$test');
+        let values;
+
+        if (res instanceof ValueSet) {
+            values = res.getValues();
+        } else {
+            values = [res];
+        }
+        expect(values.includes('abc123')).toBe(true);
     });
 });

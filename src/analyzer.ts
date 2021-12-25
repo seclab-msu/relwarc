@@ -91,7 +91,8 @@ import { setDebug, logCallChains, logCallStep, debugFuncLabel } from './debug';
 import {
     ModuleManager,
     ModuleObject,
-    REQUIRE_FUNCTION
+    REQUIRE_FUNCTION,
+    REQUIRE_DEFINE
 } from './module-manager';
 
 const MAX_CALL_CHAIN = 5;
@@ -767,10 +768,52 @@ export class Analyzer {
         this.callManager.saveReturnValue(f, v);
     }
 
+    private requireDefineExports(path: NodePath<CallExpression>): void {
+        const args = path.node.arguments;
+
+        if (args.length < 2 || !args[0] || !args[1]) {
+            log('Warning: require.d call with less than 2 arguments, skip');
+            return;
+        }
+
+        const exports = this.valueFromASTNode(args[0]);
+        const newExports = this.valueFromASTNode(args[1]);
+
+        if (
+            isUnknown(exports) || typeof exports !== 'object' || !exports ||
+            isUnknown(newExports) || typeof newExports !== 'object' ||
+            !newExports
+        ) {
+            return;
+        }
+
+        const newExportValueSets: Record<string, ValueSet> = {};
+
+        for (const [k, v] of Object.entries(newExports)) {
+            if (!(v instanceof FunctionValue)) {
+                continue;
+            }
+            const rVals = this.callManager.getReturnValuesForFunction(v);
+            if (!rVals) {
+                continue;
+            }
+            newExportValueSets[k] = rVals;
+        }
+
+        for (const [k, v] of Object.entries(newExportValueSets)) {
+            exports[k] = v;
+        }
+    }
+
     private saveCallInfo(path: NodePath<CallExpression>): void {
         const calleeValue = this.valueFromASTNode(path.node.callee);
 
         if (calleeValue === REQUIRE_FUNCTION) {
+            return;
+        }
+
+        if (calleeValue === REQUIRE_DEFINE) {
+            this.requireDefineExports(path);
             return;
         }
 
