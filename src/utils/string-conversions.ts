@@ -25,6 +25,9 @@ export function safeToString(v: Value): string {
     if (v instanceof URL || v instanceof URLSearchParams) {
         return String(v);
     }
+    if (Array.isArray(v)) {
+        return v.map(el => safeToString(el)).join(',');
+    }
     const sv = safeStringFromPrimitive(v);
 
     if (sv === null) {

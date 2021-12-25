@@ -110,4 +110,13 @@ describe('Test handling of JS builtins', () => {
             makeAndRunSimple([src], false);
         });
     });
+    it('Array toString', () => {
+        const src = `
+            var x = ['a', 'b', 'c'];
+            $test = 'tst_'.concat(x);
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const result = analyzer.getGlobalVariable('$test');
+        expect(result as unknown).toEqual('tst_a,b,c');
+    });
 });
