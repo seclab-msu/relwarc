@@ -1364,6 +1364,36 @@ export class Analyzer {
         return new LibObject(lc.libName);
     }
 
+    private processNewForClassObject(
+        cls: ClassObject,
+        node: NewExpression
+    ): Value {
+        const libCls = this.checkForLibClass(cls);
+        if (libCls) {
+            return this.processLibClassInstantiation(libCls, node);
+        }
+        const ctorNode = this.classManager.getMethodForClassObject(
+            cls,
+            'constructor'
+        );
+        if (ctorNode) {
+            const ctorFunc = this.functionManager.getOrCreate(ctorNode);
+            this.callManager.saveCallArgs(ctorFunc, node.arguments.map(
+                v => this.valueFromASTNode(v)
+            ));
+        }
+        const inst = this.classManager.getClassInstanceForClassObject(cls);
+        return inst || UNKNOWN_FROM_FUNCTION;
+    }
+
+    private processNewForFunction(cls: FunctionValue, args: ASTNode[]): Value {
+        this.callManager.saveCallArgs(cls, args.map(
+            v => this.valueFromASTNode(v)
+        ));
+        const inst = this.classManager.getClassInstanceForMethod(cls.ast);
+        return inst || UNKNOWN_FROM_FUNCTION;
+    }
+
     private processNewExpression(node: NewExpression): Value {
         const callee = node.callee;
 
@@ -1371,34 +1401,22 @@ export class Analyzer {
             return this.constructPredefinedClass(callee.name, node);
         }
 
-        const cls = this.valueFromASTNode(callee);
+        const f = (cls: Value): Value => {
+            if (cls instanceof ClassObject) {
+                return this.processNewForClassObject(cls, node);
+            } else if (cls instanceof FunctionValue) {
+                return this.processNewForFunction(cls, node.arguments);
+            }
+            return UNKNOWN_FROM_FUNCTION;
+        };
 
-        if (cls instanceof ClassObject) {
-            const libCls = this.checkForLibClass(cls);
-            if (libCls) {
-                return this.processLibClassInstantiation(libCls, node);
-            }
-            const ctorNode = this.classManager.getMethodForClassObject(
-                cls,
-                'constructor'
-            );
-            if (ctorNode) {
-                const ctorFunc = this.functionManager.getOrCreate(ctorNode);
-                this.callManager.saveCallArgs(ctorFunc, node.arguments.map(
-                    v => this.valueFromASTNode(v)
-                ));
-            }
-            const inst = this.classManager.getClassInstanceForClassObject(cls);
-            return inst || UNKNOWN_FROM_FUNCTION;
-        } else if (cls instanceof FunctionValue) {
-            this.callManager.saveCallArgs(cls, node.arguments.map(
-                v => this.valueFromASTNode(v)
-            ));
-            const inst = this.classManager.getClassInstanceForMethod(cls.ast);
-            return inst || UNKNOWN_FROM_FUNCTION;
+        const v = this.valueFromASTNode(callee);
+
+        if (v instanceof ValueSet) {
+            return v.map(f);
+        } else {
+            return f(v);
         }
-
-        return UNKNOWN_FROM_FUNCTION;
     }
 
     private addValues(left: Value, right: Value): Value {
