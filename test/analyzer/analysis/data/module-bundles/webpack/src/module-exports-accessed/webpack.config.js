@@ -1,0 +1,28 @@
+module.exports = {
+    optimization: {
+        concatenateModules: false
+    },
+    context: __dirname + '/src',
+    entry: "./_start.js",
+    output: {
+        path: __dirname,
+        filename: "webpack-test.js",
+        chunkFormat: "array-push"
+    },
+    //devtool: "source-map",
+    //mode: "development"
+    target: "es3",
+    mode: "production",
+    module: {
+        rules: [{
+            // Only run `.js` files through Babel
+            test: /.*/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: [['@babel/preset-env', {targets: "IE 10"}]]
+                }
+            }
+        }]
+    }
+};
