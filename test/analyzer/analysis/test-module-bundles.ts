@@ -86,4 +86,21 @@ describe('Test ability analyze code with bundled modules', () => {
             args: ['/api/data?par1=123&par2=abc']
         });
     });
+    it('2 bundles', () => {
+        const bundle1 = getTestFile('bundle1.js');
+        const bundle2 = getTestFile('bundle2.js');
+        const analyzer = makeAndRunSimple([bundle1, bundle2], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/api/abcdef?par1=123&par2=abc']
+        });
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/api/foobar?par1=123&par2=abc']
+        });
+    });
 });

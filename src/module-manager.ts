@@ -70,13 +70,13 @@ export class ModuleObject {
 
 export class ModuleManager {
     private readonly debundler: Debundler;
-    private rawModules: Map<string, string> | null;
+    private rawModules: Array<[string, string]>;
     private readonly modulesByName: Map<string, Module>;
     private readonly modulesByFn: Map<FunctionExpression, Module>;
     private readonly moduleObject2Module: Map<ModuleObject, Module>;
 
     constructor() {
-        this.rawModules = null;
+        this.rawModules = [];
         this.debundler = new Debundler();
         this.modulesByName = new Map();
         this.modulesByFn = new Map();
@@ -84,15 +84,21 @@ export class ModuleManager {
     }
 
     addScript(sourceText: string, name: string): boolean {
-        return this.debundler.debundle(sourceText, name);
+        const detectedBundle = this.debundler.debundle(sourceText, name);
+
+        if (detectedBundle) {
+            this.rawModules.push(...this.debundler.getModules());
+        }
+
+        return detectedBundle;
     }
 
     getModuleCount(): number {
-        return this.getRawModules().size;
+        return this.rawModules.length;
     }
 
     parseModules(cb: (name: string, src: string) => Statement): void {
-        for (const [name, src] of this.getRawModules()) {
+        for (const [name, src] of this.rawModules) {
             if (name === '__runtime' || name === '__rest') {
                 cb(name, src);
                 // TODO: revisit this. These are not actual modules
@@ -112,11 +118,6 @@ export class ModuleManager {
             this.modulesByName.set(name, m);
             this.modulesByFn.set(fn, m);
         }
-    }
-
-    private getRawModules(): Map<string, string> {
-        this.rawModules = this.rawModules || this.debundler.getModules();
-        return this.rawModules;
     }
 
     isModule(node: FunctionASTNode): boolean {
