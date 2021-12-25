@@ -27,6 +27,7 @@ function makeHARAngularFileUpload(
         return null;
     }
     const har = new HAR(url, baseURL);
+    har.method = 'POST';
 
     let fieldName = 'file';
 
