@@ -449,23 +449,23 @@ export class Analyzer {
         }
     }
 
-    private stringFromPrimitive(v: Value): string | null {
+    private safeStringFromPrimitive(v: NontrivialValue): string | null {
         switch (typeof v) {
         case 'string':
             return v;
         case 'number':
         case 'boolean':
-        case 'undefined':
             return String(v);
-        case 'object':
-            return v === null ? String(v) : null;
+        default:
+            // NOTE: when type of v is 'object' or any other unexpected, we just
+            // refuse to cast it to string
+            return null;
         }
-        return null;
     }
 
     private setObjectProperty(node: MemberExpression, value: Value): void {
         const prop = node.property;
-        let propName;
+        let propName: Value;
         if (node.computed) {
             propName = this.valueFromASTNode(prop);
         } else {
@@ -474,6 +474,21 @@ export class Analyzer {
                 return;
             }
             propName = prop.name;
+        }
+
+        if (propName instanceof ValueSet) {
+            // TODO(asterite): maybe implement this somehow
+            if (propName.size === 1) {
+                propName = propName.getValues()[0];
+            } else {
+                if (this.options.debugValueSets) {
+                    log(
+                        'Warning: assigning a prop with ValueSet ' +
+                        'name: trying to pick some value'
+                    );
+                }
+                propName = propName.tryToPeekConcrete();
+            }
         }
 
         if (
@@ -486,7 +501,7 @@ export class Analyzer {
 
         const updatedObject = this.valueFromASTNode(node.object);
 
-        const safeName = this.stringFromPrimitive(propName);
+        const safeName = this.safeStringFromPrimitive(propName);
 
         if (ClassManager.nodeIsProbablyVanillaPrototypeMethod(node)) {
             if (node.object.type !== 'MemberExpression') {
@@ -502,59 +517,46 @@ export class Analyzer {
 
         const update = ob => {
             if (
-                ob &&
-                typeof ob === 'object' &&
-                !isUnknown(ob) &&
-                ob !== this.memory.globalVars.location
+                !ob || typeof ob !== 'object' || isUnknown(ob) ||
+                ob === this.memory.globalVars.location
             ) {
-                if (propName instanceof ValueSet) {
-                    // TODO(asterite): maybe implement this somehow
-                    if (propName.size === 1) {
-                        propName = propName.getValues()[0];
-                    } else {
-                        if (this.options.debugValueSets) {
-                            log(
-                                'Warning: assigning a prop with ValueSet ' +
-                                'name: trying to pick some value'
-                            );
-                        }
-                        propName = propName.tryToPeekConcrete();
-                    }
-                }
-                if (!this.shouldSetObjectProperty(ob, propName, value)) {
-                    return;
-                }
-                if (Array.isArray(ob) && propName === 'length' && value instanceof ValueSet) {
-                    this.setArrayLengthFromSet(ob, value);
-                    return;
-                }
-                if (ob instanceof Instance) {
-                    if (
-                        value instanceof FunctionValue &&
-                        isVanillaMethod(value.ast)
-                    ) {
-                        this.classManager.addMethodForInstance(
-                            ob,
-                            value.ast,
-                            safeName
-                        );
-                    }
-                    if (!(value instanceof ValueSet)) {
-                        value = new ValueSet([value]);
-                    }
-                    if (hasattr(ob, propName)) {
-                        value = value.join(ob[propName]);
-                    }
-                }
-                if (ob instanceof GlobalWindowObject) {
-                    if (prop.type === 'Identifier') {
-                        this.setGlobalVariable(prop, value, false);
-                    }
-                    return;
-                }
-
-                ob[propName] = value;
+                return;
             }
+            if (
+                ob instanceof Instance &&
+                value instanceof FunctionValue &&
+                isVanillaMethod(value.ast)
+            ) {
+                this.classManager.addMethodForInstance(ob, value.ast, safeName);
+            }
+
+            if (
+                safeName === null ||
+                !this.shouldSetObjectProperty(ob, safeName, value)
+            ) {
+                return;
+            }
+
+            if (Array.isArray(ob) && safeName === 'length' && value instanceof ValueSet) {
+                this.setArrayLengthFromSet(ob, value);
+                return;
+            }
+            if (ob instanceof Instance) {
+                if (!(value instanceof ValueSet)) {
+                    value = new ValueSet([value]);
+                }
+                if (hasattr(ob, safeName)) {
+                    value = value.join(ob[safeName]);
+                }
+            }
+            if (ob instanceof GlobalWindowObject) {
+                if (prop.type === 'Identifier') {
+                    this.setGlobalVariable(prop, value, false);
+                }
+                return;
+            }
+
+            ob[safeName] = value;
         };
 
         if (updatedObject instanceof ValueSet) {
