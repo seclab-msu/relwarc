@@ -43,6 +43,8 @@ const jasmine = new Jasmine({
     projectBaseDir: __dirname
 });
 
+jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+
 if (isSlimer) {
     defaultSpecFiles.push(SLIMER_SPEC_FILES);
 }
