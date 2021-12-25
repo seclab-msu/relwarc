@@ -2127,7 +2127,12 @@ export class Analyzer {
                 const node = path.node;
                 this.currentPath = path;
                 if (isFunction(node)) {
-                    this.argsStack.push(this.argNamesForFunctionNode(node));
+                    if (this.moduleManager.isModule(node)) {
+                        this.setModuleVars(path, node);
+                        this.argsStack.push([]);
+                    } else {
+                        this.argsStack.push(this.argNamesForFunctionNode(node));
+                    }
                     this.formalArgs = this.argsStack[this.argsStack.length - 1];
                     this.functionsStack.push(path);
                     this.trackedCallSequencesStack.push(new Map());
