@@ -61,6 +61,9 @@ async function main(): Promise<number> {
 (async () => {
     let exitStatus: number;
 
+    // @ts-ignore (See: https://github.com/nodejs/node/issues/6379)
+    process.stdout._handle.setBlocking(true);
+
     try {
         exitStatus = await main();
     } catch (e) {
