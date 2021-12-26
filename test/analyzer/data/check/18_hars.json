@@ -35,7 +35,7 @@
    },
    {
       "httpVersion" : "HTTP/1.1",
-      "url" : "http://js-training.seclab/js-dep/func-args/samples/computed/modulos/mysql/query.php?accion=rtt_bd_1&input1=UNKNOWN&input2=UNKNOWN&input3=UNKNOWN&input4=UNKNOWN&input5=UNKNOWN",
+      "url" : "http://js-training.seclab/js-dep/func-args/samples/computed/modulos/mysql/query.php?accion=rtt_bd_1&input1=UNKNOWN&input2=&input3=&input4=&input5=",
       "headers" : [
          {
             "value" : "js-training.seclab",
@@ -53,26 +53,26 @@
             "value" : "UNKNOWN"
          },
          {
-            "value" : "UNKNOWN",
+            "value" : "",
             "name" : "input2"
          },
          {
-            "value" : "UNKNOWN",
+            "value" : "",
             "name" : "input3"
          },
          {
-            "value" : "UNKNOWN",
+            "value" : "",
             "name" : "input4"
          },
          {
             "name" : "input5",
-            "value" : "UNKNOWN"
+            "value" : ""
          }
       ],
       "method" : "GET"
    },
    {
-      "url" : "http://js-training.seclab/js-dep/func-args/samples/computed/modulos/mysql/query.php?accion=rtt_bd_8&input1=UNKNOWN&input2=UNKNOWN&input3=UNKNOWN",
+      "url" : "http://js-training.seclab/js-dep/func-args/samples/computed/modulos/mysql/query.php?accion=rtt_bd_8&input1=&input2=&input3=",
       "httpVersion" : "HTTP/1.1",
       "headers" : [
          {
@@ -88,16 +88,16 @@
             "name" : "accion"
          },
          {
-            "value" : "UNKNOWN",
+            "value" : "",
             "name" : "input1"
          },
          {
             "name" : "input2",
-            "value" : "UNKNOWN"
+            "value" : ""
          },
          {
             "name" : "input3",
-            "value" : "UNKNOWN"
+            "value" : ""
          }
       ]
    },

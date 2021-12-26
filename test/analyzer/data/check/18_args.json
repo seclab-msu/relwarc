@@ -9,14 +9,14 @@
     {
         "funcName": "$.get",
         "args": [
-            "modulos/mysql/query.php?accion=rtt_bd_1&input1=UNKNOWN&input2=UNKNOWN&input3=UNKNOWN&input4=UNKNOWN&input5=UNKNOWN",
+            "modulos/mysql/query.php?accion=rtt_bd_1&input1=UNKNOWN&input2=&input3=&input4=&input5=",
             "UNKNOWN"
         ]
     },
     {
         "funcName": "$.get",
         "args": [
-            "modulos/mysql/query.php?accion=rtt_bd_8&input1=UNKNOWN&input2=UNKNOWN&input3=UNKNOWN",
+            "modulos/mysql/query.php?accion=rtt_bd_8&input1=&input2=&input3=",
             "UNKNOWN"
         ]
     },
