@@ -10,6 +10,7 @@ import { debugEnabled } from '../debug';
 import { deepCopyObject } from './deep-copy';
 
 const VALUE_SET_MAX: number | null = 100;
+const COMB_MAX = 200;
 
 type TravCb = (val: Value, replace: (newVal: Value) => void) => boolean;
 
@@ -202,6 +203,9 @@ export class ValueSet {
     }
 
     private static _produceCombinations(ob: Value, results: Value[]): Value[] {
+        if (results.length >= COMB_MAX) {
+            return results;
+        }
         if (isUnknown(ob)) {
             results.push(ob);
             return results;
