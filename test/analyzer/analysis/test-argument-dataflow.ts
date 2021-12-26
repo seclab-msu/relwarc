@@ -22,7 +22,7 @@ describe('Test dataflow through arguments', () => {
                 args: ['/api/base/action.php?param=5']
             });
         });
-        xit('identity arrow', () => { // TODO: save return values for arrow exprs
+        it('identity arrow', () => { // TODO: save return values for arrow exprs
             const src = `
                 var id = x => x;
 

@@ -87,7 +87,7 @@ describe('Test support of class method calls:', () => {
             args: ['/api/action?param=123']
         });
     });
-    xit('method sets value through other method', () => { // TODO: needs additional analysis pass
+    it('method sets value through other method', () => {
         const src = `
             class TestClass{
                 constructor() {
@@ -120,7 +120,7 @@ describe('Test support of class method calls:', () => {
             args: ['/api/endp.oint?foo=bar']
         });
     });
-    xit('method sets value through other method - vanilla', () => { // TODO: needs additional analysis pass
+    it('method sets value through other method - vanilla', () => {
         const src = `
             function TestClass() {
                 this.datum = null;
