@@ -45,7 +45,7 @@ describe('Test return value handling', () => {
             args: ['/api/base/abcd123']
         });
     });
-    xit('constant from obj method', () => { // TODO
+    it('constant from obj method', () => {
         const src = `var ob = {
                 getBaseURL() {
                     return '/api/base/';

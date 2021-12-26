@@ -1666,16 +1666,29 @@ export class Analyzer {
                 continue;
             }
 
+            if (prop.computed) {
+                key = safeToString(this.valueFromASTNode(prop.key));
+            } else {
+                const k = prop.key;
+                switch (k.type) {
+                case 'StringLiteral':
+                case 'NumericLiteral':
+                    key = safeToString(k.value);
+                    break;
+                case 'Identifier':
+                    key = k.name;
+                    break;
+                default:
+                    log('warning: unexpected non-computed prop ' + k.type);
+                    continue;
+                }
+            }
+
             if (isObjectMethod(prop)) {
-                // NOTE: object methods are note supported for now
+                result[key] = this.processFunction(prop);
                 continue;
             }
 
-            if (isIdentifier(prop.key)) { // TODO: there is a bug here, .computed should be checked
-                key = prop.key.name;
-            } else {
-                key = safeToString(this.valueFromASTNode(prop.key));
-            }
             result[key] = this.valueFromASTNode(prop.value);
         }
         return result;
