@@ -129,8 +129,11 @@ export class ClassManager {
                 } else {
                     log(
                         'warning: computed class method names are not '+
-                        'currently supported ' + JSON.stringify(el)
+                        'currently supported'
                     );
+                    if (debugEnabled()) {
+                        log(require('@babel/generator').default(el).code);
+                    }
                     result.push([null, el]);
                 }
             } else if (isClassPrivateMethod(el)) {
