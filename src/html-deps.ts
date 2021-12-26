@@ -53,7 +53,19 @@ interface POSTFormRequestData extends GenericFormRequestData {
 export type FormRequestData = GETFormRequestData | POSTFormRequestData;
 
 export function reqDataFromGETForm(form: HTMLFormElement): GETFormRequestData {
-    const url = new URL(form.action);
+    let action = form.action;
+
+    if (typeof action !== 'string') {
+        // @ts-ignore
+        const eltAction = action.formAction;
+        if (typeof eltAction === 'string') {
+            action = eltAction;
+        } else {
+            action = form.getAttribute('action') || '.';
+        }
+    }
+
+    const url = new URL(action);
 
     for (const el of form.elements) {
         if (!isSupportedFormInput(el)) {
@@ -75,7 +87,19 @@ export function reqDataFromGETForm(form: HTMLFormElement): GETFormRequestData {
 export function reqDataFromPOSTForm(
     form: HTMLFormElement
 ): POSTFormRequestData {
-    const url = new URL(form.action);
+    let action = form.action;
+
+    if (typeof action !== 'string') {
+        // @ts-ignore
+        const eltAction = action.formAction;
+        if (typeof eltAction === 'string') {
+            action = eltAction;
+        } else {
+            action = form.getAttribute('action') || '.';
+        }
+    }
+
+    const url = new URL(action);
 
     const encType = form.enctype || defaultEncType;
 
