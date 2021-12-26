@@ -583,6 +583,18 @@ export class Analyzer {
                 this.moduleManager.setExportsObject(ob, value);
                 return;
             }
+            if (ob instanceof URL) {
+                if (value instanceof ValueSet) {
+                    value = value.tryToPeekConcrete();
+                }
+
+                try {
+                    ob[safeName] = safeToString(value);
+                } catch {
+                    log('Warning: failed to assign value to URL.' + safeName);
+                }
+                return;
+            }
 
             ob[safeName] = value;
         };
