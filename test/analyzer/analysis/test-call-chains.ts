@@ -43,7 +43,7 @@ describe('Test ability to find functions to build call chains', () => {
             args: ['/tst/abcd123']
         });
     });
-    xit('object literal shorthand method', () => { // TODO
+    it('object literal shorthand method', () => {
         const src = `
             function f() {
                 var ob = {
