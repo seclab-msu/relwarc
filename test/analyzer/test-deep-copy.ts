@@ -1,4 +1,5 @@
 import { deepCopyObject } from '../../src/types/deep-copy';
+import { Value } from '../../src/types/generic';
 
 describe('Test deepCopyObject function', () => {
     it('smoke test', () => {
@@ -16,7 +17,7 @@ describe('Test deepCopyObject function', () => {
     });
 
     it('cyclic value', () => {
-        const ob: Record<string, object> = {};
+        const ob: { [key: string]: Value } = {};
 
         ob.recur = ob;
 

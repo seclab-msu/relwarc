@@ -23,7 +23,7 @@ export type NontrivialValue =
     | string
     | number
     | boolean
-    | Record<string, unknown>
+    | { [key: string]: TrivialValue | NontrivialValue }
     | Unknown
     | RegExp
     | URL

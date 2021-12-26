@@ -14,7 +14,7 @@ interface FetchSettings {
 }
 
 type AcceptableOptionsObject =
-    | Record<string, unknown>
+    | { [key: string]: Value }
     | FunctionValue
     | FormDataModel
     | Value[];
