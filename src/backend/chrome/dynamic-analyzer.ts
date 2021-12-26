@@ -10,6 +10,8 @@ import { isSuperset } from '../../utils/common';
 
 import { HeadlessBot } from './headless-bot';
 
+import { log } from '../../logging';
+
 const internalScriptURLPrefixes = [
     'pptr://',
     'extensions::',
@@ -74,7 +76,13 @@ export class DynamicAnalyzerBackend implements GenericDynamicAnalyzerBackend {
                 return;
             }
             if (this.newScriptCallback) {
-                const scriptSource = await this.getScriptSource(scriptId);
+                let scriptSource: string;
+                try {
+                    scriptSource = await this.getScriptSource(scriptId);
+                } catch (e) {
+                    log(`Error while getting script source: ${e}`);
+                    return;
+                }
                 const introductionType = determineIntroductionType(
                     url,
                     scriptSource,
