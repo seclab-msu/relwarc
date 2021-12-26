@@ -317,4 +317,43 @@ describe('Tests for built-in classes', () => {
             },
         );
     });
+
+    it('does not fail on incorrect update "href" field', function () {
+        const scripts = [
+            `let url = new URL("http://test.com/some")
+            url.href = 'UNKNOWN'`
+        ];
+        makeAndRunSimple(
+            scripts,
+            false
+        );
+    });
+
+    it('update "URL.href" with ValueSet', function () {
+        const scripts = [
+            `let url = new URL("http://test.com/some")
+            let newHref;
+            if (a) {
+                newHref = unknownHref
+            } else {
+                newHref = 'http://test.com/test'
+            }
+            url.href = newHref
+            fetch(url.href);`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/test',
+                method: 'GET',
+                queryString: [],
+                headers: [{
+                    value: 'test.com',
+                    name: 'Host',
+                }],
+                bodySize: 0
+            },
+        );
+    });
 });
