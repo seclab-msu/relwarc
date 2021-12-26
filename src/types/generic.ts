@@ -9,6 +9,16 @@ import type { LibClass, LibObject } from './lib-objects';
 
 export type TrivialValue = undefined | null;
 
+export type SpecialObject =
+    | FormDataModel
+    | LibObject
+    | LibClass
+    | ModuleObject
+    | ClassObject
+    | Instance
+    | GlobalWindowObject
+    | FunctionValue;
+
 export type NontrivialValue =
     | string
     | number
@@ -16,17 +26,10 @@ export type NontrivialValue =
     | Record<string, unknown>
     | Unknown
     | RegExp
-    | FunctionValue
-    | FormDataModel
     | URL
     | URLSearchParams
     | ValueSet
-    | ClassObject
-    | Instance
-    | GlobalWindowObject
-    | ModuleObject
-    | LibClass
-    | LibObject
-    | Value[];
+    | Value[]
+    | SpecialObject;
 
 export type Value = TrivialValue | NontrivialValue;

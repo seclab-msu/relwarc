@@ -1,8 +1,11 @@
 import { Unknown, isUnknown, UNKNOWN } from './types/unknown';
+import { isSpecialObject, isSimpleObject } from './types/is-special';
+import { Value } from './types/generic';
 import { LoadType } from './load-type';
 import type { StackFrame } from './browser/stack-frame';
 import { log } from './logging';
 
+import { safeToString } from './utils/string-conversions';
 import { hasattr, isNotNullObject } from './utils/common';
 
 export interface KeyValue {
@@ -206,7 +209,7 @@ export function hasHeader(headers: KeyValue[], name: string): boolean {
 
 function buildParam(
     key: string,
-    value,
+    value: Value,
     resParts: string[]
 ): string[] {
     if (Array.isArray(value)) {
@@ -225,13 +228,12 @@ function buildParam(
                 // https://github.com/jquery/jquery/blob/a684e6ba836f7c553968d7d026ed7941e1a612d8/src/serialize.js#L25
                 // if key ends with '[]', then array is not deep-processed,
                 // instead of that just casting to string.
-                resParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value[i]));
+                resParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(safeToString(value[i])));
             }
         }
     } else if (
         typeof value === 'object' &&
-        value !== null &&
-        !isUnknown(value)
+        isSimpleObject(value)
     ) {
         for (const internalKey in value) {
             if (hasattr(value, internalKey)) {
@@ -241,7 +243,7 @@ function buildParam(
             }
         }
     } else {
-        resParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+        resParts.push(encodeURIComponent(key) + '=' + encodeURIComponent(safeToString(value)));
     }
 
     return resParts;
@@ -252,6 +254,10 @@ export function queryStringFromObject(
 ): string | Unknown {
     if (ob instanceof Unknown) {
         return ob;
+    }
+
+    if (isSpecialObject(ob)) {
+        return '';
     }
 
     let resParts: string[] = [];
