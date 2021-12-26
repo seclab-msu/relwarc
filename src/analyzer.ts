@@ -1332,7 +1332,7 @@ export class Analyzer {
 
         if (args.length === 1 && typeof args[0] === 'number') {
             const n = args[0];
-            if (n < 0 || n > 1000) {
+            if (isNaN(n) || n < 0 || n > 1000) {
                 return UNKNOWN;
             }
             return Array(n);
