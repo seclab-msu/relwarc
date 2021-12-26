@@ -540,4 +540,65 @@ describe('Tests with nonprimitive data types', () => {
             },
         );
     });
+
+    it('function as the value of one of the arguments', function () {
+        const scripts = [
+            `let f = () => { return 'UNKNOWN' };
+            $.ajax({
+                url: "/test",
+                data: {
+                    id: f,
+                    test: '1234',
+                }
+            })`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/test?id=UNKNOWN&test=1234',
+                method: 'GET',
+                queryString: [{
+                    name: 'id',
+                    value: 'UNKNOWN'
+                }, {
+                    name: 'test',
+                    value: '1234'
+                }],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0
+            },
+        );
+    });
+
+    it('function as the value of data', function () {
+        const scripts = [
+            `let f = () => { return {'a': '123'} };
+            $.ajax({
+                url: "/test",
+                data: f
+            })`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/test',
+                method: 'GET',
+                queryString: [],
+                headers: [
+                    {
+                        value: 'test.com',
+                        name: 'Host',
+                    }
+                ],
+                bodySize: 0
+            },
+        );
+    });
 });
