@@ -13,6 +13,7 @@ import angularSignatures from './angular/signatures';
 import axiosSignatures from './axios/signatures';
 import xmlHttpRequestSignatures from './xmlhttprequest/signatures';
 import angularFileUploadSignatures from './angular-file-upload/signatures';
+import windowMethodSignatures from './window-methods/signatures';
 
 
 interface BaseSinkSignature {
@@ -66,7 +67,8 @@ const signatureList = ([] as Signature[])
     .concat(fetchSignatures)
     .concat(xmlHttpRequestSignatures)
     .concat(axiosSignatures)
-    .concat(angularFileUploadSignatures);
+    .concat(angularFileUploadSignatures)
+    .concat(windowMethodSignatures);
 
 const signatures = {
     freeStanding: [] as string[],
@@ -111,7 +113,10 @@ export function matchMethodCallSignature(
     prop: Identifier
 ): string | CallSequence | null {
     if (hasattr(signatures.callSequence, prop.name)) {
-        return new CallSequence(signatures.callSequence[prop.name]);
+        const isWindowOpen = ob.type === 'Identifier' && ob.name === 'window';
+        if (!isWindowOpen) {
+            return new CallSequence(signatures.callSequence[prop.name]);
+        }
     }
 
     let obName: string,

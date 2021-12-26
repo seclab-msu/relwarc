@@ -8,6 +8,7 @@ import angularFileUploadSignatures from './angular-file-upload/sinks';
 import axiosSinks from './axios/sinks';
 import xmlHttpRequestSinks from './xmlhttprequest/sinks';
 import locationSinks from './location/sinks';
+import windowMethodSinks from './window-methods/sinks';
 
 import type { Value } from '../types/generic';
 
@@ -40,7 +41,8 @@ const sinkList: SinkDescr[] = ([] as SinkDescr[])
     .concat(fetchSinks)
     .concat(xmlHttpRequestSinks)
     .concat(axiosSinks)
-    .concat(locationSinks);
+    .concat(locationSinks)
+    .concat(windowMethodSinks);
 
 for (const sinkDescr of sinkList) {
     if (sinkDescr.type === 'freeStanding') {

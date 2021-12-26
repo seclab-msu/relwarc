@@ -120,17 +120,7 @@ const sinks: SinkDescr[] = [
         type: 'freeStanding',
         name: 'fetch',
         sink: makeHARFetch
-    },
-    {
-        type: 'method',
-        objectName: 'window',
-        sink: makeHARFetch
-    }/* , TODO: reconsider whether it should be supported
-    {
-        type: 'method',
-        objectName: 'this',
-        sink: makeHARFetch
-    }*/
+    }
 ];
 
 export default sinks;
