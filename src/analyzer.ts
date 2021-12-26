@@ -119,6 +119,7 @@ const SPECIAL_PROP_NAMES = [
 ];
 
 const PREDEFINED_CLASSES = [
+    'Array',
     'Headers',
     'HttpRequest',
     'Object',
@@ -1323,8 +1324,27 @@ export class Analyzer {
         }
     }
 
+    private constructArray(node: NewExpression): Value {
+        if (node.arguments.length === 0) {
+            return [];
+        }
+        const args = node.arguments.map(a => this.valueFromASTNode(a));
+
+        if (args.length === 1 && typeof args[0] === 'number') {
+            const n = args[0];
+            if (n < 0 || n > 1000) {
+                return UNKNOWN;
+            }
+            return Array(n);
+        }
+        return args;
+    }
+
     private constructPredefinedClass(name: string, node: NewExpression): Value {
         switch (name) {
+        case 'Array':
+            return this.constructArray(node);
+            break;
         case 'Headers':
             if (typeof node.arguments[0] === 'object') {
                 return this.valueFromASTNode(node.arguments[0]);
