@@ -88,7 +88,7 @@ export class HeadlessBot implements GenericHeadlessBot {
             waitMode: 'load',
             loadedCooldown: LOADED_COOLDOWN,
             timeout: this.loadTimeout,
-            extraArgs: ['--no-sandbox']
+            extraArgs: ['--no-sandbox', '--ignore-certificate-errors']
         });
 
         this.crawler = crawler;
