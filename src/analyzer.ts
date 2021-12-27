@@ -393,7 +393,8 @@ export class Analyzer {
 
         const oldValue: Value = (() => { // Rust style
             if (!this.memory.has(binding)) {
-                if (this.formalArgs.includes(binding.identifier.name)) {
+                const formalArgs = this.getCurrentFormalArgs(true);
+                if (formalArgs.includes(binding.identifier.name)) {
                     return FROM_ARG;
                 } else {
                     return UNKNOWN;
@@ -1561,6 +1562,23 @@ export class Analyzer {
         }
     }
 
+    private getCurrentFormalArgs(bindingForArgExists: boolean): string[] {
+        let formalArgs: string[] = this.formalArgs;
+
+        if (this.argsStackOffset !== null) {
+            formalArgs = this.argsStack[
+                this.argsStack.length - this.argsStackOffset - 1
+            ];
+        } else if (
+            this.stage === AnalysisPhase.DataFlowPropagationPass &&
+            this.argsStack.length > 0 &&
+            bindingForArgExists
+        ) {
+            formalArgs = this.argsStack[this.argsStack.length - 1];
+        }
+        return formalArgs;
+    }
+
     getVariable(name: string): Value {
         if (this.currentPath === null) {
             throw new Error('getVariable called without currentPath set');
@@ -1574,19 +1592,8 @@ export class Analyzer {
             }
         }
 
-        let formalArgs: string[] = this.formalArgs;
+        const formalArgs = this.getCurrentFormalArgs(binding !== undefined);
 
-        if (this.argsStackOffset !== null) {
-            formalArgs = this.argsStack[
-                this.argsStack.length - this.argsStackOffset - 1
-            ];
-        } else if (
-            this.stage === AnalysisPhase.DataFlowPropagationPass &&
-            this.argsStack.length > 0 &&
-            binding
-        ) {
-            formalArgs = this.argsStack[this.argsStack.length - 1];
-        }
         if (formalArgs.includes(name)) {
             return this.getArgumentValue(formalArgs.indexOf(name));
         }
