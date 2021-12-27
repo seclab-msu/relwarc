@@ -1,5 +1,6 @@
 import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
+import generate from '@babel/generator';
 import type { Binding } from '@babel/traverse';
 
 import * as stableStringify from 'json-stable-stringify';
@@ -868,7 +869,7 @@ export class Analyzer {
         for (const [name, value] of Object.entries(moduleVars)) {
             const binding = path.scope.getBinding(name);
             if (typeof binding === 'undefined') {
-                throw new Error(`No binding for module var ${name}`);
+                continue;
             }
             this.memory.set(binding, value);
         }
@@ -901,6 +902,7 @@ export class Analyzer {
                 }
                 if (isFunction(node)) {
                     if (this.moduleManager.isModule(node)) {
+                        this.moduleManager.renameRequireInModules(path);
                         this.setModuleVars(path, node);
                         this.argsStack.push([]);
                     } else {
@@ -2480,45 +2482,43 @@ export class Analyzer {
                 log(`Feed script ${bundleName} to debundler`);
             }
 
-            if (this.moduleManager.addScript(script.sourceText, bundleName)) {
-                log(
-                    `Analyzer: debundler has detected a bundle in ${bundleName}`
-                );
-                continue;
-            }
             if (this.options.debugModules) {
                 log(`Debundler done on ${bundleName}`);
             }
+
+            let parsedScript;
             try {
-                this.parsedScripts.push(parser.parse(
+                parsedScript = parser.parse(
                     script.sourceText,
                     {
                         startLine: script.startLine,
                         sourceFilename: script.url,
                     }
-                ));
+                );
             } catch (err) {
                 log('Script parsing error: ' + err + '\n');
+                continue;
+            }
+
+            if (this.moduleManager.addModule(parsedScript, bundleName)) {
+                log(
+                    `Analyzer: debundler has detected a bundle in ${bundleName}`
+                );
+            } else {
+                this.parsedScripts.push(parsedScript);
             }
         }
         const nModules = this.moduleManager.getModuleCount();
         if (nModules) {
             log(`Analyzer: taking ${nModules} modules from debundler`);
-            this.moduleManager.parseModules((name, moduleSrc) => {
+            this.moduleManager.prepareModules((name, moduleNode) => {
                 if (this.options.debugModules) {
                     log(`====== module '${name}' ======`);
-                    log(moduleSrc);
+                    log(generate(moduleNode).code);
                     log('============`);');
                 }
-                const ast = parser.parse(
-                    moduleSrc,
-                    {
-                        startLine: 0,
-                        sourceFilename: `<module "${name}">`,
-                    }
-                );
-                this.parsedScripts.push(ast);
-                return ast.program.body[0];
+                this.parsedScripts.push(moduleNode);
+                return moduleNode.program.body[0];
             });
         }
     }
