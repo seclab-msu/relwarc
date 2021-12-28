@@ -4,7 +4,7 @@ import { HAR, KeyValue } from './har';
 import { hasattr } from './utils/common';
 
 const undefinedValues = ['UNKNOWN', ''];
-const importantParams = ['route', 'action', 'type', 'r'];
+const importantParams = ['route', 'action', 'type', 'r', 'mode'];
 const importantHeaders = ['content-type', 'host'];
 const urlMarkers = ['/', '%2F', '%2f'];
 const urlStarts = ['//', 'https://', 'http://'];
