@@ -14,7 +14,7 @@ import {
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     FunctionDeclaration, ClassDeclaration, ClassExpression, ReturnStatement,
-    Expression,
+    Expression, SequenceExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
@@ -1788,6 +1788,15 @@ export class Analyzer {
         return v;
     }
 
+    private processSequenceExpression(node: SequenceExpression): Value {
+        if (node.expressions.length === 0) {
+            log('Warning: empty seq expr');
+            return UNKNOWN;
+        }
+        const last = node.expressions[node.expressions.length - 1];
+        return this.valueFromASTNode(last);
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -1839,6 +1848,10 @@ export class Analyzer {
 
         if (node.type === 'AssignmentExpression') {
             return this.processAssignmentExpression(node);
+        }
+
+        if (node.type === 'SequenceExpression') {
+            return this.processSequenceExpression(node);
         }
 
         if (isFunction(node)) {
