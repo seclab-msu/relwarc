@@ -1434,12 +1434,25 @@ export class Analyzer {
         return inst || UNKNOWN_FROM_FUNCTION;
     }
 
-    private processNewForFunction(cls: FunctionValue, args: ASTNode[]): Value {
-        this.callManager.saveCallArgs(cls, args.map(
+    private processNewForFunction(
+        ctor: FunctionValue,
+        node: NewExpression
+    ): Value {
+        const args = node.arguments;
+        this.callManager.saveCallArgs(ctor, args.map(
             v => this.valueFromASTNode(v)
         ));
-        const inst = this.classManager.getClassInstanceForMethod(cls.ast);
-        return inst || UNKNOWN_FROM_FUNCTION;
+
+        const cls = this.classManager.getClassForMethod(ctor.ast);
+
+        if (cls) {
+            const libCls = checkForLibraryClass(cls);
+            if (libCls) {
+                return this.processLibClassInstantiation(libCls, node);
+            }
+            return cls.instance;
+        }
+        return UNKNOWN_FROM_FUNCTION;
     }
 
     private processNewExpression(node: NewExpression): Value {
@@ -1453,7 +1466,7 @@ export class Analyzer {
             if (cls instanceof ClassObject) {
                 return this.processNewForClassObject(cls, node);
             } else if (cls instanceof FunctionValue) {
-                return this.processNewForFunction(cls, node.arguments);
+                return this.processNewForFunction(cls, node);
             }
             return UNKNOWN_FROM_FUNCTION;
         };
