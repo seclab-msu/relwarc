@@ -39,6 +39,7 @@ export class HeadlessBot implements GenericHeadlessBot {
     private initialContent: string | null;
     private readonly loadTimeout: number;
     private proxy?: string;
+    private abortNavigation: boolean;
 
     // these fields are used as hacks/workarounds in Slimer, useless here
     readonly pageLoadingStopped: false;
@@ -67,6 +68,7 @@ export class HeadlessBot implements GenericHeadlessBot {
         this.eventHandlerAttrs = null;
         this.initialContent = null;
         this.proxy = proxy;
+        this.abortNavigation = false;
 
         this.loadTimeout = loadTimeout * 1000;
 
@@ -103,6 +105,8 @@ export class HeadlessBot implements GenericHeadlessBot {
 
         const response = await crawler.loadPage();
 
+        this.abortNavigation = true;
+
         if (response !== null) {
             this.initialContent = await response.text();
         }
@@ -119,7 +123,12 @@ export class HeadlessBot implements GenericHeadlessBot {
         try {
             await this.handleRequestInternal(request);
         } finally {
-            request.continue();
+            if (this.abortNavigation && request.isNavigationRequest()) {
+                log(`Navigation request sent, aborting: ${request.url()}`);
+                request.abort('aborted');
+            } else {
+                request.continue();
+            }
         }
     }
 
