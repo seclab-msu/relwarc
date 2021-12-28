@@ -890,12 +890,20 @@ export class Analyzer {
         }
     }
 
-    private analysisPass(): void {
-        this.stage = AnalysisPhase.DataFlowPropagationPass;
-        if (this.mergedProgram === null) {
-            throw new Error('analysisPass was called before mergeASTs');
+    private handleVariableAssignment(path: NodePath): void {
+        if (
+            this.functionsStack.length === 0 &&
+            this.stage === AnalysisPhase.DEPExtracting
+        ) {
+            // we ignore global var assignments on final analysis stage
+            return;
         }
-        traverse(this.mergedProgram, {
+        this.setVariable(path);
+    }
+
+    private analysisPass(code: AST | NodePath): void {
+        const stage = this.stage;
+        const visitor = {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
                 this.currentPath = path;
@@ -911,17 +919,25 @@ export class Analyzer {
                     return;
                 }
                 if (
-                    isFunctionDeclaration(node) || isClassDeclaration(node)
+                    stage === AnalysisPhase.DataFlowPropagationPass &&
+                    (isFunctionDeclaration(node) || isClassDeclaration(node))
                 ) {
                     this.declare(node);
                 }
                 if (isFunction(node)) {
                     if (this.moduleManager.isModule(node)) {
-                        this.moduleManager.renameRequireInModules(path);
+                        if (stage === AnalysisPhase.DataFlowPropagationPass) {
+                            this.moduleManager.renameRequireInModules(path);
+                        }
                         this.setModuleVars(path, node);
                         this.argsStack.push([]);
                     } else {
                         this.argsStack.push(this.argNamesForFunctionNode(node));
+                    }
+                    if (stage === AnalysisPhase.DEPExtracting) {
+                        this.formalArgs =
+                            this.argsStack[this.argsStack.length - 1];
+                        this.trackedCallSequencesStack.push(new Map());
                     }
                     this.ifStack.unshift(0);
                     this.addCurrentThis(node);
@@ -933,7 +949,15 @@ export class Analyzer {
                     node.type === 'VariableDeclarator' ||
                     node.type === 'AssignmentExpression'
                 ) {
-                    this.setVariable(path);
+                    this.handleVariableAssignment(path);
+                }
+
+                if (stage === AnalysisPhase.DEPExtracting) {
+                    if (node.type === 'AssignmentExpression') {
+                        this.extractDEPsFromAssignmentExpression(node);
+                    } else if (node.type === 'CallExpression') {
+                        this.extractDEPsFromCall(node);
+                    }
                 }
             },
             exit: (path: NodePath) => {
@@ -944,6 +968,11 @@ export class Analyzer {
                     this.ifStack.shift();
                     this.restoreCurrentThis(node);
                     this.functionsStack.pop();
+                    if (stage === AnalysisPhase.DEPExtracting) {
+                        this.formalArgs =
+                            this.argsStack[this.argsStack.length - 1] || [];
+                        this.trackedCallSequencesStack.pop();
+                    }
                 }
                 if (isIfStatement(node) || isSwitchStatement(node)) {
                     this.ifStack[0]--;
@@ -982,8 +1011,15 @@ export class Analyzer {
                     this.saveReturnValueForFunction(path.node, body);
                 }
             }
-        });
-        this.argsStack.length = 0; // clear args stack just in case
+        };
+        if (code instanceof NodePath) {
+            code.traverse(visitor);
+        } else {
+            traverse(code, visitor);
+        }
+        if (this.stage === AnalysisPhase.DataFlowPropagationPass) {
+            this.argsStack.length = 0; // clear args stack just in case
+        }
     }
 
     private processStringMethod(
@@ -2088,7 +2124,7 @@ export class Analyzer {
         this.callChainPosition--;
     }
 
-    private mergeASTs(): void {
+    private mergeASTs(): AST {
         const result = {
             type: 'File',
             program: {
@@ -2100,7 +2136,7 @@ export class Analyzer {
         for (const ast of this.parsedScripts) {
             result.program.body.push(...ast.program.body);
         }
-        this.mergedProgram = result;
+        return result;
     }
 
     private argNamesForFunctionNode(node: FunctionASTNode): string[] {
@@ -2340,110 +2376,6 @@ export class Analyzer {
         }
     }
 
-    private traverseASTForDEPExtraction(code: AST | NodePath): void {
-        const visitor = {
-            enter: (path: NodePath): void => {
-                const node = path.node;
-                this.currentPath = path;
-                const detectedLib = checkExclusion(node);
-                if (detectedLib) {
-                    if (this.options.debugLibExclusion) {
-                        log(`Analyzer: detected lib ${detectedLib}, skip node`);
-                    }
-                    path.skip();
-                    return;
-                }
-                if (isFunction(node)) {
-                    if (this.moduleManager.isModule(node)) {
-                        this.setModuleVars(path, node);
-                        this.argsStack.push([]);
-                    } else {
-                        this.argsStack.push(this.argNamesForFunctionNode(node));
-                    }
-                    this.formalArgs = this.argsStack[this.argsStack.length - 1];
-                    this.functionsStack.push(path);
-                    this.trackedCallSequencesStack.push(new Map());
-                    this.ifStack.unshift(0);
-                    this.addCurrentThis(node);
-                }
-
-                if (isIfStatement(node) || isSwitchStatement(node)) {
-                    this.ifStack[0]++;
-                }
-
-                if (node.type === 'AssignmentExpression') {
-                    this.extractDEPsFromAssignmentExpression(node);
-                }
-
-                if (
-                    this.functionsStack.length > 0 &&
-                    (node.type === 'VariableDeclarator' ||
-                    node.type === 'AssignmentExpression')
-                ) {
-                    this.setVariable(path);
-                }
-
-                if (node.type === 'CallExpression') {
-                    this.extractDEPsFromCall(node);
-                }
-            },
-            exit: (path: NodePath): void => {
-                if (isFunction(path.node)) {
-                    this.argsStack.pop();
-                    this.ifStack.shift();
-                    this.formalArgs =
-                        this.argsStack[this.argsStack.length - 1] || [];
-                    this.functionsStack.pop();
-                    this.trackedCallSequencesStack.pop();
-                    this.restoreCurrentThis(path.node);
-                }
-
-                if (isIfStatement(path.node) || isSwitchStatement(path.node)) {
-                    this.ifStack[0]--;
-                }
-            },
-            CallExpression: path => {
-                const node = path.node;
-
-                const callee = node.callee;
-
-                this.saveCallInfo(path);
-
-                if (!isMemberExpression(callee)) {
-                    return;
-                }
-
-                const ob = callee.object;
-                const prop = callee.property;
-
-                if (!isIdentifier(ob) || !isIdentifier(prop)) {
-                    return;
-                }
-                if (
-                    this.debug &&
-                    ob.name === '$analyzer' &&
-                    prop.name === 'log'
-                ) {
-                    this.debugLogValues(node.arguments);
-                }
-            },
-            ReturnStatement: path => this.saveReturnValue(path),
-            ArrowFunctionExpression: path => {
-                const body = path.node.body;
-
-                if (!isBlockStatement(body)) {
-                    this.saveReturnValueForFunction(path.node, body);
-                }
-            }
-        };
-
-        if (code instanceof NodePath) {
-            code.traverse(visitor);
-        } else {
-            traverse(code, visitor);
-        }
-    }
-
     private extractDEPs(
         code: AST | NodePath | null,
         funcInfo: FunctionDescription | null
@@ -2469,7 +2401,7 @@ export class Analyzer {
         } else {
             this.formalArgs = [];
         }
-        this.traverseASTForDEPExtraction(code);
+        this.analysisPass(code);
         if (funcInfo !== null) {
             this.functionsStack.pop();
             this.popCurrentThis();
@@ -2613,18 +2545,20 @@ export class Analyzer {
 
         log('Analyzer: done parsing code');
 
-        this.mergeASTs();
+        const mergedProgram = this.mergeASTs();
+        this.mergedProgram = mergedProgram;
 
         this.pageURL = url;
 
         log('Analyzer: run data flow analysis passes');
+        this.stage = AnalysisPhase.DataFlowPropagationPass;
         for (let i = 0; i < this.options.analysisPasses; i++) {
             log(`Analyzer: run analysis pass ${i}`);
-            this.analysisPass();
+            this.analysisPass(mergedProgram);
         }
 
         log('Analyzer: search code for DEP calls');
-        this.extractDEPs(this.mergedProgram, null);
+        this.extractDEPs(mergedProgram, null);
 
         log('Analyzer: search code for DEP calls using call chains');
         while (this.callQueue.length > 0) {
