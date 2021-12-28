@@ -281,5 +281,72 @@ describe('Analyzing HTML DEPs', () => {
         }));
         dpa.close();
     });
+
+    describe('form action clobbered', () => {
+        it('clobbered by input', async () => {
+            const dpa = new DynamicPageAnalyzer();
+            const url = testWS.getFullURL('/test-html-dep-clobbered-form-action.html');
+
+            await dpa.run(url);
+
+            expect(dpa.htmlDEPs.length).toBeGreaterThan(0);
+
+            const hars = dpa.htmlDEPs.map(JSONObjectFromHAR);
+
+            expect(hars).toContain(jasmine.objectContaining({
+                "method": "POST",
+                "url": testWS.getFullURL('/user/login'),
+                "httpVersion": "HTTP/1.1",
+                "queryString": [],
+                "bodySize": 19,
+                "postData": {
+                    "text": "action=abc&test=123",
+                    "mimeType": "application/x-www-form-urlencoded",
+                    "params": [{
+                        "name": "action",
+                        "value": "abc",
+                        "type": "text"
+                    }, {
+                        "name": "test",
+                        "value": "123",
+                        "type": "text"
+                    }]
+                }
+            }));
+            dpa.close();
+        });
+        it('clobbered by input, with base tag', async () => {
+            const dpa = new DynamicPageAnalyzer();
+            const url = testWS.getFullURL('/test-html-dep-clobbered-form-action-with-base.html');
+
+            await dpa.run(url);
+
+            expect(dpa.htmlDEPs.length).toBeGreaterThan(0);
+
+            const hars = dpa.htmlDEPs.map(JSONObjectFromHAR);
+
+            expect(hars).toContain(jasmine.objectContaining({
+                "method": "POST",
+                "url": testWS.getFullURL('/aaa/bbb/foo/bar'),
+                "httpVersion": "HTTP/1.1",
+                "queryString": [],
+                "bodySize": 19,
+                "postData": {
+                    "text": "action=abc&test=123",
+                    "mimeType": "application/x-www-form-urlencoded",
+                    "params": [{
+                        "name": "action",
+                        "value": "abc",
+                        "type": "text"
+                    }, {
+                        "name": "test",
+                        "value": "123",
+                        "type": "text"
+                    }]
+                }
+            }));
+            dpa.close();
+        });
+    });
 });
 
