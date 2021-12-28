@@ -1,8 +1,14 @@
 import {
+    File as AST,
+    Node as ASTNode,
     Function as FunctionASTNode,
-    Statement, FunctionExpression,
+    Statement, FunctionExpression, ArrowFunctionExpression,
     isExpressionStatement, isFunctionExpression,
-    identifier, blockStatement, functionExpression
+    isArrowFunctionExpression, isFile,
+    identifier, blockStatement, functionExpression,
+    program as makeProgram,
+    file as makeFile,
+    expressionStatement as makeExpressionStatement,
 } from '@babel/types';
 
 import { Debundler } from 'page-disassembler';
@@ -12,23 +18,26 @@ import { UNKNOWN, isUnknown } from './types/unknown';
 import { FunctionValue } from './types/function';
 
 import { debugEnabled } from './debug';
+import { NodePath } from '@babel/traverse';
 
-// import { log } from './logging';
-
-function wrapModule(src: string): string {
-    return `(function(module, exports, require) {\n${src}\n})`;
+function wrapModule(module: ASTNode): AST {
+    if (!isFunctionExpression(module) && !isArrowFunctionExpression(module)) {
+        throw new Error('Function expression wanted for wrapping, but got ' + module.type);
+    }
+    return makeFile(makeProgram([makeExpressionStatement(module)]));
 }
 
 class Module {
     readonly name: string;
-    readonly sourceText: string;
-    readonly code: FunctionExpression;
+    readonly code: FunctionExpression | ArrowFunctionExpression;
     readonly moduleObject: ModuleObject;
     exports: Value;
 
-    constructor(name: string, sourceText: string, code: FunctionExpression) {
+    constructor(
+        name: string,
+        code: FunctionExpression | ArrowFunctionExpression
+    ) {
         this.name = name;
-        this.sourceText = sourceText;
         this.code = code;
         this.exports = {};
         this.moduleObject = new ModuleObject(this);
@@ -83,10 +92,13 @@ export class ModuleObject {
 
 export class ModuleManager {
     private readonly debundler: Debundler;
-    private rawModules: Array<[string, string]>;
+    private rawModules: Array<[string, ASTNode]>;
     private readonly modulesByName: Map<string, Module>;
-    private readonly modulesByFn: Map<FunctionExpression, Module>;
+    private readonly modulesByFn: Map<
+        FunctionExpression | ArrowFunctionExpression, Module
+    >;
     private readonly moduleObject2Module: Map<ModuleObject, Module>;
+    private renamedModules: Set<ASTNode>;
 
     constructor() {
         this.rawModules = [];
@@ -94,10 +106,11 @@ export class ModuleManager {
         this.modulesByName = new Map();
         this.modulesByFn = new Map();
         this.moduleObject2Module = new Map();
+        this.renamedModules = new Set();
     }
 
-    addScript(sourceText: string, name: string): boolean {
-        const detectedBundle = this.debundler.debundle(sourceText, name);
+    addModule(parsedScript: AST, name: string): boolean {
+        const detectedBundle = this.debundler.debundle(parsedScript, name);
 
         if (detectedBundle) {
             this.rawModules.push(...this.debundler.getModules());
@@ -110,24 +123,27 @@ export class ModuleManager {
         return this.rawModules.length;
     }
 
-    parseModules(cb: (name: string, src: string) => Statement): void {
-        for (const [name, src] of this.rawModules) {
-            if (name === '__runtime' || name === '__rest') {
-                cb(name, src);
+    prepareModules(cb: (name: string, moduleNode: AST) => Statement): void {
+        for (const [name, moduleNode] of this.rawModules) {
+            if (name === '__runtime' || name === '__rest' || name === '__main') {
+                if (!isFile(moduleNode)) {
+                    throw new Error(`Unexpected type of ${name} module: ${moduleNode.type}`);
+                }
+                cb(name, moduleNode);
                 // TODO: revisit this. These are not actual modules
                 continue;
             }
-            const wrappedSrc = wrapModule(src);
-            const node = cb(name, wrappedSrc);
+            const wrappedModule = wrapModule(moduleNode);
+            const node = cb(name, wrappedModule);
 
             if (!isExpressionStatement(node)) {
                 throw new Error('Expected node to be ExpressionStatement');
             }
             const fn = node.expression;
-            if (!isFunctionExpression(fn)) {
+            if (!isFunctionExpression(fn) && !isArrowFunctionExpression(fn)) {
                 throw new Error('Expected node.expression to be a func expr');
             }
-            const m = new Module(name, src, fn);
+            const m = new Module(name, fn);
             this.modulesByName.set(name, m);
             this.modulesByFn.set(fn, m);
         }
@@ -167,5 +183,26 @@ export class ModuleManager {
         }
 
         m.exports = exports;
+    }
+
+    renameRequireInModules(path: NodePath): void {
+        const node = path.node;
+        if (this.renamedModules.has(node)) {
+            return;
+        }
+
+        for (const [name, moduleNode] of this.rawModules) {
+            if (moduleNode === node) {
+                const bundleClass = this.debundler.getBundleClassByName(
+                    name
+                );
+                if (typeof bundleClass !== 'undefined') {
+                    Debundler.renameRequire(null, bundleClass, false, path);
+                }
+                break;
+            }
+        }
+
+        this.renamedModules.add(node);
     }
 }
