@@ -108,7 +108,7 @@ import {
     REQUIRE_DEFINE
 } from './module-manager';
 
-const DEFAULT_ANALYSIS_PASSES = 3;
+const DEFAULT_ANALYSIS_PASSES = 4;
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
