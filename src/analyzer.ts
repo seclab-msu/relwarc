@@ -1381,19 +1381,25 @@ export class Analyzer {
             return this.callManager.getReturnValuesForCallees(callees);
         }
 
-        if (callees.size > 1) {
-            // log(
-            //     'warning (TODO): entering call is not currently supported' +
-            //     ' when callee is a ValueSet with multiple functions'
-            // );
-            return this.callManager.getReturnValuesForCallees(callees);
-        }
-        const callee = [...callees][0];
-        const calleePath = this.functionManager.getPath(callee);
-        if (calleePath === null) {
-            return this.callManager.getReturnValuesForCallees(callees);
-        }
-        return this.enterFunctionCall(node, callee, calleePath);
+        let result: ValueSet | null = null;
+
+        callees.forEach(callee => {
+            const calleePath = this.functionManager.getPath(callee);
+
+            let returnValues: ValueSet | null;
+
+            if (calleePath === null) {
+                returnValues = this.callManager.getReturnValuesForCallees(
+                    new Set([callee])
+                );
+            } else {
+                returnValues = this.enterFunctionCall(node, callee, calleePath);
+            }
+            if (returnValues) {
+                result = (result || new ValueSet()).join(returnValues);
+            }
+        });
+        return result;
     }
 
     private processFunctionCall(node: CallExpression): Value {
