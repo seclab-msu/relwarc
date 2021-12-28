@@ -30,6 +30,8 @@ parser.add_argument('--domain-scope', {
 });
 parser.add_argument('--base-url', { type: String });
 parser.add_argument('--pretty-print', { action: 'store_true' });
+parser.add_argument('--delheaders', { type: String });
+parser.add_argument('--ignoreheaders', { action: 'store_true' });
 
 const args = parser.parse_args();
 
@@ -47,6 +49,12 @@ if (args.domain_scope) {
     harFilter = har => filterByDomain(har.url, baseURL, filteringMode);
 }
 
+let excludedHeaders: string[] = [];
+
+if (args.delheaders) {
+    excludedHeaders = args.delheaders.split(',');
+}
+
 const parsedHARs = JSON.parse(
     readFileSync(STDIN_PATH).toString()
 );
@@ -54,10 +62,20 @@ const parsedHARs = JSON.parse(
 const hars: HAR[] = [];
 for (const parsedHAR of parsedHARs) {
     const har = HAR.fromJSON(parsedHAR);
-    if (har !== null) {
-        if (harFilter(har)) {
-            hars.push(har);
+    if (har === null) {
+        continue;
+    }
+    if (args.ignoreheaders) {
+        har.headers = har.headers.filter(h => h.name.toLowerCase() === 'content-type');
+    } else {
+        if (excludedHeaders.length) {
+            har.headers = har.headers.filter(
+                h => !excludedHeaders.includes(h.name.toLowerCase())
+            );
         }
+    }
+    if (harFilter(har)) {
+        hars.push(har);
     }
 }
 
