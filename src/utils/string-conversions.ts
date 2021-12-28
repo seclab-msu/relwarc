@@ -42,3 +42,7 @@ export function safeToStringOrRegexp(v: Value): string | RegExp {
     }
     return safeToString(v);
 }
+
+export function isTrivialString(s: string): boolean {
+    return /^(UNKNOWN|undefined)+$/.test(s);
+}

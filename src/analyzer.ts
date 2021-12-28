@@ -64,7 +64,8 @@ import {
 import {
     safeToString,
     safeStringFromPrimitive,
-    safeToStringOrRegexp
+    safeToStringOrRegexp,
+    isTrivialString
 } from './utils/string-conversions';
 
 import { HAR, BadURLError } from './har';
@@ -109,6 +110,7 @@ const DEFAULT_ANALYSIS_PASSES = 3;
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
+const MAX_TRIVIAL_ACCUMULATED_STRING = 32;
 const MAX_CALL_DEPTH = 2;
 
 const SPECIAL_PROP_NAMES = [
@@ -369,18 +371,31 @@ export class Analyzer {
 
     private probeAddition(left: Value, right: Value): Value {
         // TODO: custom toString is not supported, leads to UNKNOWN result
+        let result: Value;
         try {
             // @ts-ignore
-            return left + right;
+            result = left + right;
         } catch {
             if (typeof left === 'string') {
-                return left + UNKNOWN;
+                result = left + UNKNOWN;
             } else if (typeof right === 'string') {
-                return UNKNOWN + right;
+                result = UNKNOWN + right;
+            } else {
+                result = UNKNOWN;
             }
-
-            return UNKNOWN;
         }
+        if (typeof result === 'string') {
+            if (
+                result.length > MAX_TRIVIAL_ACCUMULATED_STRING &&
+                isTrivialString(result)
+            ) {
+                return result.substring(0, MAX_TRIVIAL_ACCUMULATED_STRING);
+            }
+            if (result.length > MAX_ACCUMULATED_STRING) {
+                return result.substring(0, MAX_ACCUMULATED_STRING);
+            }
+        }
+        return result;
     }
 
     private saveVariable(binding: Binding, value: Value, op: string): void {
