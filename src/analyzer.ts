@@ -68,6 +68,7 @@ import {
     safeToStringOrRegexp,
     isTrivialString
 } from './utils/string-conversions';
+import { isEmptySimpleObject, isNonemptyObject } from './types/is-special';
 
 import { HAR, BadURLError } from './har';
 import { makeHAR } from './library-models/sinks';
@@ -401,7 +402,12 @@ export class Analyzer {
         return result;
     }
 
-    private saveVariable(binding: Binding, value: Value, op: string): void {
+    private saveVariable(
+        binding: Binding,
+        value: Value,
+        op: string,
+        fromGlobalSet=false
+    ): void {
         if (op === '=' && this.lessConcreteThanOldVal(binding, value)) {
             return;
         }
@@ -431,6 +437,13 @@ export class Analyzer {
                 return this.memory.get(binding);
             }
         })();
+
+        if (
+            fromGlobalSet && op === '=' &&
+            isEmptySimpleObject(value) && isNonemptyObject(oldValue)
+        ) {
+            return;
+        }
 
         let newValue: Value;
 
@@ -1790,7 +1803,7 @@ export class Analyzer {
         if (directSet) {
             this.memory.set(binding, value);
         } else {
-            this.saveVariable(binding, value, '=');
+            this.saveVariable(binding, value, '=', true);
         }
     }
 
