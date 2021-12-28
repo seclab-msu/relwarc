@@ -86,6 +86,8 @@ import { LibClass, LibObject } from './types/lib-objects';
 
 import { checkExclusion } from './library-models/lib-exclusion';
 
+import { addPredefinedObjects } from './library-models/predefined-objects';
+
 import {
     CallSequence,
     TrackedCallSequence,
@@ -2496,6 +2498,8 @@ export class Analyzer {
         this.setGlobalVariable('document', doc, true);
         this.setGlobalVariable('location', locationObject, true);
         this.setGlobalVariable('undefined', undefined, true);
+
+        addPredefinedObjects(this);
     }
 
     private parseCode(): void {

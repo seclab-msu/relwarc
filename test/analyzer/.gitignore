@@ -2,6 +2,7 @@ mine-args/*.js
 mine-deps/*.js
 analysis/*.js
 analysis/classes/*.js
+library-models/*.js
 test-deep-copy.js
 test-code-injection.js
 test-domain-filtering.js

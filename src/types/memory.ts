@@ -24,6 +24,9 @@ export class Memory extends WeakMap {
     get globalVars() {
         return this._globalVars;
     }
+    static declarePredefinedGlobalVariable(name: string): void {
+        GLOBAL_VARIABLES.push(name);
+    }
 }
 
 export class GlobalWindowObject {
