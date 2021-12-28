@@ -109,6 +109,7 @@ const DEFAULT_ANALYSIS_PASSES = 3;
 
 const MAX_CALL_CHAIN = 5;
 const MAX_ACCUMULATED_STRING = 10000;
+const MAX_CALL_DEPTH = 2;
 
 const SPECIAL_PROP_NAMES = [
     'constructor',
@@ -167,7 +168,7 @@ export class Analyzer {
 
     private readonly dynamic: DynamicAnalyzer | null;
 
-    private readonly argsStack: string[][];
+    private argsStack: string[][];
     private readonly callQueue: CallConfig[];
 
     private callChain: FunctionCallDescription[];
@@ -176,12 +177,12 @@ export class Analyzer {
     private formalArgs: string[];
 
     readonly classManager: ClassManager;
-    private readonly thisStack: Array<Instance | Unknown>;
+    private thisStack: Array<Instance | Unknown>;
 
     private readonly callManager: CallManager;
     private readonly functionManager: FunctionManager;
 
-    private readonly functionsStack: NodePath[];
+    private functionsStack: NodePath[];
     private mergedProgram: AST | null;
 
     private readonly memory: Memory;
@@ -200,7 +201,10 @@ export class Analyzer {
 
     private trackedCallSequencesStack: Map<string, TrackedCallSequence>[];
 
-    private readonly ifStack: number[];
+    private ifStack: number[];
+
+    private callDepth: number;
+    private currentCallRetVals: ValueSet | null;
 
     harFilter: null | ((har: HAR) => boolean);
 
@@ -273,6 +277,9 @@ export class Analyzer {
         this.suppressedError = false;
 
         this.ifStack = [0];
+
+        this.callDepth = 0;
+        this.currentCallRetVals = null;
 
         this.moduleManager = new ModuleManager();
 
@@ -782,6 +789,16 @@ export class Analyzer {
     }
 
     private saveReturnValue(path: NodePath<ReturnStatement>): void {
+        const retExpr = path.node.argument;
+        if (!retExpr) {
+            return;
+        }
+        if (this.currentCallRetVals) {
+            this.currentCallRetVals.add(
+                this.valueFromASTNode(retExpr)
+            );
+            return;
+        }
         const currentFunction = this.currentFunction();
         if (!currentFunction) {
             log('warning: return statement without current function');
@@ -793,10 +810,7 @@ export class Analyzer {
             return;
         }
         this.currentPath = path;
-        if (!path.node.argument) {
-            return;
-        }
-        this.saveReturnValueForFunction(functionNode, path.node.argument);
+        this.saveReturnValueForFunction(functionNode, retExpr);
     }
 
     private saveReturnValueForFunction(
@@ -925,6 +939,7 @@ export class Analyzer {
                     this.declare(node);
                 }
                 if (isFunction(node)) {
+                    this.functionManager.saveFunctionWithPath(path);
                     if (this.moduleManager.isModule(node)) {
                         if (stage === AnalysisPhase.DataFlowPropagationPass) {
                             this.moduleManager.renameRequireInModules(path);
@@ -1217,6 +1232,137 @@ export class Analyzer {
         return this.moduleManager.exportsForName(name);
     }
 
+    private stashTraversalState() {
+        const traversalState = {
+            functionsStack: this.functionsStack,
+            formalArgs: this.formalArgs,
+            argsStack: this.argsStack,
+            thisStack: this.thisStack,
+            trackedCallSequencesStack: this.trackedCallSequencesStack,
+            ifStack: this.ifStack,
+            currentCallRetVals: this.currentCallRetVals,
+            currentPath: this.currentPath,
+            argsStackOffset: this.argsStackOffset
+        };
+
+        this.functionsStack = [];
+        this.thisStack = [UNKNOWN];
+        this.formalArgs = [];
+        this.argsStack = [];
+        this.trackedCallSequencesStack = [new Map()];
+        this.ifStack = [0];
+        this.argsStackOffset = null;
+
+        return traversalState;
+    }
+
+    private enterFunctionCall(
+        node: CallExpression,
+        callee: FunctionValue,
+        calleePath: NodePath
+    ): ValueSet | null {
+        this.callDepth++;
+
+        const traversalState = this.stashTraversalState();
+
+        this.currentCallRetVals = new ValueSet();
+
+        const savedArgs: Map<Binding, Value> = new Map();
+
+        const formalArgs = callee.ast.params;
+        const argBindings: Binding[] = [];
+
+        for (let i = 0; i < node.arguments.length; i++) {
+            if (i >= formalArgs.length) {
+                break;
+            }
+            const formalArg = formalArgs[i];
+            if (!isIdentifier(formalArg)) {
+                continue;
+            }
+            const v = this.valueFromASTNode(node.arguments[i]);
+            const b = calleePath.scope.getBinding(formalArg.name);
+
+            if (typeof b === 'undefined') {
+                throw new Error('Unexpected: func lacks binding for its arg');
+            }
+
+            argBindings.push(b);
+
+            if (this.memory.has(b)) {
+                savedArgs.set(b, this.memory.get(b));
+            }
+
+            this.memory.set(b, v);
+        }
+
+        if (
+            isArrowFunctionExpression(callee.ast) &&
+            callee.ast.body &&
+            !isBlockStatement(callee.ast.body)
+        ) {
+            this.currentPath = calleePath;
+            const ret = this.valueFromASTNode(callee.ast.body);
+            this.currentCallRetVals.add(ret);
+        } else {
+            this.addCurrentThis(callee.ast);
+            this.functionsStack.push(calleePath);
+            this.analysisPass(calleePath);
+        }
+
+        for (const b of argBindings) {
+            if (savedArgs.has(b)) {
+                this.memory.set(b, savedArgs.get(b));
+            } else {
+                this.memory.delete(b);
+            }
+        }
+
+        const result = this.currentCallRetVals;
+
+        ({
+            functionsStack: this.functionsStack,
+            formalArgs: this.formalArgs,
+            argsStack: this.argsStack,
+            thisStack: this.thisStack,
+            trackedCallSequencesStack: this.trackedCallSequencesStack,
+            ifStack: this.ifStack,
+            currentCallRetVals: this.currentCallRetVals,
+            currentPath: this.currentPath,
+            argsStackOffset: this.argsStackOffset
+        } = traversalState);
+
+        this.callDepth--;
+
+        return result;
+    }
+
+    private determineReturnValues(node: CallExpression): ValueSet | null {
+        const callees = this.callManager.getCallees(node);
+
+        if (callees === null || callees.size === 0) {
+            return null;
+        }
+
+        if (this.callDepth >= MAX_CALL_DEPTH) {
+            return this.callManager.getReturnValuesForCallees(callees);
+        }
+
+        if (callees.size > 1) {
+            // log(
+            //     'warning (TODO): entering call is not currently supported' +
+            //     ' when callee is a ValueSet with multiple functions'
+            // );
+            return this.callManager.getReturnValuesForCallees(callees);
+        }
+        const callee = [...callees][0];
+        const calleePath = this.functionManager.getPath(callee);
+        if (calleePath === null) {
+            return this.callManager.getReturnValuesForCallees(callees);
+        }
+        return this.enterFunctionCall(node, callee, calleePath);
+    }
+
     private processFunctionCall(node: CallExpression): Value {
         const callee = node.callee;
         let result: Value = UNKNOWN_FROM_FUNCTION;
@@ -1249,7 +1395,7 @@ export class Analyzer {
             return this.requireModule(node.arguments);
         }
 
-        const returnValues = this.callManager.getReturnValuesForCallSite(node);
+        const returnValues = this.determineReturnValues(node);
 
         if (returnValues === null) {
             return result;

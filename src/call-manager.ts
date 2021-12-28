@@ -90,13 +90,15 @@ export class CallManager {
         }
         this.returnValueTable.set(f, set);
     }
-    getReturnValuesForCallSite(c: CallExpression): ValueSet | null {
+    getCallees(c: CallExpression): Set<FunctionValue> | null {
         const callees = this.siteTable.get(c);
 
         if (!callees || callees.size === 0) {
             return null;
         }
-
+        return callees;
+    }
+    getReturnValuesForCallees(callees: Set<FunctionValue>): ValueSet | null {
         const result = ValueSet.join(
             ...([...callees]
                 .map(f => this.returnValueTable.get(f))
