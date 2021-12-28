@@ -267,6 +267,10 @@ export class ClassManager {
         return this.method2Class.get(m)?.instance || null;
     }
 
+    getClassForMethod(m: FunctionASTNode): Class | null {
+        return this.method2Class.get(m) || null;
+    }
+
     getClassInstanceForClassObject(co: ClassObject): Instance | null {
         return this.classObject2Class.get(co)?.instance || null;
     }
