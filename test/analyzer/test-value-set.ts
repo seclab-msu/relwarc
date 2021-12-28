@@ -208,6 +208,25 @@ describe('Test ValueSet', () => {
             expect(combinations).toContain({ lol: { d: 7 } });
             expect(combinations).toContain({ lol: { d: 8 } });
         });
+        it('combination limit', () => {
+            const SET_SIZE = 20;
+            const N_SETS = 40;
+
+            const valueSets: ValueSet[] = new Array(N_SETS);
+            const makeVS = (num: number): ValueSet => {
+                const values: number[] = new Array(SET_SIZE);
+                for (let i = 0; i < SET_SIZE; i++) {
+                    values[i] = num * 100 + i;
+                }
+                return new ValueSet(values);
+            };
+
+            for (let i = 0; i < N_SETS; i++) {
+                valueSets[i] = makeVS(i);
+            }
+            const combinations = ValueSet.produceCombinations(valueSets);
+            expect(combinations.length).toBeLessThanOrEqual(200);
+        });
     });
     describe('join', () => {
         it('static join', () => {

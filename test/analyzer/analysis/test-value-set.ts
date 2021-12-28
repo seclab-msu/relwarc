@@ -833,4 +833,51 @@ describe('Test ValueSet', () => {
             args: ['/test/api/base/bar']
         });
     });
+    it('test combination limit', () => {
+        const scripts = [`
+            function f() {
+                var ctrl = getCurrentControlValue();
+
+                if (ctrl === 1) {
+                    return 'a';
+                } else if (ctrl === 2) {
+                    return 'b';
+                } else if (ctrl === 3) {
+                    return 'c';
+                } else if (ctrl === 4) {
+                    return 'd';
+                } else if (ctrl === 5) {
+                    return 'e';
+                } else if (ctrl === 6) {
+                    return 'f';
+                } else if (ctrl === 7) {
+                    return 'g';
+                } else if (ctrl === 8) {
+                    return 'h';
+                } else if (ctrl === 9) {
+                    return 'i';
+                }
+                return 'j';
+            }
+            function g() {
+                var data = [
+                    f(),f(),f(),f(),f(),f(),f(),f(),f(),f(),
+                    f(),f(),f(),f(),f(),f(),f(),f(),f(),f(),
+                    f(),f(),f(),f(),f(),f(),f(),f(),f(),f()
+                ];
+
+                axios.post('/test/send-data', {
+                    data: data
+                });
+            }
+        `];
+
+        const analyzer = makeAndRunSimple(scripts, false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+
+        expect(res.length).toBeLessThanOrEqual(200);
+    });
 });
