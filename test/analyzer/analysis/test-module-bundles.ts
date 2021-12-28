@@ -104,13 +104,24 @@ describe('Test ability analyze code with bundled modules', () => {
             args: ['/api/foobar?par1=123&par2=abc']
         });
     });
-    it('require.d', () => {
-        const bundle = getTestFile('require-define.js');
-        const analyzer = makeAndRunSimple([bundle], false);
+    describe('require.d', () => {
+        it('2 args', () => {
+            const bundle = getTestFile('require-define.js');
+            const analyzer = makeAndRunSimple([bundle], false);
 
-        const res = ValueSet.produceCombinations(
-            analyzer.getGlobalVariable('$test')
-        );
-        expect(res as unknown[]).toContain('abc123');
+            const res = ValueSet.produceCombinations(
+                analyzer.getGlobalVariable('$test')
+            );
+            expect(res as unknown[]).toContain('abc123');
+        });
+        it('3 args', () => {
+            const bundle = getTestFile('require-define-3args.js');
+            const analyzer = makeAndRunSimple([bundle], false);
+
+            const res = ValueSet.produceCombinations(
+                analyzer.getGlobalVariable('$test')
+            );
+            expect(res as unknown[]).toContain('abc123');
+        });
     });
 });

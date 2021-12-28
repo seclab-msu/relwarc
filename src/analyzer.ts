@@ -814,10 +814,23 @@ export class Analyzer {
         }
 
         const exports = this.valueFromASTNode(args[0]);
-        const newExports = this.valueFromASTNode(args[1]);
+        const secondArg = this.valueFromASTNode(args[1]);
+
+        if (isUnknown(exports) || typeof exports !== 'object' || !exports) {
+            return;
+        }
+
+        let newExports: Value;
+
+        if (args.length === 3 && typeof secondArg === 'string') {
+            newExports = {
+                [secondArg]: this.valueFromASTNode(args[2])
+            };
+        } else {
+            newExports = secondArg;
+        }
 
         if (
-            isUnknown(exports) || typeof exports !== 'object' || !exports ||
             isUnknown(newExports) || typeof newExports !== 'object' ||
             !newExports
         ) {
