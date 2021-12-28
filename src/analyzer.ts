@@ -492,10 +492,10 @@ export class Analyzer {
     private setArrayLengthFromSet(arr: Array<Value>, length: ValueSet): void {
         const numbers: number[] = [];
         length.forEach(
-            v => typeof v === 'number' && !isNaN(v) && numbers.push(v)
+            v => typeof v === 'number' && Number.isFinite(v) && numbers.push(v)
         );
         if (numbers.length > 0) {
-            arr.length = Math.max(...numbers);
+            arr.length = Math.min(Math.max(...numbers), 1000);
         }
     }
 
