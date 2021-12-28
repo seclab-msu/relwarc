@@ -13,11 +13,14 @@ import { isUnknown } from './types/unknown';
 
 import { FunctionManager } from './function-manager';
 
+type ArgTable = Map<FunctionValue, Array<ValueSet>>;
+
 export class CallManager {
     readonly siteTable: Map<CallExpression, Set<FunctionValue>>;
     readonly rsiteTable: Map<FunctionValue, Set<NodePath>>;
     readonly returnValueTable: Map<FunctionValue, ValueSet>;
-    readonly argTable: Map<FunctionValue, Array<ValueSet>>;
+    readonly argTable: ArgTable;
+    readonly siteArgTable: Map<CallExpression, ArgTable>;
     private readonly functionManager: FunctionManager;
 
     constructor(functionManager: FunctionManager) {
@@ -25,6 +28,7 @@ export class CallManager {
         this.rsiteTable = new Map();
         this.returnValueTable = new Map();
         this.argTable = new Map();
+        this.siteArgTable = new Map();
 
         this.functionManager = functionManager;
     }
@@ -110,11 +114,15 @@ export class CallManager {
         }
         return result;
     }
-    saveCallArgs(callee: FunctionValue, args: Value[]): void {
-        let argInfo = this.argTable.get(callee);
+    private static saveCallArgsToTable(
+        callee: FunctionValue,
+        args: Value[],
+        table: ArgTable
+    ): void {
+        let argInfo = table.get(callee);
         if (typeof argInfo === 'undefined') {
             argInfo = new Array(args.length);
-            this.argTable.set(callee, argInfo);
+            table.set(callee, argInfo);
         }
         argInfo.length = Math.max(argInfo.length, args.length);
         for (let i = 0; i < args.length; i++) {
@@ -128,22 +136,51 @@ export class CallManager {
             }
         }
     }
-    private saveFnCallInfo(path: NodePath, c: Value, args: Value[]): void {
+    saveCallArgs(callee: FunctionValue, args: Value[]): void {
+        CallManager.saveCallArgsToTable(callee, args, this.argTable);
+    }
+    private saveFnCallInfo(
+        path: NodePath,
+        c: Value,
+        args: Value[],
+        onTop: boolean
+    ): void {
         if (!(c instanceof FunctionValue)) {
             return;
         }
         this.saveCallee(path, c);
         this.saveCallArgs(c, args);
+        if (onTop) {
+            this.saveArgsForCallSite(path, c, args);
+        }
     }
-    saveCallInfo(path: NodePath, callees: Value, args: Value[]): void {
+    private saveArgsForCallSite(path: NodePath, c: Value, args: Value[]): void {
+        if (!(c instanceof FunctionValue)) {
+            return;
+        }
+        let siteSet = this.siteArgTable.get(path.node as CallExpression);
+
+        if (!siteSet) {
+            siteSet = new Map();
+            this.siteArgTable.set(path.node as CallExpression, siteSet);
+        }
+        CallManager.saveCallArgsToTable(c, args, siteSet);
+    }
+
+    saveCallInfo(
+        path: NodePath,
+        callees: Value,
+        args: Value[],
+        onTop: boolean
+    ): void {
         if (isUnknown(callees)) {
             return;
         }
         if (callees instanceof ValueSet) {
             // recurse to handle nested value sets
-            callees.forEach(v => this.saveCallInfo(path, v, args));
+            callees.forEach(v => this.saveCallInfo(path, v, args, onTop));
         } else {
-            this.saveFnCallInfo(path, callees, args);
+            this.saveFnCallInfo(path, callees, args, onTop);
         }
     }
     getArgument(f: ASTNode, idx: number): ValueSet | null {
@@ -151,6 +188,26 @@ export class CallManager {
             throw new Error('getArgument: function AST node is expected');
         }
         const args = this.argTable.get(this.functionManager.getOrCreate(f));
+
+        if (typeof args === 'undefined') {
+            return null;
+        }
+
+        return args[idx] || null;
+    }
+    getArgumentForSite(
+        f: ASTNode,
+        site: CallExpression,
+        idx: number
+    ): ValueSet | null {
+        if (!isFunction(f)) {
+            throw new Error('getArgument: function AST node is expected');
+        }
+        const t = this.siteArgTable.get(site);
+        if (!t) {
+            return null;
+        }
+        const args = t.get(this.functionManager.getOrCreate(f));
 
         if (typeof args === 'undefined') {
             return null;

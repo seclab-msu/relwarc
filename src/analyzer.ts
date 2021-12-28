@@ -899,11 +899,13 @@ export class Analyzer {
             return;
         }
 
+        const onTop = this.functionsStack.length === 0;
+
         if (CallManager.hasFunctions(calleeValue)) {
             const args = path.node.arguments.map(
                 a => this.valueFromASTNode(a)
             );
-            this.callManager.saveCallInfo(path, calleeValue, args);
+            this.callManager.saveCallInfo(path, calleeValue, args, onTop);
         }
     }
 
@@ -2572,6 +2574,43 @@ export class Analyzer {
         }
     }
 
+    private proceedWithSavedGlobalCallArgsForChain(callConfig): void {
+        const wantedCall = callConfig.chain[0];
+        const cs = wantedCall.callSite;
+        const func = wantedCall.code;
+
+        if (this.options.debugCallChains) {
+            log('skip traversing global code and enter site:');
+            logCallStep(cs, func);
+        }
+
+        const f = wantedCall.code.node;
+        const formalArgs = wantedCall.args;
+        const actualArgs = cs.arguments;
+
+        for (let i = 0; i < formalArgs.length; i++) {
+            if (i >= actualArgs.length) {
+                break;
+            }
+            const argValues = this.callManager.getArgumentForSite(f, cs, i);
+
+            if (argValues === null) {
+                throw new Error('unexpected: no saved args for global call site');
+            }
+            const binding = func.scope.getBinding(formalArgs[i]);
+            if (typeof binding === 'undefined') {
+                log('Warning: Undefined binding for func argument within it\'s scope');
+                continue;
+            }
+            this.memory.set(binding, argValues);
+        }
+
+        this.callChainPosition++;
+        this.extractDEPs(func, wantedCall);
+        this.unsetArgValues(formalArgs, func);
+        this.callChainPosition--;
+    }
+
     private extractDEPsWithCallChain(callConfig: CallConfig): void {
         if (this.options.debugCallChains) {
             logCallChains(this.callQueue, callConfig);
@@ -2582,7 +2621,12 @@ export class Analyzer {
         const func = callConfig.func;
 
         this.selectedFunction = func;
-        this.extractDEPs(func, this.makeFunctionDescription(func));
+
+        if (!func.isFunction()) {
+            this.proceedWithSavedGlobalCallArgsForChain(callConfig);
+        } else {
+            this.extractDEPs(func, this.makeFunctionDescription(func));
+        }
     }
 
     private seedGlobalScope(path: NodePath): void {
