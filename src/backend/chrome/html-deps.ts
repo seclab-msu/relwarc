@@ -49,8 +49,14 @@ export async function mineDEPsFromHTML(
     }
 
     const code = `(() => {\n${clientCode}\n})()`;
+    let data;
 
-    const data = await page.evaluate(code) as MineReqDataResult;
+    try {
+        data = await page.evaluate(code) as MineReqDataResult;
+    } catch (err) {
+        console.error('Error mining HTML DEPs:', err, err.stack);
+        return [];
+    }
 
     const result: HAR[] = [];
 
