@@ -87,17 +87,13 @@ export function reqDataFromGETForm(form: HTMLFormElement): GETFormRequestData {
 export function reqDataFromPOSTForm(
     form: HTMLFormElement
 ): POSTFormRequestData {
-    let action = form.action;
-
-    if (typeof action !== 'string') {
-        // @ts-ignore
-        const eltAction = action.formAction;
-        if (typeof eltAction === 'string') {
-            action = eltAction;
-        } else {
-            action = form.getAttribute('action') || '.';
-        }
-    }
+    // @ts-ignore
+    const actionGetter = Object.getOwnPropertyDescriptor(
+        HTMLFormElement.prototype,
+        'action'
+    ).get;
+    // @ts-ignore
+    const action = actionGetter.call(form);
 
     const url = new URL(action);
 
