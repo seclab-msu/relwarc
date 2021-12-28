@@ -48,7 +48,8 @@ import {
     CallConfigType,
     FunctionDescription,
     FunctionCallDescription,
-    CallConfig
+    CallConfig,
+    callConfigEqual
 } from './call-chains';
 
 import { CallManager } from './call-manager';
@@ -172,6 +173,7 @@ export class Analyzer {
 
     private argsStack: string[][];
     private readonly callQueue: CallConfig[];
+    private readonly doneCallQueues: CallConfig[];
 
     private callChain: FunctionCallDescription[];
     private callChainPosition: number;
@@ -254,6 +256,7 @@ export class Analyzer {
         this.callManager = new CallManager(this.functionManager);
 
         this.callQueue = [];
+        this.doneCallQueues = [];
         this.callChain = [];
         this.callChainPosition = 0;
 
@@ -2181,8 +2184,18 @@ export class Analyzer {
                 ...funcDescr
             };
             const chain = [callDescr].concat(this.callChain);
-            this.callQueue.push({ func: caller, chain });
+            this.enqueueCallConfig({ func: caller, chain });
         }
+    }
+
+    private enqueueCallConfig(cc: CallConfig): void {
+        for (const elem of this.callQueue.concat(this.doneCallQueues)) {
+            if (callConfigEqual(cc, elem)) {
+                return;
+            }
+        }
+
+        this.callQueue.push(cc);
     }
 
     private saveResult(
@@ -2768,6 +2781,8 @@ export class Analyzer {
         log('Analyzer: search code for DEP calls using call chains');
         while (this.callQueue.length > 0) {
             const callConfig: CallConfig = this.callQueue.shift() as CallConfig;
+
+            this.doneCallQueues.push(callConfig);
 
             this.extractDEPsWithCallChain(callConfig);
         }
