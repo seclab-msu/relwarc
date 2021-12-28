@@ -117,4 +117,30 @@ describe('Test dataflow through arguments', () => {
             args: ['/api/base/action.php?param=5']
         });
     });
+    it('argument re-assigned inside if operator (#7616)', () => {
+        const src = `
+            var empty = '';
+
+            function f(x) {
+                var appendValue = something();
+                if (appendValue) {
+                    x = empty + x;
+                }
+                fetch(x);
+            }
+
+            function g() {
+                f('/api/endpoint.php?p=1');
+            }
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/api/endpoint.php?p=1']
+        });
+    });
 });
