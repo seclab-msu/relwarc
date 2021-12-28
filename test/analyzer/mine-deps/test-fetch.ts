@@ -124,4 +124,44 @@ describe('Analyzer mining HARs from fetch() calls', () => {
             },
         );
     });
+
+    it('window.fetch() with two args', function () {
+        const scripts = [`
+            window.fetch('/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Test-Header': 'test-header-value'
+                },
+                body: JSON.stringify({a: 1, b: 2})
+            });`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/test',
+                method: 'POST',
+                headers: [{
+                    name: 'Host',
+                    value: 'test.com'
+                }, {
+                    name: 'Test-Header',
+                    value: 'test-header-value'
+                }, {
+                    name: 'Content-Type',
+                    value: 'application/json'
+                }, {
+                    name: 'Content-Length',
+                    value: '13'
+                }],
+                queryString: [],
+                bodySize: 13,
+                postData: {
+                    text: '{"a":1,"b":2}',
+                    mimeType: 'application/json'
+                }
+            },
+        );
+    });
 });
