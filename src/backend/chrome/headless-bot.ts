@@ -104,11 +104,14 @@ export class HeadlessBot implements GenericHeadlessBot {
         this.internalRequestCallback = internalRequestCallback;
 
         const response = await crawler.loadPage();
-
         this.abortNavigation = true;
 
         if (response !== null) {
-            this.initialContent = await response.text();
+            try {
+                this.initialContent = await response.text();
+            } catch (e) {
+                log('error occurred while trying to extract response\'s text');
+            }
         }
         this.pageLoadHTTPStatus = response?.status() || null;
     }
