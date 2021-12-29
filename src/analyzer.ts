@@ -2149,7 +2149,9 @@ export class Analyzer {
             ob === null ||
             ob === undefined ||
             ob === false ||
-            ob === ''
+            ob === '' ||
+            ob === 'UNKNOWN' ||
+            (ob instanceof ValueSet && ob.every(isTrivial))
         );
 
         const left = this.valueFromASTNode(node.left);
