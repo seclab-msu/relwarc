@@ -12,7 +12,7 @@ export class FunctionManager {
     }
 
     saveFunction(func: FunctionValue): void {
-        this.functions.set(func.ast, func);
+        this.functions.set(func.getAST(), func);
     }
 
     saveFunctionWithPath(path: NodePath): void {

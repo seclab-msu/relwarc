@@ -3,16 +3,20 @@ import type { Function as FunctionASTNode } from '@babel/types';
 import { debugEnabled } from '../debug';
 
 export class FunctionValue {
-    ast: FunctionASTNode;
+    #ast: FunctionASTNode;
 
     constructor(ast: FunctionASTNode) {
-        this.ast = ast;
+        this.#ast = ast;
+    }
+
+    getAST(): FunctionASTNode {
+        return this.#ast;
     }
 
     toString(): string {
         if (debugEnabled()) {
             let label = '<function';
-            const name = this.ast['id']?.name;
+            const name = this.#ast['id']?.name;
             if (name) {
                 label += ' ' + name;
             }

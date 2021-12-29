@@ -590,12 +590,14 @@ export class Analyzer {
             ) {
                 return;
             }
-            if (
-                ob instanceof Instance &&
-                value instanceof FunctionValue &&
-                isVanillaMethod(value.ast)
-            ) {
-                this.classManager.addMethodForInstance(ob, value.ast, safeName);
+            if (value instanceof FunctionValue) {
+                const ast = value.getAST();
+                if (
+                    ob instanceof Instance &&
+                    isVanillaMethod(ast)
+                ) {
+                    this.classManager.addMethodForInstance(ob, ast, safeName);
+                }
             }
 
             if (
@@ -719,7 +721,7 @@ export class Analyzer {
             this.memory.set(binding, value);
 
             if (value instanceof FunctionValue) {
-                this.addFunctionBinding(value.ast, binding);
+                this.addFunctionBinding(value.getAST(), binding);
             }
         } else if (node.type === 'AssignmentExpression') {
             const value = this.valueFromASTNode(node.right);
@@ -1367,7 +1369,7 @@ export class Analyzer {
 
         const savedArgs: Map<Binding, Value> = new Map();
 
-        const formalArgs = callee.ast.params;
+        const formalArgs = callee.getAST().params;
         const argBindings: Binding[] = [];
 
         for (let i = 0; i < node.arguments.length; i++) {
@@ -1395,15 +1397,15 @@ export class Analyzer {
         }
 
         if (
-            isArrowFunctionExpression(callee.ast) &&
-            callee.ast.body &&
-            !isBlockStatement(callee.ast.body)
+            isArrowFunctionExpression(callee.getAST()) &&
+            callee.getAST().body &&
+            !isBlockStatement(callee.getAST().body)
         ) {
             this.currentPath = calleePath;
-            const ret = this.valueFromASTNode(callee.ast.body);
+            const ret = this.valueFromASTNode(callee.getAST().body);
             this.currentCallRetVals.add(ret);
         } else {
-            this.addCurrentThis(callee.ast);
+            this.addCurrentThis(callee.getAST());
             this.functionsStack.push(calleePath);
             this.analysisPass(calleePath);
         }
@@ -1442,7 +1444,8 @@ export class Analyzer {
     ): ValueSet | null {
         const argValues = node.arguments.map(arg => this.valueFromASTNode(arg));
 
-        const obj = this.classManager.getClassInstanceForMethod(callee.ast);
+        const calleeAST = callee.getAST();
+        const obj = this.classManager.getClassInstanceForMethod(calleeAST);
 
         const cachedRet = this.callManager.getCachedReturnValuesForCallSite(
             node, callee, obj, argValues
@@ -1763,7 +1766,7 @@ export class Analyzer {
             v => this.valueFromASTNode(v)
         ));
 
-        const cls = this.classManager.getClassForMethod(ctor.ast);
+        const cls = this.classManager.getClassForMethod(ctor.getAST());
 
         if (cls) {
             const libCls = checkForLibraryClass(cls);
