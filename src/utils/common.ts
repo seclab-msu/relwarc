@@ -64,3 +64,9 @@ export function isPromise(ob: unknown): ob is PromiseLike<unknown> {
         typeof ob.then === 'function'
     );
 }
+
+export function depJSONStringify(obj): string {
+    return JSON.stringify(obj, (k, v) => {
+        return k && v === undefined ? 'UNKNOWN' : v;
+    });
+}

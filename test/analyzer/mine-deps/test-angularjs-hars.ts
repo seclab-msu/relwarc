@@ -308,4 +308,44 @@ describe('Tests for AngularJS library"s DEPs hars', () => {
             },
         );
     });
+
+    it('$http request with undefined param in body', async () => {
+        const scripts = [
+            `$http.post(
+                '/someUrl',
+                {
+                    'param': undefined
+                }
+            );`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url:
+                    'http://test.com/someUrl',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'test.com'
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '19'
+                    }
+                ],
+                queryString: [],
+                bodySize: 19,
+                postData: {
+                    text: '{"param":"UNKNOWN"}',
+                    mimeType: 'application/json'
+                },
+                method: 'POST'
+            },
+        );
+    });
 });

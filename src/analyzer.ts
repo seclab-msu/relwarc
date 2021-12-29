@@ -53,7 +53,7 @@ import {
 import { CallManager } from './call-manager';
 import { FunctionManager } from './function-manager';
 
-import { hasattr } from './utils/common';
+import { hasattr, depJSONStringify } from './utils/common';
 import { allAreExpressions, nodeKey } from './utils/ast';
 import {
     STRING_METHODS,
@@ -1233,7 +1233,7 @@ export class Analyzer {
             }
 
             try {
-                return JSON.stringify(val);
+                return depJSONStringify(val);
             } catch (err) {
                 log(
                     'warning: suppressing exception from JSON.stringify: ' +

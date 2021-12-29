@@ -9,6 +9,7 @@ import {
 
 import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
+import { depJSONStringify } from '../../utils/common';
 
 function parseArgsOld(name, args) {
     let settings,
@@ -128,7 +129,7 @@ function makeHARAngular(
             }
         }
         if (typeof postData === 'object') {
-            postData = JSON.stringify(postData);
+            postData = depJSONStringify(postData);
         }
 
         har.setPostData(postData, true);

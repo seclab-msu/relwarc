@@ -8,6 +8,7 @@ import {
 
 import type { Value } from '../../types/generic';
 import type { SinkDescr } from '../sinks';
+import { depJSONStringify } from '../../utils/common';
 
 function isAbsoluteURL(url: string): boolean {
     // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
@@ -80,7 +81,7 @@ function checkHeaders(headers, postData) {
         ct = 'application/json';
     }
     if (ct === 'application/json' && typeof postData === 'object') {
-        postData = JSON.stringify(postData);
+        postData = depJSONStringify(postData);
     }
     if (ct && !ctSet) {
         return [{
