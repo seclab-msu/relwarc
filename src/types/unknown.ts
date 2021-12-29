@@ -9,8 +9,6 @@ export class Unknown {
 }
 
 export const UNKNOWN = new Unknown();
-export const UNKNOWN_FUNCTION = new Unknown();
-export const UNKNOWN_FROM_FUNCTION = new Unknown();
 
 export function isUnknown(ob: unknown): ob is Unknown {
     return ob instanceof Unknown;

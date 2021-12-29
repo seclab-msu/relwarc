@@ -27,8 +27,6 @@ import {
 
 import {
     UNKNOWN,
-    UNKNOWN_FUNCTION,
-    UNKNOWN_FROM_FUNCTION,
     isUnknown,
     isUnknownOrUnknownString,
     Unknown
@@ -1185,7 +1183,7 @@ export class Analyzer {
                 if (isUnknown(val)) {
                     return val;
                 }
-                return UNKNOWN_FROM_FUNCTION;
+                return UNKNOWN;
             }
 
             if (hasattr(decoders, name)) {
@@ -1217,7 +1215,7 @@ export class Analyzer {
         if (wasCalled) {
             return res;
         }
-        return UNKNOWN_FROM_FUNCTION;
+        return UNKNOWN;
     }
 
     private processJSONStringify(args: ASTNode[]): Value {
@@ -1315,7 +1313,7 @@ export class Analyzer {
             return this.processStringMethod(obValue, propStr, args);
         }
 
-        return UNKNOWN_FROM_FUNCTION;
+        return UNKNOWN;
     }
 
     private requireModule(requireArguments: ASTNode[]): Value {
@@ -1509,7 +1507,7 @@ export class Analyzer {
 
     private processFunctionCall(node: CallExpression): Value {
         const callee = node.callee;
-        let result: Value = UNKNOWN_FROM_FUNCTION;
+        let result: Value = UNKNOWN;
 
         if (callee.type === 'Identifier') {
             result = this.processFreeStandingFunctionCall(
@@ -1759,7 +1757,7 @@ export class Analyzer {
             ));
         }
         const inst = this.classManager.getClassInstanceForClassObject(cls);
-        return inst || UNKNOWN_FROM_FUNCTION;
+        return inst || UNKNOWN;
     }
 
     private processNewForFunction(
@@ -1780,7 +1778,7 @@ export class Analyzer {
             }
             return cls.instance;
         }
-        return UNKNOWN_FROM_FUNCTION;
+        return UNKNOWN;
     }
 
     private processNewExpression(node: NewExpression): Value {
@@ -1796,7 +1794,7 @@ export class Analyzer {
             } else if (cls instanceof FunctionValue) {
                 return this.processNewForFunction(cls, node);
             }
-            return UNKNOWN_FROM_FUNCTION;
+            return UNKNOWN;
         };
 
         const v = this.valueFromASTNode(callee);
@@ -2094,7 +2092,7 @@ export class Analyzer {
             if (this.classManager.containsClass(node)) {
                 return this.functionManager.getOrCreate(node);
             }
-            return UNKNOWN_FUNCTION;
+            return UNKNOWN;
         } else if (this.stage === AnalysisPhase.DataFlowPropagationPass) {
             if (
                 isFunctionExpression(node) &&
