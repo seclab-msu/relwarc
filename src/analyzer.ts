@@ -1196,6 +1196,16 @@ export class Analyzer {
         const arg = this.valueFromASTNode(args[0]);
 
         const stringify = (val: Value): string | Unknown => {
+            if (
+                val === FROM_ARG || val === 'FROM_ARG' || val === '"FROM_ARG"'
+            ) {
+                return '"FROM_ARG"';
+            }
+
+            if (isUnknown(val) || val === 'UNKNOWN' || val === '"UNKNOWN"') {
+                return '"UNKNOWN"';
+            }
+
             try {
                 return JSON.stringify(val);
             } catch (err) {
