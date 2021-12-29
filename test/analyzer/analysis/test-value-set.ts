@@ -880,4 +880,95 @@ describe('Test ValueSet', () => {
 
         expect(res.length).toBeLessThanOrEqual(200);
     });
+    describe('works with JSON.stringify', () => {
+        it('top-level ValueSet', () => {
+            const scripts = [`
+                function f() {
+                    var x = someCondition() ? { data: 'test' } : { foo: 'bar' };
+                    var body = JSON.stringify(x);
+
+                    fetch('/test', { method: 'POST', body: body });
+                }
+            `];
+
+            const analyzer = makeAndRunSimple(scripts, false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test', {
+                    method: 'POST', body: '{"data":"test"}'
+                }]
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test', {
+                    method: 'POST', body: '{"foo":"bar"}'
+                }]
+            });
+        });
+        it('top-level ValueSet', () => {
+            const scripts = [`
+                function f() {
+                    var x = someCondition() ? 'foo' : 'bar';
+                    var data = { test: x };
+                    var body = JSON.stringify(data);
+
+                    fetch('/test', { method: 'POST', body: body });
+                }
+            `];
+
+            const analyzer = makeAndRunSimple(scripts, false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test', {
+                    method: 'POST', body: '{"test":"foo"}'
+                }]
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test', {
+                    method: 'POST', body: '{"test":"bar"}'
+                }]
+            });
+        });
+        describe('does not fail on cyclic objects', () => {
+            it('with ValueSet', () => {
+                const scripts = [`
+                    function f() {
+                        var x = {};
+                        x.p = someCondition() ? '123' : x;
+                        var body = JSON.stringify(x);
+
+                        fetch('/test', { method: 'POST', body: body });
+                    }
+                `];
+
+                makeAndRunSimple(scripts, false);
+            });
+            it('without ValueSet', () => {
+                const scripts = [`
+                    function f() {
+                        var x = {};
+                        x.p = x;
+                        var body = JSON.stringify(x);
+
+                        fetch('/test', { method: 'POST', body: body });
+                    }
+                `];
+
+                makeAndRunSimple(scripts, false);
+            });
+        });
+    });
 });
