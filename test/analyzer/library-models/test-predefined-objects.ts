@@ -1,8 +1,6 @@
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
-import { UNKNOWN } from '../../../src/types/unknown';
-
 import { makeAndRunSimple } from '../utils/utils';
 
 const TEST_DATA_DIR = path.join(__dirname, 'data/');
@@ -40,7 +38,7 @@ describe('Test support for predefined library objects', () => {
                 {
                     'name': 'send',
                     'args': [
-                        UNKNOWN
+                        null
                     ]
                 }
             ]

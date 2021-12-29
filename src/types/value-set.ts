@@ -9,8 +9,8 @@ import { debugEnabled } from '../debug';
 
 import { deepCopyObject } from './deep-copy';
 
-const VALUE_SET_MAX: number | null = 100;
-const COMB_MAX = 200;
+const VALUE_SET_MAX: number | null = 32;
+const COMB_MAX = 50;
 
 type TravCb = (val: Value, replace: (newVal: Value) => void) => boolean;
 
@@ -186,6 +186,10 @@ export class ValueSet {
             };
         }
         return 'UNKNOWN';
+    }
+
+    every(f: (Value) => boolean): boolean {
+        return [...this.values].every(f);
     }
 
     static map(v: Value, f: (Value) => Value): Value {

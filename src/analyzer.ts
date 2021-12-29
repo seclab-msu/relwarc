@@ -15,7 +15,7 @@ import {
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     FunctionDeclaration, ClassDeclaration, ClassExpression, ReturnStatement,
-    Expression, SequenceExpression,
+    Expression, SequenceExpression, LogicalExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
@@ -27,8 +27,6 @@ import {
 
 import {
     UNKNOWN,
-    UNKNOWN_FUNCTION,
-    UNKNOWN_FROM_FUNCTION,
     isUnknown,
     isUnknownOrUnknownString,
     Unknown
@@ -439,9 +437,14 @@ export class Analyzer {
             }
         })();
 
+        const isEmptyValueSet = (
+            value instanceof ValueSet && value.every(isEmptySimpleObject)
+        );
+
         if (
             fromGlobalSet && op === '=' &&
-            isEmptySimpleObject(value) && isNonemptyObject(oldValue)
+            isNonemptyObject(oldValue) &&
+            (isEmptySimpleObject(value) || isEmptyValueSet)
         ) {
             return;
         }
@@ -1180,7 +1183,7 @@ export class Analyzer {
                 if (isUnknown(val)) {
                     return val;
                 }
-                return UNKNOWN_FROM_FUNCTION;
+                return UNKNOWN;
             }
 
             if (hasattr(decoders, name)) {
@@ -1212,7 +1215,7 @@ export class Analyzer {
         if (wasCalled) {
             return res;
         }
-        return UNKNOWN_FROM_FUNCTION;
+        return UNKNOWN;
     }
 
     private processJSONStringify(args: ASTNode[]): Value {
@@ -1310,7 +1313,7 @@ export class Analyzer {
             return this.processStringMethod(obValue, propStr, args);
         }
 
-        return UNKNOWN_FROM_FUNCTION;
+        return UNKNOWN;
     }
 
     private requireModule(requireArguments: ASTNode[]): Value {
@@ -1504,7 +1507,7 @@ export class Analyzer {
 
     private processFunctionCall(node: CallExpression): Value {
         const callee = node.callee;
-        let result: Value = UNKNOWN_FROM_FUNCTION;
+        let result: Value = UNKNOWN;
 
         if (callee.type === 'Identifier') {
             result = this.processFreeStandingFunctionCall(
@@ -1754,7 +1757,7 @@ export class Analyzer {
             ));
         }
         const inst = this.classManager.getClassInstanceForClassObject(cls);
-        return inst || UNKNOWN_FROM_FUNCTION;
+        return inst || UNKNOWN;
     }
 
     private processNewForFunction(
@@ -1775,7 +1778,7 @@ export class Analyzer {
             }
             return cls.instance;
         }
-        return UNKNOWN_FROM_FUNCTION;
+        return UNKNOWN;
     }
 
     private processNewExpression(node: NewExpression): Value {
@@ -1791,7 +1794,7 @@ export class Analyzer {
             } else if (cls instanceof FunctionValue) {
                 return this.processNewForFunction(cls, node);
             }
-            return UNKNOWN_FROM_FUNCTION;
+            return UNKNOWN;
         };
 
         const v = this.valueFromASTNode(callee);
@@ -2089,7 +2092,7 @@ export class Analyzer {
             if (this.classManager.containsClass(node)) {
                 return this.functionManager.getOrCreate(node);
             }
-            return UNKNOWN_FUNCTION;
+            return UNKNOWN;
         } else if (this.stage === AnalysisPhase.DataFlowPropagationPass) {
             if (
                 isFunctionExpression(node) &&
@@ -2133,6 +2136,48 @@ export class Analyzer {
         }
         const last = node.expressions[node.expressions.length - 1];
         return this.valueFromASTNode(last);
+    }
+
+    private processLogicalExpression(node: LogicalExpression): Value {
+        if (node.operator !== '||') {
+            return UNKNOWN;
+        }
+
+        const isTrivial = (ob: unknown): boolean => (
+            (isUnknown(ob) &&
+            ob !== FROM_ARG) ||
+            ob === null ||
+            ob === undefined ||
+            ob === false ||
+            ob === '' ||
+            ob === 'UNKNOWN' ||
+            (ob instanceof ValueSet && ob.every(isTrivial))
+        );
+
+        const left = this.valueFromASTNode(node.left);
+        const right = this.valueFromASTNode(node.right);
+
+        if (isTrivial(left)) {
+            return right;
+        }
+        if (isTrivial(right)) {
+            return left;
+        }
+
+        if (isEmptySimpleObject(left) && isEmptySimpleObject(right)) {
+            return left;
+        }
+
+        let result: ValueSet;
+
+        if (left instanceof ValueSet) {
+            result = left;
+        } else {
+            result = new ValueSet([left]);
+        }
+        result.add(right);
+
+        return result;
     }
 
     private valueFromASTNode(node: ASTNode): Value {
@@ -2190,6 +2235,10 @@ export class Analyzer {
 
         if (node.type === 'SequenceExpression') {
             return this.processSequenceExpression(node);
+        }
+
+        if (node.type === 'LogicalExpression') {
+            return this.processLogicalExpression(node);
         }
 
         if (isFunction(node)) {
