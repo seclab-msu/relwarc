@@ -227,8 +227,6 @@ describe('Test ValueSet', () => {
                 args: el.args
             }));
 
-            expect(res.length).toBeGreaterThanOrEqual(2);
-
             expect(res as object[]).toContain({
                 funcName: 'fetch',
                 args: ['/test?y=10']
@@ -248,8 +246,6 @@ describe('Test ValueSet', () => {
                 funcName: el.funcName,
                 args: el.args
             }));
-
-            expect(res.length).toBeGreaterThanOrEqual(2);
 
             expect(res as object[]).toContain({
                 funcName: 'fetch',
