@@ -255,11 +255,16 @@ export class ClassManager {
     ): void {
         if (
             methodValue instanceof FunctionValue &&
-            isVanillaMethod(methodValue.ast) &&
-            clsValue instanceof FunctionValue &&
-            isVanillaClassNode(clsValue.ast)
+            clsValue instanceof FunctionValue
         ) {
-            this.addMethodForClassNode(clsValue.ast, methodValue.ast, name);
+            const methodAST = methodValue.getAST();
+            const clsValueAST = clsValue.getAST();
+            if (
+                isVanillaMethod(methodAST) &&
+                isVanillaClassNode(clsValueAST)
+            ) {
+                this.addMethodForClassNode(clsValueAST, methodAST, name);
+            }
         }
     }
 
