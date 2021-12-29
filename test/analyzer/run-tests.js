@@ -6,7 +6,6 @@ const Reporter = require('jasmine-terminal-reporter');
 const logging = require('../../src/logging');
 
 const PAGE_SPEC_FILES = 'page/test*.js';
-const SLIMER_SPEC_FILES = 'backend/slimerjs/*.js'
 const defaultSpecFiles = [
     'test*.js',
     'mine-args/test*.js',
@@ -45,10 +44,6 @@ const jasmine = new Jasmine({
 });
 
 jasmine.jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-
-if (isSlimer) {
-    defaultSpecFiles.push(SLIMER_SPEC_FILES);
-}
 
 if (isSlimer || isChrome) {
     defaultSpecFiles.push(PAGE_SPEC_FILES);

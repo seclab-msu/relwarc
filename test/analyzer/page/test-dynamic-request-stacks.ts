@@ -104,11 +104,6 @@ describe('Stacks of JS requests seen in dynamic are found when', () => {
         let lineNumber = 17;
         let columnNumber = 20;
 
-        if (currentBackend === BackendKind.SlimerJS) { // because slimer gives position in the handler
-            lineNumber = 0;
-            columnNumber = 0;
-        }
-
         expect(hars).toContain(jasmine.objectContaining({
             "initiator": {
                 "type": "fetch",
