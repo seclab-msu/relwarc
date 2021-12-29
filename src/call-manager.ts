@@ -9,7 +9,7 @@ import { NodePath } from '@babel/traverse';
 import { Value } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { FunctionValue } from './types/function';
-import { isUnknown } from './types/unknown';
+import { UNKNOWN, Unknown, isUnknown } from './types/unknown';
 import type { Instance } from './types/classes';
 
 import { FunctionManager } from './function-manager';
@@ -206,7 +206,7 @@ export class CallManager {
         f: ASTNode,
         site: CallExpression,
         idx: number
-    ): ValueSet | null {
+    ): ValueSet | Unknown | null {
         if (!isFunction(f)) {
             throw new Error('getArgument: function AST node is expected');
         }
@@ -220,7 +220,7 @@ export class CallManager {
             return null;
         }
 
-        return args[idx] || null;
+        return args[idx] || UNKNOWN;
     }
     getReturnValuesForFunction(f: FunctionValue): ValueSet | null {
         return this.returnValueTable.get(f) || null;

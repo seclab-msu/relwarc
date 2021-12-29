@@ -163,4 +163,24 @@ describe('Test ability to find functions to build call chains', () => {
             });
         });
     });
+    it('global call site has only UNKNOWN argument', () => {
+        const src = `
+            var a = someUnknownFun();
+
+            function f(x) {
+                fetch('/test?param=' + x);
+            }
+
+            f(a);
+        `;
+        const analyzer = makeAndRunSimple([src], false);
+        const res = analyzer.results.map(el => ({
+            funcName: el.funcName,
+            args: el.args
+        }));
+        expect(res as object[]).toContain({
+            funcName: 'fetch',
+            args: ['/test?param=UNKNOWN']
+        });
+    });
 });
