@@ -955,9 +955,7 @@ export class Analyzer {
             enter: (path: NodePath) => {
                 const node: ASTNode = path.node;
                 this.currentPath = path;
-                if (!this.globalProgramPath) {
-                    this.seedGlobalScope(path);
-                }
+
                 const detectedLib = checkExclusion(node);
                 if (detectedLib) {
                     if (this.options.debugLibExclusion) {
@@ -973,11 +971,7 @@ export class Analyzer {
                     this.declare(node);
                 }
                 if (isFunction(node)) {
-                    this.functionManager.saveFunctionWithPath(path);
                     if (this.moduleManager.isModule(node)) {
-                        if (stage === AnalysisPhase.DataFlowPropagationPass) {
-                            this.moduleManager.renameRequireInModules(path);
-                        }
                         this.setModuleVars(path, node);
                         this.argsStack.push([]);
                     } else {
@@ -1069,6 +1063,33 @@ export class Analyzer {
         if (this.stage === AnalysisPhase.DataFlowPropagationPass) {
             this.argsStack.length = 0; // clear args stack just in case
         }
+    }
+
+    private preliminaryPass(code: AST): void {
+        let globalScopeInitialized = false;
+
+        traverse(code, {
+            enter: (path: NodePath) => {
+                if (!globalScopeInitialized) {
+                    this.seedGlobalScope(path);
+                    globalScopeInitialized = true;
+                }
+                const detectedLib = checkExclusion(path.node);
+                if (detectedLib) {
+                    if (this.options.debugLibExclusion) {
+                        log(`Analyzer: detected lib ${detectedLib}, skip node`);
+                    }
+                    path.skip();
+                    return;
+                }
+                if (path.isFunction()) {
+                    this.functionManager.saveFunctionWithPath(path);
+                    if (this.moduleManager.isModule(path.node)) {
+                        this.moduleManager.renameRequireInModules(path);
+                    }
+                }
+            }
+        });
     }
 
     private processStringMethod(
@@ -2862,6 +2883,9 @@ export class Analyzer {
         this.mergedProgram = mergedProgram;
 
         this.pageURL = url;
+
+        log('Analyzer: make preliminary code pass');
+        this.preliminaryPass(mergedProgram);
 
         log('Analyzer: run data flow analysis passes');
         this.stage = AnalysisPhase.DataFlowPropagationPass;
