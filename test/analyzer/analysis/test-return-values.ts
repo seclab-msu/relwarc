@@ -163,4 +163,213 @@ describe('Test return value handling', () => {
             expect(res as unknown[]).toContain('testfoobar123');
         });
     });
+    describe('sensitive to args and site', () => {
+        it('sensitive to args', () => {
+            const src = `
+                function f(x) {
+                    return '[' + x + ']';
+                }
+                function test1() {
+                    fetch("/test/data?p=" + f("a"));
+                }
+                function test2() {
+                    fetch("/test/data?q=" + f("b"));
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?p=[a]']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?q=[b]']
+            });
+        });
+        it('sensitive to args - identity arrow function', () => {
+            const src = `
+                const f = x => x;
+                function test1() {
+                    fetch("/test/data?p=" + f("a"));
+                }
+                function test2() {
+                    fetch("/test/data?q=" + f("b"));
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?p=a']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?q=b']
+            });
+        });
+        it('sensitive to args with depth 2', () => {
+            const src = `
+                function f(x) {
+                    return '[' + x + ']';
+                }
+                function g(y) {
+                    return '_' + f(y);
+                }
+                function test1() {
+                    fetch("/test/data?p=" + g("a"));
+                }
+                function test2() {
+                    fetch("/test/data?q=" + g("b"));
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?p=_[a]']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?q=_[b]']
+            });
+        });
+        it('sensitive to args - method calls', () => {
+            const src = `
+                class C {
+                    constructor() {
+                        this.prefix = '__';
+                    }
+                    m(x) {
+                        return this.prefix + x;
+                    }
+                }
+                function test1() {
+                    var o = new C();
+                    fetch("/test/data?p=" + o.m("a"));
+                }
+                function test2() {
+                    var o = new C();
+                    fetch("/test/data?q=" + o.m("b"));
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?p=__a']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?q=__b']
+            });
+        });
+        it('sensitive to site and args', () => {
+            const src = `
+                var baseURL;
+                function f(x) {
+                    return baseURL + '/endpoint/' + x;
+                }
+                function test1() {
+                    baseURL = '/api/1.0';
+                    var url = f('getdata');
+                    fetch(url);
+                }
+                function test2() {
+                    baseURL = '/api/2.0';
+                    var url = f('getinfo');
+                    fetch(url);
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toEqual(2);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/1.0/endpoint/getdata']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/api/2.0/endpoint/getinfo']
+            });
+        });
+        it('multiple possible callees', () => {
+            const src = `
+                function f(x) {
+                    return '[' + x + ']';
+                }
+                function g(y) {
+                    return '_' + y;
+                }
+                var transformer = somethingUnknown() ? f : g;
+                function test1() {
+                    fetch("/test/data?p=" + transformer("a"));
+                }
+                function test2() {
+                    fetch("/test/data?q=" + transformer("b"));
+                }
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const res = analyzer.results.map(el => ({
+                funcName: el.funcName,
+                args: el.args
+            }));
+
+            expect(res.length).toEqual(4);
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?p=_a']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?q=_b']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?p=[a]']
+            });
+
+            expect(res as object[]).toContain({
+                funcName: 'fetch',
+                args: ['/test/data?q=[b]']
+            });
+        });
+    });
 });
