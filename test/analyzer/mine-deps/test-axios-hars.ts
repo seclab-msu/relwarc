@@ -386,4 +386,39 @@ describe('Tests for Axios library\'s DEPs hars', () => {
             },
         );
     });
+
+    it('axios with undefined param in body', async () => {
+        const scripts = [
+            `let a = {"param": undefined};
+            axios.post('/test', a);`
+        ];
+        runSingleTestHAR(
+            scripts,
+            {
+                httpVersion: 'HTTP/1.1',
+                url: 'http://test.com/test',
+                headers: [
+                    {
+                        name: 'Host',
+                        value: 'test.com'
+                    },
+                    {
+                        name: 'Content-Length',
+                        value: '19'
+                    },
+                    {
+                        name: 'Content-Type',
+                        value: 'application/json'
+                    }
+                ],
+                queryString: [],
+                bodySize: 19,
+                postData: {
+                    text: '{"param":"UNKNOWN"}',
+                    mimeType: 'application/json'
+                },
+                method: 'POST'
+            },
+        );
+    });
 });
