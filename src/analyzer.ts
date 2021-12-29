@@ -60,7 +60,8 @@ import { allAreExpressions, nodeKey } from './utils/ast';
 import {
     STRING_METHODS,
     REGEXP_UNSETTABLE_PROPS,
-    validateAnalysisPasses
+    validateAnalysisPasses,
+    checkCircularOrValueSet
 } from './utils/analyzer';
 import {
     safeToString,
@@ -1191,6 +1192,47 @@ export class Analyzer {
         return UNKNOWN_FROM_FUNCTION;
     }
 
+    private processJSONStringify(args: ASTNode[]): Value {
+        const arg = this.valueFromASTNode(args[0]);
+
+        const stringify = (val: Value): string | Unknown => {
+            try {
+                return JSON.stringify(val);
+            } catch (err) {
+                log(
+                    'warning: suppressing exception from JSON.stringify: ' +
+                    err
+                );
+                this.suppressedError = true;
+                return UNKNOWN;
+            }
+        };
+
+        const f = (val: Value): Value => {
+            const { isCircular, hasValueSet } = checkCircularOrValueSet(val);
+
+            if (isCircular) {
+                return UNKNOWN; // JSON.stringify does not work for circular objects
+            }
+
+            if (!hasValueSet) {
+                return stringify(val);
+            }
+
+            const variants = ValueSet.produceCombinations(val);
+
+            if (variants.length === 1) {
+                return stringify(variants[0]);
+            }
+            return new ValueSet(variants.map(stringify));
+        };
+
+        if (arg instanceof ValueSet) {
+            return ValueSet.map(arg, f);
+        }
+        return f(arg);
+    }
+
     private processMethodCall(
         callee: MemberExpression,
         args: ASTNode[]
@@ -1205,16 +1247,7 @@ export class Analyzer {
         }
         if (ob.type === 'Identifier' && propIsIdentifier) {
             if (ob.name === 'JSON' && propName === 'stringify') {
-                try {
-                    return JSON.stringify(this.valueFromASTNode(args[0]));
-                } catch (err) {
-                    log(
-                        'warning: suppressing exception from JSON.stringify: ' +
-                        err
-                    );
-                    this.suppressedError = true;
-                    return UNKNOWN;
-                }
+                return this.processJSONStringify(args);
             }
             if (ob.name === 'Math' && propName === 'random') {
                 return 0.8782736846632295;
