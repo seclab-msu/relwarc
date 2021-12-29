@@ -1,4 +1,5 @@
 import { FunctionValue } from '../../../src/types/function';
+import { isUnknown } from '../../../src/types/unknown';
 
 import { makeAndRunSimple } from '../utils/utils';
 
@@ -182,5 +183,41 @@ describe('Test working with object properties', () => {
         const ob = analyzer.getGlobalVariable('$test') as { f: unknown };
 
         expect(ob.f).toBeInstanceOf(FunctionValue);
+    });
+    describe('OptionalMemberExpression', () => {
+        it('non-computed', () => {
+            const src = `
+                ob = {
+                    x: 'foobar'
+                };
+                $test = ob?.x;
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const val = analyzer.getGlobalVariable('$test') as unknown;
+
+            expect(val).toEqual('foobar');
+        });
+        it('computed', () => {
+            const src = `
+                ob = {
+                    x: 'foobar'
+                };
+                $test = ob?.['x'];
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const val = analyzer.getGlobalVariable('$test') as unknown;
+
+            expect(val).toEqual('foobar');
+        });
+        it('nullish object', () => {
+            const src = `
+                ob = null;
+                $test = ob?.x;
+            `;
+            const analyzer = makeAndRunSimple([src], false);
+            const val = analyzer.getGlobalVariable('$test') as unknown;
+
+            expect(isUnknown(val) || typeof val === 'undefined').toBeTrue();
+        });
     });
 });

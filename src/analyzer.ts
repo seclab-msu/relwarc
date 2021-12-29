@@ -15,7 +15,7 @@ import {
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     FunctionDeclaration, ClassDeclaration, ClassExpression, ReturnStatement,
-    Expression, SequenceExpression, LogicalExpression,
+    Expression, SequenceExpression, LogicalExpression, OptionalMemberExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
@@ -1962,7 +1962,9 @@ export class Analyzer {
         return UNKNOWN;
     }
 
-    private processMemberExpression(node: MemberExpression): Value {
+    private processMemberExpression(
+        node: MemberExpression | OptionalMemberExpression
+    ): Value {
         const ob = this.valueFromASTNode(node.object);
         if (!ob || isUnknown(ob)) {
             return UNKNOWN;
@@ -2213,7 +2215,10 @@ export class Analyzer {
             return this.processBinaryExpression(node);
         }
 
-        if (node.type === 'MemberExpression') {
+        if (
+            node.type === 'MemberExpression' ||
+            node.type === 'OptionalMemberExpression'
+        ) {
             return this.processMemberExpression(node);
         }
 
