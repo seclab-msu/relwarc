@@ -36,3 +36,26 @@ export function isSimpleObject(ob: unknown): boolean {
 
     return true;
 }
+
+export function isEmptySimpleObject(ob: unknown): boolean {
+    if (typeof ob !== 'object') {
+        return false;
+    }
+    if (ob === null) {
+        return true;
+    }
+    if (!isSimpleObject(ob)) {
+        return false;
+    }
+    return Object.keys(ob).length === 0;
+}
+
+export function isNonemptyObject(ob: unknown): boolean {
+    if (typeof ob !== 'object' || ob === null) {
+        return false;
+    }
+    if (!isSimpleObject(ob)) {
+        return true;
+    }
+    return Object.keys(ob).length > 0;
+}

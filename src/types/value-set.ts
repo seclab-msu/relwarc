@@ -141,7 +141,13 @@ export class ValueSet {
     toString(): string {
         if (debugEnabled()) {
             return 'ValueSet {' + Array.from(this.values).map(
-                v => JSON.stringify(v)
+                v => {
+                    try {
+                        return JSON.stringify(v);
+                    } catch {
+                        return '<value>';
+                    }
+                }
             ).join(', ') + '}';
         }
         // TODO(asterite): debug reasons for this

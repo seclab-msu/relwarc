@@ -9,4 +9,5 @@ test-domain-filtering.js
 test-value-set.js
 test-simpletraverse.js
 test-uncommenter-filtering.js
+test-analyzer-utils.js
 utils/*.js

@@ -37,6 +37,10 @@ export function debugFuncLabel(f: NodePath): string {
         return `[${n.type}]`;
     }
 
+    if (n.type === 'FunctionExpression' && n.id) {
+        return n.id.name;
+    }
+
     return `[${n.type}]`;
 }
 
