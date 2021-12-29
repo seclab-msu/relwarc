@@ -72,11 +72,6 @@ import { isEmptySimpleObject, isNonemptyObject } from './types/is-special';
 import { HAR, BadURLError } from './har';
 import { makeHAR } from './library-models/sinks';
 
-import {
-    combineComments,
-    parseComments
-} from './uncommenter';
-
 import { LoadType } from './load-type';
 
 import {
@@ -2894,24 +2889,6 @@ export class Analyzer {
         return this.trackedCallSequencesStack[lastNum];
     }
 
-    private addCommentedCode(): void {
-        for (const script of this.scripts) {
-            let combComments: CommentASTNode[];
-            const srcTxt = script.sourceText.replace(/^\s*[\r\n]/gm, '');
-            try {
-                combComments = combineComments(parser.parse(srcTxt, {
-                    startLine: script.startLine,
-                    sourceFilename: script.url,
-                }).comments);
-            } catch {
-                continue;
-            }
-
-            const parsedComments = parseComments(combComments);
-            this.parsedScripts.push(...parsedComments);
-        }
-    }
-
     private newHARCallback(har: HAR): void {
         if (!this.harFilter || this.harFilter(har)) {
             this.onNewHAR(har);
@@ -2926,13 +2903,9 @@ export class Analyzer {
         this.scripts.length = 0;
     }
 
-    mineArgsForDEPCalls(url: string, uncomment?: boolean): void {
+    mineArgsForDEPCalls(url: string): void {
         log('Analyzer: start parsing code');
         this.parseCode();
-
-        if (uncomment) {
-            this.addCommentedCode();
-        }
 
         log('Analyzer: done parsing code');
 
@@ -3026,8 +2999,8 @@ export class Analyzer {
         }
     }
 
-    analyze(url: string, uncomment?: boolean, baseURI?: string): void {
-        this.mineArgsForDEPCalls(url, uncomment);
+    analyze(url: string, baseURI?: string): void {
+        this.mineArgsForDEPCalls(url);
         log('Analyzer: code analysis done, now make HARs from found calls');
         this.makeHARsFromMinedDEPCallArgs(url, baseURI);
     }

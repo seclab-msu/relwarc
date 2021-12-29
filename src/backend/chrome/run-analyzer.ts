@@ -14,8 +14,6 @@ import { outputDEPs, outputArgs } from '../../output';
 
 import { log } from '../../logging';
 
-import { uncommenterRetry } from '../../uncommenter';
-
 let targetURL;
 
 // TODO: deduplicate this with slimer's run-analyzer.ts
@@ -77,27 +75,24 @@ async function main(): Promise<number> {
     const addHtmlDynamicDEPsLocation =
         args.add_dynamic_html_dep_location as boolean;
 
-    await uncommenterRetry(async uncomment => {
-        const analyzer = new DynamicPageAnalyzer(analyzerOptions);
+    const analyzer = new DynamicPageAnalyzer(analyzerOptions);
 
-        await analyzer.run(
-            targetURL,
-            uncomment,
-            !args.no_html_deps,
-            addHtmlDynamicDEPsLocation,
-            !args.no_reload_page
+    await analyzer.run(
+        targetURL,
+        !args.no_html_deps,
+        addHtmlDynamicDEPsLocation,
+        !args.no_reload_page
+    );
+
+    if (args.args) {
+        outputArgs(analyzer.analyzer.results, args.output);
+    } else {
+        // hars
+        const deps = analyzer.getAllDeps(
+            deduplicationModeFromString(args.dep_deduplication)
         );
-
-        if (args.args) {
-            outputArgs(analyzer.analyzer.results, args.output);
-        } else {
-            // hars
-            const deps = analyzer.getAllDeps(
-                deduplicationModeFromString(args.dep_deduplication)
-            );
-            outputDEPs(deps, args.output);
-        }
-    }, !args.no_comments);
+        outputDEPs(deps, args.output);
+    }
 
     return 0;
 }

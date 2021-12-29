@@ -45,7 +45,7 @@ describe('Tests for correct analysis of call chains', () => {
         };
 
         analyzer.addScript(script);
-        analyzer.mineArgsForDEPCalls('http://example.com', false);
+        analyzer.mineArgsForDEPCalls('http://example.com');
 
         expect(wasCalled).toBeFalse();
     });
@@ -62,7 +62,7 @@ describe('Tests for correct analysis of call chains', () => {
         const analyzer = new Analyzer();
 
         analyzer.addScript(script);
-        analyzer.mineArgsForDEPCalls('http://example.com', false);
+        analyzer.mineArgsForDEPCalls('http://example.com');
 
         const results = analyzer.results;
         results.forEach(res => {
@@ -128,7 +128,7 @@ describe('Tests for correct analysis of call chains', () => {
             };
 
             analyzer.addScript(script);
-            analyzer.mineArgsForDEPCalls('http://example.com', false);
+            analyzer.mineArgsForDEPCalls('http://example.com');
 
             expect(callCount).toBeLessThanOrEqual(1);
         });
