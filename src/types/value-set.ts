@@ -1,6 +1,6 @@
 import type { Value } from './generic';
 
-import { isUnknown } from './unknown';
+import { UNKNOWN, isUnknown } from './unknown';
 import { FormDataModel } from './form-data';
 import { FunctionValue } from './function';
 
@@ -123,6 +123,26 @@ export class ValueSet {
         if (VALUE_SET_MAX !== null && this.values.size >= VALUE_SET_MAX) {
             return;
         }
+
+        const isUnknownValue = (ob: unknown): boolean => (
+            ob === UNKNOWN || ob === undefined
+        );
+        if (
+            this.values.size !== 0 &&
+            isUnknownValue(elem)
+        ) {
+            return;
+        }
+
+        if (
+            !isUnknownValue(elem) &&
+            (this.values.has(UNKNOWN) ||
+            this.values.has(undefined))
+        ) {
+            this.values.delete(undefined);
+            this.values.delete(UNKNOWN);
+        }
+
         this.values.add(elem);
     }
 
