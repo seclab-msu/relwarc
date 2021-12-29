@@ -15,7 +15,7 @@ import {
     MemberExpression, NewExpression, Statement, ConditionalExpression,
     Literal, ObjectExpression, Identifier, TemplateLiteral, SourceLocation,
     FunctionDeclaration, ClassDeclaration, ClassExpression, ReturnStatement,
-    Expression, SequenceExpression,
+    Expression, SequenceExpression, LogicalExpression,
     // validators
     isLiteral, isIdentifier, isNullLiteral, isObjectMethod, isRegExpLiteral,
     isTemplateLiteral, isSpreadElement, isFunction,
@@ -439,9 +439,14 @@ export class Analyzer {
             }
         })();
 
+        const isEmptyValueSet = (
+            value instanceof ValueSet && value.every(isEmptySimpleObject)
+        );
+
         if (
             fromGlobalSet && op === '=' &&
-            isEmptySimpleObject(value) && isNonemptyObject(oldValue)
+            isNonemptyObject(oldValue) &&
+            (isEmptySimpleObject(value) || isEmptyValueSet)
         ) {
             return;
         }
@@ -2135,6 +2140,46 @@ export class Analyzer {
         return this.valueFromASTNode(last);
     }
 
+    private processLogicalExpression(node: LogicalExpression): Value {
+        if (node.operator !== '||') {
+            return UNKNOWN;
+        }
+
+        const isTrivial = (ob: unknown): boolean => (
+            (isUnknown(ob) &&
+            ob !== FROM_ARG) ||
+            ob === null ||
+            ob === undefined ||
+            ob === false ||
+            ob === ''
+        );
+
+        const left = this.valueFromASTNode(node.left);
+        const right = this.valueFromASTNode(node.right);
+
+        if (isTrivial(left)) {
+            return right;
+        }
+        if (isTrivial(right)) {
+            return left;
+        }
+
+        if (isEmptySimpleObject(left) && isEmptySimpleObject(right)) {
+            return left;
+        }
+
+        let result: ValueSet;
+
+        if (left instanceof ValueSet) {
+            result = left;
+        } else {
+            result = new ValueSet([left]);
+        }
+        result.add(right);
+
+        return result;
+    }
+
     private valueFromASTNode(node: ASTNode): Value {
         if (isLiteral(node)) {
             return this.valueFromLiteral(node);
@@ -2190,6 +2235,10 @@ export class Analyzer {
 
         if (node.type === 'SequenceExpression') {
             return this.processSequenceExpression(node);
+        }
+
+        if (node.type === 'LogicalExpression') {
+            return this.processLogicalExpression(node);
         }
 
         if (isFunction(node)) {

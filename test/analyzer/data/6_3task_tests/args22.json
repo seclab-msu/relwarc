@@ -285,7 +285,7 @@
       "args": [
         {
           "method": "get",
-          "url": "https://api1.blavity.com/v1/series/list/UNKNOWN/UNKNOWN",
+          "url": "https://api1.blavity.com/v1/series/list/1000/0",
           "headers": {
             "Content-Type": "UNKNOWN",
             "token": "UNKNOWN"

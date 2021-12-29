@@ -188,6 +188,10 @@ export class ValueSet {
         return 'UNKNOWN';
     }
 
+    every(f: (Value) => boolean): boolean {
+        return [...this.values].every(f);
+    }
+
     static map(v: Value, f: (Value) => Value): Value {
         if (v instanceof ValueSet) {
             return v.map(f);
