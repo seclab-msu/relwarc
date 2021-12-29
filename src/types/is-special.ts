@@ -4,6 +4,7 @@ import { ClassObject, Instance } from './classes';
 import { GlobalWindowObject } from './memory';
 import { ModuleObject } from '../module-manager';
 import { LibClass, LibObject } from './lib-objects';
+import { isUnknown } from './unknown';
 import type { SpecialObject } from './generic';
 
 export function isSpecialObject(ob: unknown): ob is SpecialObject {
@@ -20,7 +21,7 @@ export function isSpecialObject(ob: unknown): ob is SpecialObject {
 }
 
 export function isSimpleObject(ob: unknown): boolean {
-    if (typeof ob !== 'object') {
+    if (typeof ob !== 'object' || isUnknown(ob)) {
         return false;
     }
     if (isSpecialObject(ob)) {
@@ -51,7 +52,7 @@ export function isEmptySimpleObject(ob: unknown): boolean {
 }
 
 export function isNonemptyObject(ob: unknown): boolean {
-    if (typeof ob !== 'object' || ob === null) {
+    if (typeof ob !== 'object' || ob === null || isUnknown(ob)) {
         return false;
     }
     if (!isSimpleObject(ob)) {

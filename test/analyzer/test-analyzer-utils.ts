@@ -1,6 +1,9 @@
 import { Value } from '../../src/types/generic';
 import { ValueSet } from '../../src/types/value-set';
 import { checkCircularOrValueSet } from '../../src/utils/analyzer';
+import { UNKNOWN } from '../../src/types/unknown';
+import { isNonemptyObject, isSimpleObject } from '../../src/types/is-special';
+
 
 describe('Test function "checkCircularOrValueSet"', () => {
     it('detects circular objects', () => {
@@ -62,5 +65,12 @@ describe('Test function "checkCircularOrValueSet"', () => {
         const result = checkCircularOrValueSet(v);
 
         expect(result.isCircular).toBeTrue();
+    });
+});
+
+describe('Tests functions "isNonemptyObject" and "isSimpleObject"', () => {
+    it('with UNKNOWN', () => {
+        expect(isNonemptyObject(UNKNOWN)).toBeFalse();
+        expect(isSimpleObject(UNKNOWN)).toBeFalse();
     });
 });
