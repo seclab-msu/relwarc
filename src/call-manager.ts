@@ -10,27 +10,34 @@ import { Value } from './types/generic';
 import { ValueSet } from './types/value-set';
 import { FunctionValue } from './types/function';
 import { isUnknown } from './types/unknown';
+import type { Instance } from './types/classes';
 
 import { FunctionManager } from './function-manager';
+import { ObjectIdenter } from './object-identer';
 
 type ArgTable = Map<FunctionValue, Array<ValueSet>>;
+type RVCache = Map<CallExpression, Map<FunctionValue, Map<string, ValueSet>>>;
 
 export class CallManager {
     readonly siteTable: Map<CallExpression, Set<FunctionValue>>;
     readonly rsiteTable: Map<FunctionValue, Set<NodePath>>;
     readonly returnValueTable: Map<FunctionValue, ValueSet>;
+    readonly returnValueCache: RVCache;
     readonly argTable: ArgTable;
     readonly siteArgTable: Map<CallExpression, ArgTable>;
     private readonly functionManager: FunctionManager;
+    private readonly identer: ObjectIdenter;
 
     constructor(functionManager: FunctionManager) {
         this.siteTable = new Map();
         this.rsiteTable = new Map();
         this.returnValueTable = new Map();
+        this.returnValueCache = new Map();
         this.argTable = new Map();
         this.siteArgTable = new Map();
 
         this.functionManager = functionManager;
+        this.identer = new ObjectIdenter();
     }
 
     static hasFunctions(v: Value): boolean {
@@ -217,5 +224,56 @@ export class CallManager {
     }
     getReturnValuesForFunction(f: FunctionValue): ValueSet | null {
         return this.returnValueTable.get(f) || null;
+    }
+    getCachedReturnValuesForCallSite(
+        node: CallExpression,
+        callee: FunctionValue,
+        obj: Instance | null,
+        argValues: Value[]
+    ): ValueSet | null {
+        const csEntry = this.returnValueCache.get(node);
+
+        if (typeof csEntry === 'undefined') {
+            return null;
+        }
+
+        const funcEntry = csEntry.get(callee);
+
+        if (typeof funcEntry === 'undefined') {
+            return null;
+        }
+
+        const argsWithThis = argValues.slice();
+        argsWithThis.unshift(obj);
+
+        const h = this.identer.getIdentifierForArray(argsWithThis);
+
+        return funcEntry.get(h) || null;
+    }
+    cacheReturnValuesForCallSite( // eslint-disable-line
+        node: CallExpression,
+        callee: FunctionValue,
+        obj: Instance | null,
+        argValues: Value[],
+        returnValues: ValueSet
+    ): void {
+        let csEntry = this.returnValueCache.get(node);
+
+        if (typeof csEntry === 'undefined') {
+            csEntry = new Map();
+            this.returnValueCache.set(node, csEntry);
+        }
+        let funcEntry = csEntry.get(callee);
+        if (typeof funcEntry === 'undefined') {
+            funcEntry = new Map();
+            csEntry.set(callee, funcEntry);
+        }
+
+        const argsWithThis = argValues.slice();
+        argsWithThis.unshift(obj);
+
+        const h = this.identer.getIdentifierForArray(argsWithThis);
+
+        funcEntry.set(h, returnValues);
     }
 }

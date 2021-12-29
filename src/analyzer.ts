@@ -1335,7 +1335,8 @@ export class Analyzer {
     private enterFunctionCall(
         node: CallExpression,
         callee: FunctionValue,
-        calleePath: NodePath
+        calleePath: NodePath,
+        argValues: Value[]
     ): ValueSet | null {
         this.callDepth++;
 
@@ -1356,7 +1357,7 @@ export class Analyzer {
             if (!isIdentifier(formalArg)) {
                 continue;
             }
-            const v = this.valueFromASTNode(node.arguments[i]);
+            const v = argValues[i];
             const b = calleePath.scope.getBinding(formalArg.name);
 
             if (typeof b === 'undefined') {
@@ -1413,6 +1414,34 @@ export class Analyzer {
         return result;
     }
 
+    private getReturnValuesForFunctionCall(
+        node: CallExpression,
+        callee: FunctionValue,
+        calleePath: NodePath
+    ): ValueSet | null {
+        const argValues = node.arguments.map(arg => this.valueFromASTNode(arg));
+
+        const obj = this.classManager.getClassInstanceForMethod(callee.ast);
+
+        const cachedRet = this.callManager.getCachedReturnValuesForCallSite(
+            node, callee, obj, argValues
+        );
+
+        if (cachedRet !== null) {
+            return cachedRet;
+        }
+
+        const ret = this.enterFunctionCall(node, callee, calleePath, argValues);
+
+        if (ret !== null) {
+            this.callManager.cacheReturnValuesForCallSite(
+                node, callee, obj, argValues, ret
+            );
+        }
+
+        return ret;
+    }
+
     private determineReturnValues(node: CallExpression): ValueSet | null {
         const callees = this.callManager.getCallees(node);
 
@@ -1436,7 +1465,11 @@ export class Analyzer {
                     new Set([callee])
                 );
             } else {
-                returnValues = this.enterFunctionCall(node, callee, calleePath);
+                returnValues = this.getReturnValuesForFunctionCall(
+                    node,
+                    callee,
+                    calleePath
+                );
             }
             if (returnValues) {
                 result = (result || new ValueSet()).join(returnValues);
