@@ -1,0 +1,25 @@
+---
+layout: default
+---
+
+{% if page.lang == 'ru' %}
+  {% assign otherlang='en' %}
+{% else %}
+  {% assign otherlang='ru' %}
+{% endif %}
+<article class="post">
+  <h1>{% if page.titleoverride %}{{ page.titleoverride }}{% else %}{{ page.title }}{% endif %}</h1>
+  <div>
+    <span class="date">{{ page.date | date: "%B %e, %Y" }} • {{page.author}}</span>
+    <span class="post-otherlang-link"><a href="https://blog.secsem.ru/ru/mining-requests-from-js-with-static-analysis/">Читать на русском языке</a></span>
+  </div>
+
+  <div class="entry">
+    {{ content }}
+  </div>
+
+  <!--<div class="date">
+    Written on {{ page.date | date: "%B %e, %Y" }}
+  </div>-->
+
+</article>

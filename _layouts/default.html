@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% if page.title %}{{ page.title }} – {% endif %}{{ site.name }} – {{ site.description }}</title>
+
+    {% include meta.html %}
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    {% assign local_baseurl='https://blog.secsem.ru' | append: '/' | append: page.lang %}
+
+    <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/style.css" />
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} - {{ site.description }}" href="https://blog.secsem.ru/feed/en.xml" />
+
+  </head>
+
+  <body>
+    <div class="wrapper-masthead">
+      <div class="headercontainer">
+        <header class="masthead clearfix">
+          <a href="{{ local_baseurl }}/" class="site-avatar"><img src="{{ site.avatar }}" /></a>
+
+          <div class="site-info">
+            <h1 class="site-name"><a href="{{ local_baseurl }}/">{{ site.name }}</a></h1>
+            <p class="site-description">{{ site.description }}</p>
+          </div>
+
+          <nav>
+            <a href="{{ local_baseurl }}/about">{% if page.lang == "ru" %}О лабе{% else %}About{% endif %}</a>
+            {% if page.lang == "ru" %}
+            <a href="https://blog.secsem.ru/en/">English version</a>
+            {% else %}
+            <a href="https://blog.secsem.ru/ru/">Русская версия</a>
+            {% endif %}
+          </nav>
+        </header>
+      </div>
+    </div>
+
+    <div id="main" role="main" class="container">
+      {{ content }}
+    </div>
+
+    <div class="wrapper-footer">
+      <div class="container">
+        <footer class="footer">
+          {% include svg-icons.html %}
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

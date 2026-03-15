@@ -1,0 +1,22 @@
+---
+layout: default
+lang: "ru"
+---
+
+{% assign posts=site.posts | where: "lang", page.lang %}
+<div class="posts">
+  {% for post in posts %}
+    <article class="post">
+
+      <h1><a href="{{ site.baseurl }}{{ post.url }}">{% if post.titleoverride %}{{ post.titleoverride }}{% else %}{{ post.title }}{% endif %}</a></h1>
+
+      <div class="date">{{ post.date | date: "%B %e, %Y" }}</div>
+
+      <div class="entry">
+        {{ post.excerpt }}
+      </div>
+
+      <a href="{{ site.baseurl }}{{ post.url }}" class="read-more">Читать дальше</a>
+    </article>
+  {% endfor %}
+</div>
